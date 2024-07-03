@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ /********************************************************************************
+  ~ Copyright (C) QuantActions AG - All Rights Reserved
+  ~ Unauthorized copying of this file, via any medium is strictly prohibited
+  ~ Proprietary and confidential
+  ~ Written by Enea Ceolini <enea.ceolini@quantactions.com>, July 2024
+  ~ *********************************************************************************/
+  -->
+
+<resources>
+
+    <string name="app_name">TapCounter</string>
+    <string name="month">Month</string>
+    <string name="week">Week</string>
+    <string name="day">Day</string>
+
+    <string name="email">Email</string>
+    <string name="share">Share</string>
+    <string name="preferences">Preferences</string>
+    <string name="pref_sync">Data Synchronization</string>
+    <string name="participate">Participate</string>
+    <string name="app_intro">Welcome</string>
+    <string name="max_speed">Max Speed</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_main2">Main2Activity</string>
+    <string name="home">Home</string>
+    <string name="about">About</string>
+
+    <string name="mail">Submit data by email</string>
+
+    <string name="welcome">Welcome!</string>
+    <string name="set_up_1">We will now set up your TapCounter.\n</string>
+    <string name="set_up_2">Connect to your Gmail account.\n</string>
+    <string name="set_up_3">Locate your time zone. \n</string>
+    <string name="set_up_4">Turn TapCounter ON \n</string>
+    <string name="all_set">All set!</string>
+    <string name="close">Close</string>
+    <string name="add">Add Service</string>
+
+    <string name="hi_there">Hi There!</string>
+    <string name="hi_there_wrong">Oops</string>
+
+    <string name="set_up_draw">Turn TapCounter ON \n</string>
+
+    <string name="fast_tap">Fastest Tap Speed = %2.0f taps/s</string>
+    <string name="click_to_paste">Click to paste</string>
+    <string name="taps_recorded">Taps Recorded</string>
+
+    <string name="bluemix_route">https://tapcloud.eu-de.mybluemix.net</string>
+    <string name="bluemix_route_test">https://taptest.eu-de.mybluemix.net</string>
+
+    <string name="general_privacy_policy">
+        \n
+        <b>QuantActions Privacy Policy</b> \n
+\n
+*************************\n
+\n
+Please read these instructions carefully to determine which privacy policy (or policies) is (are) applicable to you.\n
+        \n
+        • If you are not a participant of a specific QuantActions data collection program, then the general privacy policy is applicable.\n
+        \n
+        • If you are a participant in a QuantActions data collection program, please see the program-specific privacy policy delivered to your App and your email. \n
+        \n
+        • You are in a collection program if you have copied and pasted a valid participation key into the QuantActions App.\n
+        \n
+        • If you are participating in multiple QuantActions data collection programs, then all of the program-specific privacy policies are applicable. \n
+        \n
+        • You will be notified of any changes to this policy through your App and email.\n
+\n
+*************************\n
+        \n
+<b>QuantActions General Privacy Policy </b>\n
+        \n
+<b>Date</b>: 17 January, 2017\n
+        \n
+<b>Company information</b>\n
+        \n
+The QuantActions TapCounter App belongs to QuantActions Ltd. (www.quantactions.com), a data science company based in Lausanne, Switzerland. QuantActions help businesses to understand their customers and employees. QuantActions technology transforms the behavioural patterns from touchscreen sensors into actionable insights. Privacy is important to QuantActions and to its customers: QuantActions services never record any user-generated content.\n
+\n
+<b>Overview</b>\n
+\n
+The data collected through the QuantActions TapCounter app is used as input for analysis of behavioral patterns based on touchscreen interactions. The raw data is stored and analysed by QuantActions on a secure cloud-based platform.\n
+\n
+<b>Data Collection</b>\n
+\n
+The following data is collected through the QuantActions TapCounter app: (1) The location information of the device with a resolution of 1 km (or 1 m if you voluntarily change the location settings on your mobile device); (2) The single email address you used to register your mobile device with Google; (3) The model of the mobile device on which the QuantActions TapCounter app is installed; (4) The unique identifier of your mobile device; (5) The timing of the touchscreen interactions; (6) the names and launch times of the apps run on the mobile device. The QuantActions TapCounter app DOES NOT collect credit card details, DOES NOT collect text or numbers typed into the keyboard, DOES NOT collect the websites visited and DOES NOT collect the screen coordinates of taps. Your data is routinely uploaded in encrypted form to the secure cloud-based platform operated by QuantActions.\n
+\n
+<b>Data processing and commercial use of the data</b>\n
+\n
+Your data is anonymised for further analysis and any commercial use. QuantActions processes the data to learn behavioural patterns and to develop new methods to quantify touchscreen actions. The learnt patterns and the methods may be sold to a third party, but without sharing any personal identification; i.e. the unique mobile identifier (number ‘4’ listed above) and your email address (‘2’ above) are never shared. As your data may be linked to broad environmental and anonymous behavioral databases, your data is archived for current and future research. Your anonymised data may be shared with the scientific community to further the basic understanding of human behavior. More specifically, the location information (‘1’) is used to verify your time zone and to link with environmental and anonymised behavioral databases. Your email address (‘2’) is used to synchronize the different devices registered on the Android platform. QuantActions DOES NOT release your email address to any third party without your consent. Your mobile device model number (‘3’) is used to adjust the touchscreen measurements for accuracy and correctness. Your unique phone identifier (‘4’) is used to identify the mobile device in the QuantActions database and also to synchronize in case of repeated installations. The timing of touchscreen interactions and the apps usage patterns (‘5’ and ‘6’) are further analysed to learn and measure human behaviour in general.\n
+\n
+<b>Removal of data from the data archive</b>\n
+\n
+If you wish your data to be removed from the archive, simply email data@quantactions.com from the same address as the one used to register your mobile device with the subject heading “DELETE MY DATA” in the subject line of the email.\n
+\n
+    </string>
+
+    <string name="gen_priv_pol">General Privacy Policy</string>
+    <string name="set_up_usage">Set Up usage</string>
+    <string name="account">Account</string>
+    <string name="location">Location</string>
+    <string name="pp">Privacy Policy</string>
+    <string name="qa_info">QuantActions \n EPFL Innovation Park \n B&#226;timent C \n Lausanne 1015 , Switzerland</string>
+    <string name="qa_link"><a href="https://www.quantactions.com">www.quantactions.com</a></string>
+    <string name="turn_off">Turn OFF this permission while we calibrate</string>
+    <string name="saved_gps_resolution">gps_resolution</string>
+    <string name="saved_checkin_status">is_check_in</string>
+    <string name="demo_study_success">You are now signed up for the auto check-in service. To sign out long click the service name</string>
+    <string name="study_success">Successfully signed up for study</string>
+    <string name="draw_permission">Click here to turn ON the permission for TapCounter</string>
+    <string name="success_withdraw">Successfully withdrawn from study!</string>
+
+    <string name="sign_up_please_wait">Signing up! Please wait …</string>
+    <string name="already_participating">You are already participating in this study</string>
+    <string name="wrong_part_id">Something is wrong… Check that you pasted the correct participation ID</string>
+    <string name="sign_up">Sign up for a service</string>
+    <string name="high_res_gps">High Resolution GPS</string>
+    <string name="set_preffered_sync">Set the preferred synchronization time</string>
+    <string name="sync_time">Synchronization time</string>
+    <string name="manual_sync">Manual synchronization to Server</string>
+    <string name="sync_now">Sync now</string>
+    <string name="email_data">Email Data</string>
+    <string name="yes">YES</string>
+    <string name="no_no">NO</string>
+    <string name="next">NEXT</string>
+
+    <string name="nav_header_img">nav_header_img</string>
+    <string name="overlay_img">overlay_img</string>
+    <string name="wiz_wand">wiz_wand</string>
+    <string name="google_img">google_img</string>
+    <string name="next_img">next_img</string>
+    <string name="silly_text_view">Text View</string>
+    <string name="qa_email"><a href="mailto:tapcounter@quantactions.com">Contact Us</a></string>
+    <string name="center_pending">center_pending</string>
+    <string name="retry">retry</string>
+    <string name="pending_sign_up">pending_sign_up</string>
+
+    <string name="draw_needed">draw_needed</string>
+    <string name="contacts_needed">contacts_needed</string>
+    <string name="app_id_needed">app_id_needed</string>
+    <string name="location_needed">location_needed</string>
+
+    <string name="active_services">Active services</string>
+    <string name="cant_withdraw">Sorry! It is not possible to manually withdraw from this service.</string>
+    <string name="sure_withdraw">Are you sure you want to withdraw from this service ?</string>
+    <string name="withdraw_wait">Withdrawing! Please wait…</string>
+    <string name="could_not_withdraw">Tentative of withdraw failed. Please try again later.</string>
+    <string name="long_click">Press and hold to withdraw.</string>
+    <string name="withdraw">Withdraw</string>
+    <string name="warning_permissions">Warning!</string>
+    <string name="could_not_sign_up">Sign-up failed. Please try again later.</string>
+    <string name="might_not_work">Signed-up for new service. Change in permission settings may be needed</string>
+    <string name="warning_message">TapCounter cannot fully operate, please change your permission settings.</string>
+
+    <string name="give_permission">Give Permission</string>
+    <string name="offline_title">No Connectivity</string>
+    <string name="offline_message">TapCounter will attempt to sign-up for this new service as soon as you are online.</string>
+    <string name="cancel">Cancel</string>
+    <string name="keepdata">Request to delete all of my data</string>
+    <string name="tipservices">Only for data collection programs</string>
+
+
+    <string name="sync_account_type">tacounter.example.com</string>
+    <string name="content_authority">com.example.android.api.app</string>
+    <string name="saved_date">saved_date</string>
+    <string name="saved_perm">saved_perm</string>
+    <string name="saved_app_count">saved_app_count</string>
+    <string name="pending_firebase_token">pending_fb</string>
+    <string name="notification_title">QA API</string>
+
+    <string name="test_token">test-86e6ed36-e702-4f96-a5a7-a5c4540fa197-test-8bbd320b-cdd0-4171-8e97-4d1f4e4ba45a</string>
+    <string name="test_device">7046bdd2-02ca-44a2-827f-d54639cd3165</string>
+    <string name="demo_part_id">aef3demoStudy1de19</string>
+    <string name="ERROR">error</string>
+
+    <string name="notification_channel_id_qa">qa_channel_01</string>
+    <string name="notification_channel_name_qa">QA Service</string>
+    <string name="notification_channel_desc_qa">RelaunchWorker</string>
+    <string name="do_not_show_again">Do not show again</string>
+    <string name="TAG">QuantActionsSDK</string>
+
+</resources>

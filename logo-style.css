@@ -1,0 +1,15 @@
+.library-name a {
+    position: relative;
+    margin-left: 210px;
+}
+
+.library-name a::before {
+    content: '';
+    background: url("https://strapi.qavm2.quantactions.com/uploads/qa_white_logo_fe917a37cb.png") center no-repeat;
+    background-size: contain;
+    position: absolute;
+    width: 200px;
+    height: 50px;
+    top: -17px;
+    left: -210px;
+}

@@ -1,0 +1,98 @@
+# Android
+# Build your Android project with Gradle.
+# Add steps that test, sign, and distribute the APK, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/android
+
+trigger:
+- master
+
+pool:
+  name: 'Default'
+
+steps:
+
+- task: Bash@3
+  displayName: 'Prepare Secrets'
+  inputs:
+    targetType: 'inline'
+    script: echo $SIGNING_KEY | base64 -d > ./tc/release.jks; 
+          echo "RELEASE_STORE_FILE=release.jks" >> local.properties;
+          echo "RELEASE_STORE_PASSWORD=$KEY_STORE_PASSWORD" >> local.properties;
+          echo "RELEASE_KEY_ALIAS=$ALIAS" >> local.properties;
+          echo "RELEASE_KEY_PASSWORD=$KEY_PASSWORD" >> local.properties;
+          echo "bintray.user=$BINTRAY_USER" >> local.properties; 
+          echo "bintray.apikey=$BINTRAY_API_KEY" >> local.properties;
+      
+          gcloud auth activate-service-account pushnotificationtap@appspot.gserviceaccount.com --key-file=/home/azureagent/pushnotificationtap-612444806675.json --project=pushnotificationtap;
+  env:
+    SIGNING_KEY: $(SIGNING_KEY)
+    KEY_STORE_PASSWORD: $(KEY_STORE_PASSWORD)
+    ALIAS: $(ALIAS)
+    KEY_PASSWORD: $(KEY_PASSWORD)
+    BINTRAY_USER: $(BINTRAY_USER)
+    BINTRAY_API_KEY: $(BINTRAY_API_KEY)
+
+- task: Gradle@2
+  inputs:
+    workingDirectory: ''
+    gradleWrapperFile: 'gradlew'
+    gradleOptions: '-Xmx512m'
+    options: |  # Multi-line string for options
+      -Ptest.apiKey=$(TEST_API_KEY)
+      -Ptest.identityId=$(TEST_IDENTITY_ID)
+      -Ptest.deviceId=$(TEST_DEVICE_ID)
+      -Ptest.password=$(TEST_PASSWORD)
+      -Ptest.participationId=$(TEST_PARTICIPATION_ID)
+      -Ptest.studyId=$(TEST_STUDY_ID)
+    publishJUnitResults: true
+    testResultsFiles: '**/TEST-*.xml'
+    tasks: 'test assembleDebug assembleDebugAndroidTest :app:currentVersion assembleRelease'
+  env:
+    TEST_API_KEY: $(TEST_API_KEY)
+    TEST_IDENTITY_ID: $(TEST_IDENTITY_ID)
+    TEST_DEVICE_ID: $(TEST_DEVICE_ID)
+    TEST_PASSWORD: $(TEST_PASSWORD)
+    TEST_PARTICIPATION_ID: $(TEST_PARTICIPATION_ID)
+    TEST_STUDY_ID: $(TEST_STUDY_ID)
+- task: CopyFiles@2
+  inputs:
+    contents: '**/*.apk'
+    targetFolder: '$(build.artifactStagingDirectory)'
+- task: PublishBuildArtifacts@1
+
+- task: Bash@3
+  displayName: 'Firebase Instr. tests (SDK)'
+  inputs:
+    targetType: 'inline'
+    script: gcloud firebase test android run --type instrumentation --app $APP_APK --test $TEST_APK --device model=Pixel3,version=30,locale=en,orientation=portrait --results-dir=test_sdk_results --environment-variables apiKey=$TEST_API_KEY,testIdentityId=$TEST_IDENTITY_ID,testDeviceId=$TEST_DEVICE_ID,testPassword=$TEST_PASSWORD,testParticipationId=$TEST_PARTICIPATION_ID,testStudyId=$TEST_STUDY_ID;
+  env:
+    TEST_APK: $(TEST_SDK_APK)
+    APP_APK: $(TEST_APP_APK)
+    TEST_API_KEY: $(TEST_API_KEY)
+    TEST_IDENTITY_ID: $(TEST_IDENTITY_ID)
+    TEST_DEVICE_ID: $(TEST_DEVICE_ID)
+    TEST_PASSWORD: $(TEST_PASSWORD)
+    TEST_PARTICIPATION_ID: $(TEST_PARTICIPATION_ID)
+    TEST_STUDY_ID: $(TEST_STUDY_ID)
+
+#- task: Bash@3
+#  displayName: 'Firebase UI tests (TC)'
+#  inputs:
+#    targetType: 'inline'
+#    script: gcloud firebase test android run --type instrumentation --app $APP_APK --test $TEST_APK --test-targets="class com.quantactions.tapcounter.FullTest" --device model=flame,version=29,locale=en,orientation=portrait --results-dir=test_tc_results/
+#  env:
+#    TEST_APK: $(TEST_TC_APK)
+#    APP_APK: $(APP_APK)
+
+- task: Bash@3
+  displayName: 'Retrieve test results'
+  inputs:
+    targetType: inline
+    script: gsutil cp gs://test-lab-x186ifk5q10q4-k8d32juhknhic/test_sdk_results/Pixel3-30-en-portrait/test_result_1.xml ./test_result_sdk_1.xml;
+#            gsutil cp gs://test-lab-x186ifk5q10q4-k8d32juhknhic/test_tc_results/flame-29-en-portrait/test_result_1.xml ./test_result_tc_1.xml;
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: '**/test_result_*.xml'
+
