@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ /********************************************************************************
+  ~ Copyright (C) QuantActions AG - All Rights Reserved
+  ~ Unauthorized copying of this file, via any medium is strictly prohibited
+  ~ Proprietary and confidential
+  ~ Written by Enea Ceolini <enea.ceolini@quantactions.com>, July 2024
+  ~ *********************************************************************************/
+  -->
+
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <!--Root container-->
+    <RelativeLayout
+        android:id="@+id/root_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:ignore="UselessParent">
+
+        <!--View while view is collapsed-->
+        <RelativeLayout
+            android:id="@+id/collapse_view"
+            android:layout_width="wrap_content"
+            android:visibility="visible"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!--Icon of floating widget -->
+            <ImageView
+                android:id="@+id/collapsed_iv"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:src="@drawable/baseline_android_black_18dp"
+                tools:ignore="ContentDescription"/>
+
+            <!--Close button-->
+            <ImageView
+                android:id="@+id/close_btn"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginLeft="40dp"
+                android:src="@drawable/baseline_cancel_black_18dp"
+                tools:ignore="ContentDescription"/>
+        </RelativeLayout>
+
+        <!--View while view is expanded-->
+        <LinearLayout
+            android:id="@+id/expanded_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#AA333333"
+            android:visibility="gone"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/debug_events"
+                android:layout_width="500dp"
+                android:layout_height="150dp"
+                android:layout_marginTop="8dp"
+                android:layout_weight="1"
+                android:text=""
+                android:textColor="#ECE5E5" />
+
+            <TextView
+                android:id="@+id/debug_apps"
+                android:layout_weight="1"
+                android:layout_width="500dp"
+                android:layout_height="150dp"
+                android:layout_marginTop="8dp"
+                android:textColor="#ECE5E5"
+                android:text="" />
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:id="@+id/close_button"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/baseline_cancel_black_18dp"/>
+
+            </RelativeLayout>
+        </LinearLayout>
+    </RelativeLayout>
+</FrameLayout>

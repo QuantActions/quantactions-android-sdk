@@ -1,0 +1,19 @@
+<!--
+  ~ /********************************************************************************
+  ~ Copyright (C) QuantActions AG - All Rights Reserved
+  ~ Unauthorized copying of this file, via any medium is strictly prohibited
+  ~ Proprietary and confidential
+  ~ Written by Enea Ceolini <enea.ceolini@quantactions.com>, July 2024
+  ~ *********************************************************************************/
+  -->
+
+<resources>
+    <bool name="isTablet">false</bool>
+    <declare-styleable name="PieChart">
+        <attr name="showText" format="boolean" />
+        <attr name="labelPosition" format="enum">
+            <enum name="left" value="0"/>
+            <enum name="right" value="1"/>
+        </attr>
+    </declare-styleable>
+</resources>
