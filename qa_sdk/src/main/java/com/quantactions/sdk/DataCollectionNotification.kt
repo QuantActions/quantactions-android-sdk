@@ -8,6 +8,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import androidx.annotation.Keep
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -58,7 +59,10 @@ open class UpdateTaps(override val qa: QA) : DataCollectionNotification {
         val mBuilder = NotificationCompat.Builder(context, channelID)
         mBuilder.setStyle(NotificationCompat.DecoratedCustomViewStyle())
         mBuilder.setSmallIcon(R.drawable.ic_equalizer_black_24dp)
-        mBuilder.color = context.resources.getColor(R.color.brand_background_icon_color)
+        mBuilder.color = ContextCompat.getColor(
+            context,
+            R.color.brand_background_icon_color
+        )
         mBuilder.setWhen(0)
         mBuilder.setOngoing(true)
         mBuilder.setContentText("Taps last 24h: $lastTaps\nSpeed last 24h: ${"%.2f".format(lastSpeed * 60)} taps/m")

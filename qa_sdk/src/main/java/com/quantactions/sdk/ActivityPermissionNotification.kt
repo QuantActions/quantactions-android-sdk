@@ -9,6 +9,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -48,7 +49,10 @@ open class ActivityPermissionNotificationImpl : ActivityPermissionNotification {
         val mBuilder = NotificationCompat.Builder(context, channelID)
         mBuilder.setStyle(NotificationCompat.DecoratedCustomViewStyle())
         mBuilder.setSmallIcon(R.drawable.ic_equalizer_black_24dp)
-        mBuilder.color = context.resources.getColor(R.color.brand_background_icon_color)
+        mBuilder.color = ContextCompat.getColor(
+            context,
+            R.color.brand_background_icon_color
+        )
         mBuilder.setWhen(0)
         mBuilder.setOngoing(true)
         mBuilder.setContentTitle("Action Required: TapCounter needs a permission")

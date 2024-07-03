@@ -19,13 +19,13 @@ buildscript {
         maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.2'
-        classpath 'com.google.gms:google-services:4.4.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22"
+        classpath 'com.android.tools.build:gradle:8.5.0'
+        classpath 'com.google.gms:google-services:4.4.2'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:1.9.20"
         classpath "org.jetbrains.dokka:android-documentation-plugin:1.7.20"
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'
-        classpath "org.jetbrains.kotlin:kotlin-serialization:1.9.22"
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.2'
+        classpath "org.jetbrains.kotlin:kotlin-serialization:2.0.0"
 
         // Two necessary plugins
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
@@ -41,9 +41,9 @@ buildscript {
 
 }
 
-//plugins {
-//    id 'com.google.devtools.ksp' version '1.8.10-1.0.9' apply false
-//}
+plugins {
+    id 'com.google.devtools.ksp' version '2.0.0-1.0.22' apply false
+}
 
 apply plugin: "org.jetbrains.dokka"
 
@@ -158,12 +158,13 @@ afterEvaluate {
     }
 }
 
-task cleanDokkaModuleDocs() {
+tasks.register('cleanDokkaModuleDocs') {
     subprojects {
         delete file("$rootProject.name-$project.name-dokka")
     }
 }
 
-task clean(type: Delete, dependsOn: cleanDokkaModuleDocs) {
+tasks.register('clean', Delete) {
+    dependsOn cleanDokkaModuleDocs
     delete rootProject.buildDir
 }
