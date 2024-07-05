@@ -55,8 +55,8 @@ open class ActivityPermissionNotificationImpl : ActivityPermissionNotification {
         )
         mBuilder.setWhen(0)
         mBuilder.setOngoing(true)
-        mBuilder.setContentTitle("Action Required: TapCounter needs a permission")
-        mBuilder.setContentText("Tap to open TapCounter and grant permission for seamless data collection")
+        mBuilder.setContentTitle(context.getString(R.string.action_required_app_needs_a_permission))
+        mBuilder.setContentText(context.getString(R.string.tap_to_open_and_grant_permission))
         mBuilder.setAutoCancel(true)
         mBuilder.setContentIntent(
             PendingIntent.getActivity(
