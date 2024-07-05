@@ -1119,6 +1119,9 @@ class MVPRepository @Inject private constructor(
 
     suspend fun getParticipations(studyId: String? = null): List<Subscription> {
 
+        // re-login for good measure
+        tokenApi.login(getBasicAuthHeader(preferences))
+
         if (deviceID == "") {
             return listOf()
         }
