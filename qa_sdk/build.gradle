@@ -201,7 +201,7 @@ dokkaHtmlPartial.configure {
 }
 
 dokkaHtml.configure {
-    outputDirectory.set(file("../../QA-Android-SDK-docs/docs"))
+    outputDirectory.set(file("../docs"))
     dokkaSourceSets {
         configureEach {
             moduleName.set("SDK")
