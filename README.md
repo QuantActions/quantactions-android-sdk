@@ -386,11 +386,11 @@ Get in touch [with us](mailto:development@quantactions.com) for more information
 ## 15. Issue tracking and contact
 Feel free to use the issue tracking of this repo to report any problem with the SDK, in case of more immediate assistance need feel free to contact us at [development@quantactions.com](mailto:development@quantactions.com)
 
-#Package com.quantactions.sdk
+## Package com.quantactions.sdk
 The main functionality of the Quantactions Android SDK.
 
-#Package com.quantactions.sdk.data.entity
+## Package com.quantactions.sdk.data.entity
 Entities used across the SDK for particular functionalities.
 
-#Package com.quantactions.sdk.exceptions
+## Package com.quantactions.sdk.exceptions
 Exceptions that the SDK might be throwing.
