@@ -62,3 +62,4 @@ commitlint.config.js
 
 debug.keystore
 app/google-services.json
+/github.properties
