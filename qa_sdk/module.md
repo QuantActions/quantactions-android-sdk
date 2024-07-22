@@ -105,11 +105,12 @@ qa.init(context,
 
 ## 3. Request the permissions
 
-For the SDK to work properly, the app that uses it needs to request 2 permissions:
-- OVERLAY PERMISSION: `Settings.ACTION_MANAGE_OVERLAY_PERMISSION`
-- USAGE ACCESS: `Settings.ACTION_USAGE_ACCESS_SETTINGS`
+For the SDK to work properly, the app that uses it needs to request 3 permissions:
+1. OVERLAY PERMISSION: `Settings.ACTION_MANAGE_OVERLAY_PERMISSION`
+2. USAGE ACCESS: `Settings.ACTION_USAGE_ACCESS_SETTINGS`
+3. ACTIVITY RECOGNITION: `Manifest.permission.ACTIVITY_RECOGNITION`
 
-To prompt the user to enable these permissions you can use the methods
+To prompt the user to enable 1. and 2. you can use the methods offered by the QA singleton
 
 ```kotlin
 qa.requestOverlayPermission(context) // opens overlay settings page
@@ -120,7 +121,34 @@ Since these permissions can be revoked at any time by the user, it is important 
 that they are granted, to do so the easiest way is to have background scheduled task that check that the permissions are granted
 using `qa.canUsage(context)` and `qa.canDraw(context)` and fire a notification in case the permissions have been lost.
 
+Permission 3. is needed to run from Android 14 on (SDK 34). Differently from the other two, this is 
+a runtime permission that you can request in the usual way e.g.
+
+```kotlin
+if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED) {
+    ActivityCompat.requestPermissions(context, arrayOf(Manifest.permission.ACTIVITY_RECOGNITION), 0)
+}
+```
+
+Note that without this permission the SDK will not be able to collect data (i.e. the background worker will not be able to run).
+We suggest to ask this permission during the app onboarding process and to initialize the QuantActions SDK only after all the permissions have been granted.
+
+
 -----
+
+### 3a. Android 14+ 
+
+Because QA SDK is always active in the background, Android API O and above require a notification to always be present to inform the user, by default the notification uses [this](https://fonts.google.com/icons?selected=Material%20Icons%20Outlined%3Aequalizer%3A) icon. To override it and use your own icon you can simply create a drawable named `ic_equalizer_black_24dp` and place it in your `res/drawable` folder and this will override the drawable of the SDK.
+
+From Android 14 (SDK 34), the OS is more strict with background/foreground service, hence the foreground data collection needs to
+be properly shown to the user with a explanatory notification. The SDK provides a [default notification](com.quantactions.sdk.UpdateTaps) that shows to the user the number of taps in the last 24 hours and the current tapping speed.
+You can override this notification by implementing the interface [`DataCollectionNotification`](com.quantactions.sdk.DataCollectionNotification) and overriding the `createNotification` and `updateNotification` methods.
+Finally you need to inform the SDK of the new notification in the following way:
+
+```kotlin 
+qa.updater = MyCustomNotification(qa)
+```
+Note that the SDK notification uses a separate notification channel called `QA Service` and can be easily unselected by the user from the OS notifications settings to avoid having it always present.
 
 ## 4. Sign-up to a cohort
 To track a device it is **necessary** to subscribe the device to a cohort. Each device can be subscribed in two ways. For a cohort with a known number of devices to track, QuantActions provides a set of codes (subscriptionIds) of the form `138e...28eb` that have to be distributed. The way the code is entered into the app is the choice of the developer. In our TapCounter R&D app we use both a copy&paste method and a QR code scanning method, once the code as been acquired the device can then be registered using the SDK
@@ -174,14 +202,8 @@ For the best experience with the SDK we strongly recommend to add to your app [F
 
 ------------------
 
-## 7. The notification icon
-Because QA SDK is always active in the background, Android API O and above require a notification to always be present to inform the user, by default the notification uses [this](https://fonts.google.com/icons?selected=Material%20Icons%20Outlined%3Aequalizer%3A) icon. To override it and use your own icon you can simply create a drawable named `ic_equalizer_black_24dp` and place it in your `res/drawable` folder and this will override the drawable of the SDK.
 
-Moreover the SDK notification uses a separate notification channel called `QA Service` and can be easily unselected by the user from the OS notifications settings to avoid having it always present.
-
--------
-
-## 8. TL:DR
+## 7. TL:DR
 Minimal example
 
 - Get a `QA_API_KEY` from [QuantActions](mailto:development@quantactions.com)
@@ -252,7 +274,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var mainViewModel: MainViewModel
     private val calendar: Calendar = Calendar.getInstance(Locale.ENGLISH)
-    private lateinit var mainTextView: TextView;
+    private lateinit var mainTextView: TextView
     
     @ExperimentalCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -262,6 +284,7 @@ class MainActivity : AppCompatActivity() {
         qa.init(MainActivity.this, QA_API_KEY, 1985, QA.Gender.MALE, true) // initialize SDK
         qa.requestOverlayPermission(MainActivity.this) // opens overlay settings page
         qa.requestUsagePermission(MainActivity.this) // opens usage settings page
+        ActivityCompat.requestPermissions(context, arrayOf(Manifest.permission.ACTIVITY_RECOGNITION), 0) // requests runtime permission
         qa.subscribe(cohortId=QA_COHORT_ID)  // register the device with the backend
         qa.syncData() // optional: sync the data
     }

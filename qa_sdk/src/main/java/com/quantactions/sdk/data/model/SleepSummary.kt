@@ -82,10 +82,10 @@ data class SleepSummary (
 
     fun serialize() : SerializableSleepSummary {
         return SerializableSleepSummary(
-            sleepStart.toEpochSecond().toString() + "+" + sleepStart.zone.id,
-            sleepEnd.toEpochSecond().toString() + "+" + sleepEnd.zone.id,
-            interruptionsStart.map { it.toEpochSecond().toString() + "+" + sleepStart.zone.id },
-            interruptionsEnd.map { it.toEpochSecond().toString() + "+" + sleepStart.zone.id },
+            sleepStart.toEpochSecond().toString() + "=" + sleepStart.zone.id,
+            sleepEnd.toEpochSecond().toString() + "=" + sleepEnd.zone.id,
+            interruptionsStart.map { it.toEpochSecond().toString() + "=" + sleepStart.zone.id },
+            interruptionsEnd.map { it.toEpochSecond().toString() + "=" + sleepStart.zone.id },
             interruptionsNumberOfTaps
         )
     }

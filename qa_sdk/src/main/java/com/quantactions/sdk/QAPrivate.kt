@@ -10,10 +10,14 @@
 
 package com.quantactions.sdk
 
+import android.Manifest
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.os.Build
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.work.*
 import com.google.firebase.crashlytics.ktx.crashlytics
@@ -73,6 +77,7 @@ internal class QAPrivate private constructor(
         }
     }
 
+    var activityPermissionNotification: ActivityPermissionNotification = ActivityPermissionNotificationImpl()
     val deviceID: String
         get() = repository.deviceID
     val identityId: String
@@ -526,6 +531,10 @@ internal class QAPrivate private constructor(
         makeServiceForeground(context)
     }
 
+    fun canActivity(context: Context): Boolean {
+        return repository.canActivity(context)
+    }
+
     fun canDraw(context: Context): Boolean {
         return repository.canDraw(context)
     }
@@ -541,7 +550,26 @@ internal class QAPrivate private constructor(
     ): Boolean {
         return try {
             if (!preferences.isDataCollectionPaused && isDeviceRegistered()) {
-                ContextCompat.startForegroundService(context, intent)
+                val result: Int =
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION)
+                    } else {
+                        PackageManager.PERMISSION_GRANTED
+                    }
+                if (result == PackageManager.PERMISSION_GRANTED) {
+                    ContextCompat.startForegroundService(context, intent)
+                } else {
+                    Log.d("RESTARTER", "PERMISSION IS NOT ENABLED WE NEED TO ASK")
+                    // Send notification to user to enable the permission
+                    val notification = activityPermissionNotification.createNotification(
+                        context,
+                        context.getString(R.string.notification_channel_id_qa)
+                    )
+                    val notificationManager =
+                        context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+                    notificationManager?.notify(1, notification)
+                }
+
             }
             true
         } catch (e: Exception) {

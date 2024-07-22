@@ -22,6 +22,11 @@ data class HealthDataBody(
 )
 
 @JsonClass(generateAdapter = true)
+data class ActivityBody(
+    val records: List<ActivityToPush>,
+)
+
+@JsonClass(generateAdapter = true)
 data class TapDataParsedToPush(
     val id: String,
     val taps: List<Long>,
@@ -38,4 +43,11 @@ data class DeviceHealthParsedToPush(
     val timestamp: Long,
     val charge: Int,
     val id: String,
+)
+
+@JsonClass(generateAdapter = true)
+data class ActivityToPush(
+    val timestamp: Long,
+    val activity: String,
+    val transition: Int,
 )

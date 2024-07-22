@@ -91,6 +91,12 @@ class QA private constructor(
     val firebaseToken: String?
         get() = qaPrivate.getFirebaseToken()
 
+    var updater: DataCollectionNotification = UpdateTaps(this)
+
+    fun setActivityPermissionNotification(activityPermissionNotification: ActivityPermissionNotification) {
+        qaPrivate.activityPermissionNotification = activityPermissionNotification
+    }
+
     /**
      * Pause the data collection.
      * @param context Android application context
@@ -240,10 +246,9 @@ class QA private constructor(
 
     /**
      * Use this function to subscribe the device to your(one of your) cohort(s).
-     * @param cohortId can be cohort ID (`aef3...de19`) or subscription ID (`138e...28eb`).
-     * @param subscriptionId can be cohort ID (`aef3...de19`) or subscription ID (`138e...28eb`).
-     * @return Flow object containing the status of the response and the [SubscriptionWithQuestionnaires] object.
-     * The QAResponse will hold info about the study if the call is successful or a message about the failed call.
+     * @param cohortId UUID of the cohort to subscribe tom will be assigned a random subscription ID
+     * @param subscriptionId UUID of the subscription, this subscription must already exist in the cohort.
+     * @return Object containing the [SubscriptionWithQuestionnaires] object.
      */
     @Throws(QASDKException::class)
     suspend fun subscribe(
@@ -330,6 +335,16 @@ class QA private constructor(
             )
         }
         return QAStrings.QA_ALREADY_GRANTED
+    }
+
+    /**
+     * Returns whether or not the `activity recognition` permission has been granted
+     * @param context Android application context
+     * @return status of activity Recognition permission
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun canActivity(context: Context): Boolean {
+        return qaPrivate.canActivity(context)
     }
 
     /**

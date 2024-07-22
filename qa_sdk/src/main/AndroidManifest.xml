@@ -17,8 +17,14 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- Required for 28 and below -->
+    <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION" />
+
+    <!-- Required for 29+. -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+
 
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
 
@@ -34,22 +40,21 @@
 
     <application>
 
-        <service
-            android:name=".ReadingsService"
-            android:exported="true"
-            android:enabled="true"
-            android:permission="android.permission.FOREGROUND_SERVICE"
-            />
-
 <!--        <service-->
 <!--            android:name=".ReadingsService"-->
 <!--            android:exported="true"-->
 <!--            android:enabled="true"-->
 <!--            android:permission="android.permission.FOREGROUND_SERVICE"-->
-<!--            android:foregroundServiceType="specialUse"-->
-<!--            >-->
-<!--            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="tappigraphy"/>-->
-<!--        </service>-->
+<!--            />-->
+
+        <service
+            android:name=".ReadingsService"
+            android:exported="true"
+            android:enabled="true"
+            android:permission="android.permission.FOREGROUND_SERVICE"
+            android:foregroundServiceType="health"
+            >
+        </service>
 
         <receiver android:name=".QABroadcastReceiver"
             android:exported="false">
@@ -69,6 +74,14 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".DetectedActivityReceiver"
+            android:exported="false"
+            android:permission="com.google.android.gms.permission.ACTIVITY_RECOGNITION">
+            <intent-filter>
+                <action android:name="com.mypackage.ACTION_PROCESS_ACTIVITY_TRANSITIONS" />
             </intent-filter>
         </receiver>
 

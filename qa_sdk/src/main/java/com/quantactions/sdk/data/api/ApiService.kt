@@ -27,6 +27,7 @@ import com.quantactions.sdk.data.entity.StatisticEntity
 import com.quantactions.sdk.data.entity.StatisticStringEntity
 import com.quantactions.sdk.data.entity.TrendEntity
 import com.quantactions.sdk.data.model.*
+import com.quantactions.sdk.data.repository.ActivityBody
 import com.quantactions.sdk.data.repository.HealthDataBody
 import com.quantactions.sdk.data.repository.TapDataBody
 import com.squareup.moshi.JsonClass
@@ -151,6 +152,13 @@ interface ApiService {
     ): ApiResponse<Void>
 
     // OK
+    @POST("flows/identities/{identityId}/devices/{deviceId}/recordings")
+    suspend fun submitActivity(
+        @Path("identityId") identityId: String,
+        @Path("deviceId") deviceId: String,
+        @Body activityBody: ActivityBody
+    ): ApiResponse<ActivityBody>
+
     @POST("flows/identities/{identityId}/devices/{deviceId}/recordings")
     suspend fun submitTap(
         @Path("identityId") identityId: String,

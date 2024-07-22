@@ -15,6 +15,7 @@ import androidx.room.*
 import com.quantactions.sdk.data.entity.*
 import com.quantactions.sdk.data.model.ResolvedJournalEntries
 import kotlinx.coroutines.flow.Flow
+import java.sql.Timestamp
 
 
 @Dao
@@ -80,8 +81,14 @@ interface MVPDao {
     @Query("SELECT * from taps_table WHERE sync=0 ORDER BY start DESC")
     fun getTapDataParsedToSync(): List<TapDataParsed>
 
+    @Query("SELECT * from activity_transition_table WHERE sync=0 ORDER BY timestamp DESC")
+    fun getActivityToSync(): List<ActivityTransitionEntity>
+
     @Query("UPDATE taps_table SET sync=1 WHERE start in (:starts)")
     fun updateTapDataParsedSyncStatus(starts: List<Long>)
+
+    @Query("UPDATE activity_transition_table SET sync=1 WHERE timestamp in (:timestamps)")
+    fun updateActivitySyncStatus(timestamps: List<Long>)
 
     @Query("DELETE FROM taps_table WHERE id in (:idsToDelete)")
     fun removeInvalidTapSessions(idsToDelete: List<Int>)
@@ -277,5 +284,8 @@ interface MVPDao {
 
     @Query("DELETE FROM studies")
     fun deleteStudies()
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrUpdateActivityTransition(action: ActivityTransitionEntity)
 
 }

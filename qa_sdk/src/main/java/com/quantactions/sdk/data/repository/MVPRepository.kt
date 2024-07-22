@@ -43,6 +43,7 @@ import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
 import com.quantactions.sdk.data.api.getBasicAuthHeader
 import com.quantactions.sdk.data.api.responses.JournalEntriesResponse
 import com.quantactions.sdk.data.api.responses.RegistrationResponse
+import com.quantactions.sdk.data.entity.ActivityTransitionEntity
 import com.quantactions.sdk.data.entity.CodeOfApp
 import com.quantactions.sdk.data.entity.Cohort
 import com.quantactions.sdk.data.entity.HourlyTapsEntity
@@ -170,6 +171,7 @@ class MVPRepository @Inject private constructor(
     private lateinit var apiService: ApiService//.create(preferences, apiKey ?: preferences.apiKey)
     internal val mvpDao = getDatabase(context).mvpDao()
     val workManager = WorkManager.getInstance(context)
+    private var canActivity = preferences.canActivity(context)
     private var canDraw = preferences.canDraw(context)
     private var canUsage = preferences.canUsage(context)
 
@@ -293,6 +295,11 @@ class MVPRepository @Inject private constructor(
                 getParticipations()
             }
         }
+    }
+
+    fun canActivity(context: Context): Boolean {
+        canActivity = preferences.canActivity(context)
+        return canActivity
     }
 
     fun canDraw(context: Context): Boolean {
@@ -1028,7 +1035,7 @@ class MVPRepository @Inject private constructor(
             filter.stringify()
         )) {
             is ApiSuccessResponse -> {
-                Timber.d("GOT study info ${response.body}")
+                Timber.d("GOT study info 2 ${response.body}")
                 val studyInfo = response.body!!.first { it.studyId == studyId }.study!!
                 // here I should retrieve the info about the study
                 val cohort = Cohort(
@@ -1079,7 +1086,7 @@ class MVPRepository @Inject private constructor(
             filter.stringify()
         )) {
             is ApiSuccessResponse -> {
-                Timber.d("GOT study info ${response.body}")
+                Timber.d("GOT study info 1 ${response.body}")
                 val studyInfo = response.body!!.study!!
                 // here I should retrieve the info about the study
                 val cohort = Cohort(
@@ -1111,6 +1118,9 @@ class MVPRepository @Inject private constructor(
 
 
     suspend fun getParticipations(studyId: String? = null): List<Subscription> {
+
+        // re-login for good measure
+        tokenApi.login(getBasicAuthHeader(preferences))
 
         if (deviceID == "") {
             return listOf()
@@ -1185,6 +1195,7 @@ class MVPRepository @Inject private constructor(
                     // here I cache the study info anyway
                     studyRegistrationResponse.forEach { participation ->
                         getStudyInfo(participation.studyId!!)
+                        getQuestionnaires(participation.studyId!!)
                     }
 
                     Timber.i("ParticipationIds: ${studyRegistrationResponse.map { it.id }}")
@@ -1441,6 +1452,16 @@ class MVPRepository @Inject private constructor(
         )
     }
 
+    suspend fun submitActivity(
+        activityBody: ActivityBody,
+    ): ApiResponse<ActivityBody> {
+        return apiService.submitActivity(
+            identityId,
+            deviceID,
+            activityBody
+        )
+    }
+
     suspend fun submitTapDataParsed(
         tapHealthDataBody: TapDataBody,
     ): ApiResponse<TapDataBody> {
@@ -1543,6 +1564,10 @@ class MVPRepository @Inject private constructor(
         mvpDao.updateTapDataParsedSyncStatus(startsToUpdate)
     }
 
+    fun updateActivitySyncStatus(startsToUpdate: List<Long>) {
+        mvpDao.updateActivitySyncStatus(startsToUpdate)
+    }
+
     fun removeInvalidTapSessions(sessionsToRemove: List<Int>) {
         mvpDao.removeInvalidTapSessions(sessionsToRemove)
     }
@@ -1553,6 +1578,10 @@ class MVPRepository @Inject private constructor(
 
     fun getTapDataParsedToSync(): List<TapDataParsed> {
         return mvpDao.getTapDataParsedToSync()
+    }
+
+    fun getActivityToSync(): List<ActivityTransitionEntity> {
+        return mvpDao.getActivityToSync()
     }
 
     fun getLatestTaps(rollBackDate: String): List<HourlyTapsEntity> {

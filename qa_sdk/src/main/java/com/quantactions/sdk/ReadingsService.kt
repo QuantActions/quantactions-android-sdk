@@ -8,17 +8,22 @@
  */
 package com.quantactions.sdk
 
+import android.Manifest
 import android.app.*
 import android.content.*
+import android.content.pm.PackageManager
 import android.os.*
 import android.provider.Settings
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.core.app.NotificationCompat
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.google.firebase.crashlytics.FirebaseCrashlytics
+import androidx.core.content.IntentCompat.getParcelableExtra
+import com.google.android.gms.location.ActivityRecognition
+import com.google.android.gms.location.ActivityTransition
+import com.google.android.gms.location.ActivityTransitionRequest
+import com.google.android.gms.location.DetectedActivity
 import com.quantactions.sdk.QA.Companion.getInstance
-import com.quantactions.sdk.exceptions.SDKNotInitialisedException
 import kotlinx.coroutines.*
 import timber.log.Timber
 import java.util.*
@@ -44,29 +49,110 @@ class ReadingsService : Service() {
         mReceiver = QABroadcastReceiver()
         registerReceiver(mReceiver, filter)
         actuator = Actuator(this@ReadingsService)
-        val preferences = ManagePref2.getInstance(this@ReadingsService)
+        getInstance(this@ReadingsService).updater.updateNotification()
 
         // Necessary for handling foreground task
-        ContextCompat.startForegroundService(applicationContext, Intent(applicationContext, ReadingsService::class.java))
+        ContextCompat.startForegroundService(
+            applicationContext,
+            Intent(applicationContext, ReadingsService::class.java)
+        )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channelId = createNotificationChannel()
             // This is necessary for handleMessage error on Samsung, does not really happen to other phones
             startForeground(
-                QAStrings.QA_FOREGROUND_SERVICE_ID, createNotification(
-                    applicationContext, channelId, false
+                QAStrings.QA_FOREGROUND_SERVICE_ID, getInstance(this@ReadingsService).updater.createNotification(
+                    applicationContext, channelId
                 )
             )
         }
 
-        // Not necessary but for precaution we recall
-//        try {
-//            getInstance(applicationContext).init(
-//                applicationContext, preferences.apiKey, preferences.yearOfBirth, preferences.gender, preferences.selfDeclaredHealthy
-//            )
-//        } catch (e: SDKNotInitialisedException) {
-//            FirebaseCrashlytics.getInstance().recordException(e)
-//            Timber.e("NOT STARTING QA NOT INIT")
-//        }
+        val result: Int =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION)
+            } else {
+                PackageManager.PERMISSION_GRANTED
+            }
+        if (result == PackageManager.PERMISSION_GRANTED) {
+            setupActivityRecognition()
+        }
+
+
+    }
+
+    private fun setupActivityRecognition() {
+        // ACTION RECON
+
+        val transitionList = ArrayList<ActivityTransition>()
+        val activities: ArrayList<Int> = ArrayList(
+            Arrays.asList(
+                DetectedActivity.STILL,
+                DetectedActivity.WALKING,
+                DetectedActivity.ON_FOOT,
+                DetectedActivity.RUNNING,
+                DetectedActivity.ON_BICYCLE,
+                DetectedActivity.IN_VEHICLE
+            )
+        )
+        for (activity in activities) {
+            transitionList.add(
+                ActivityTransition.Builder()
+                    .setActivityType(activity)
+                    .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER).build()
+            )
+            transitionList.add(
+                ActivityTransition.Builder()
+                    .setActivityType(activity)
+                    .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT).build()
+            )
+        }
+
+        val request = ActivityTransitionRequest(transitionList)
+
+        val intent = Intent(this, DetectedActivityReceiver::class.java)
+        intent.action = DetectedActivityReceiver.INTENT_ACTION
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            this, 0, intent,
+            PendingIntent.FLAG_MUTABLE
+        )
+
+        val task = if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACTIVITY_RECOGNITION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return
+        } else {
+            ActivityRecognition.getClient(this)
+                .requestActivityTransitionUpdates(request, pendingIntent)
+        }
+        ActivityRecognition.getClient(this)
+            .requestActivityTransitionUpdates(request, pendingIntent)
+
+        task.addOnSuccessListener {
+            Timber.d("SUCCESS")
+            Timber.d("Transitions Api registered with success")
+        }
+        /*
+        task.addOnFailureListener() {
+            Log.d("REQUEST", it.toString())
+        }
+        */
+        task.addOnFailureListener { e: Exception ->
+            Log.d(
+                "DetectedActivityReceivr",
+                "Transitions Api could NOT be registered ${e.localizedMessage}"
+            )
+        }
+
+        // END
     }
 
     /**
@@ -79,7 +165,7 @@ class ReadingsService : Service() {
         val channelId = getString(R.string.notification_channel_id_qa)
         val name: CharSequence = getString(R.string.notification_channel_name_qa)
         val description = getString(R.string.notification_channel_desc_qa)
-        val chan = NotificationChannel(channelId, name, NotificationManager.IMPORTANCE_MIN)
+        val chan = NotificationChannel(channelId, name, NotificationManager.IMPORTANCE_NONE)
         chan.description = description
         val service = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         service.createNotificationChannel(chan)
@@ -94,36 +180,36 @@ class ReadingsService : Service() {
      * @param channelID Name on the notification channel in which publish the notification
      * @return Notification channel
      */
-    @Suppress("UNUSED_PARAMETER")
-    private fun createNotification(
-        context: Context,
-        channelID: String,
-        showResume: Boolean
-    ): Notification {
-
-        val pauseIntent = Intent(context, QABroadcastReceiver::class.java)
-        pauseIntent.action = "pauseCollection"
-
+//    private fun createNotification(
+//        context: Context,
+//        channelID: String,
+//        showResume: Boolean,
+//    ): Notification {
+//
+//        val pauseIntent = Intent(context, QABroadcastReceiver::class.java)
+//        pauseIntent.action = "pauseCollection"
+//
 //        val pausePendingIntent = PendingIntent.getBroadcast(this, 0, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-
-        val resumeIntent = Intent(context, QABroadcastReceiver::class.java)
-        resumeIntent.action = "resumeCollection"
-
+//
+//        val resumeIntent = Intent(context, QABroadcastReceiver::class.java)
+//        resumeIntent.action = "resumeCollection"
+//
 //        val resumePendingIntent = PendingIntent.getBroadcast(this, 0, resumeIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-
-        val mBuilder = NotificationCompat.Builder(context, channelID)
-        mBuilder.setStyle(NotificationCompat.DecoratedCustomViewStyle())
-        mBuilder.setSmallIcon(R.drawable.ic_equalizer_black_24dp)
-        mBuilder.color = context.resources.getColor(R.color.brand_background_icon_color)
-        mBuilder.setWhen(0)
-        mBuilder.setOngoing(true)
+//
+//        val mBuilder = NotificationCompat.Builder(context, channelID)
+//        mBuilder.setStyle(NotificationCompat.DecoratedCustomViewStyle())
+//        mBuilder.setSmallIcon(R.drawable.ic_equalizer_black_24dp)
+//        mBuilder.color = context.resources.getColor(R.color.brand_background_icon_color)
+//        mBuilder.setWhen(0)
+//        mBuilder.setOngoing(true)
+//        mBuilder.setContentText("Taps last 24h: $lastTaps\nSpeed last 24h: ${"%.2f".format(lastSpeed * 60)} taps/m")
 //        if (showResume) {
 //            mBuilder.addAction(R.drawable.ic_debug_foreground, "Resume", resumePendingIntent)
 //        } else {
 //            mBuilder.addAction(R.drawable.ic_debug_foreground, "Pause", pausePendingIntent)
 //        }
-        return mBuilder.build()
-    }
+//        return mBuilder.build()
+//    }
 
     /**
      * This is triggered when service starts but also when the screen goes on and off.
@@ -136,14 +222,16 @@ class ReadingsService : Service() {
     @OptIn(DelicateCoroutinesApi::class)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
+        getInstance(this@ReadingsService).updater.updateNotification()
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channelId = createNotificationChannel()
             // This is necessary for handleMessage error on Samsung, does not really happen to other phones
             startForeground(
-                QAStrings.QA_FOREGROUND_SERVICE_ID, createNotification(
+                QAStrings.QA_FOREGROUND_SERVICE_ID, getInstance(this@ReadingsService).updater.createNotification(
                     applicationContext,
                     channelId,
-                    intent?.hasExtra("pauseSignal") ?: false
+//                    intent?.hasExtra("pauseSignal") ?: false
                 )
             )
         }
@@ -254,8 +342,9 @@ class ReadingsService : Service() {
             stopForeground(false)
         }
         val channelId = getString(R.string.notification_channel_id_qa)
-        createNotification(
-            applicationContext, channelId, true
+        getInstance(this@ReadingsService).updater.createNotification(
+            applicationContext, channelId
+
         )
     }
 }

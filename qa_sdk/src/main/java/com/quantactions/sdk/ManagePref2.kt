@@ -11,11 +11,13 @@
 
 package com.quantactions.sdk
 
+import android.Manifest
 import android.app.AppOpsManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
+import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import java.text.SimpleDateFormat
@@ -355,6 +357,14 @@ class ManagePref2 private constructor(context: Context) {
         val editor = sharedPref.edit()
         editor.putString(FB_CODE, fbCode)
         editor.apply()
+    }
+
+    fun canActivity(context: Context): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED
+        } else {
+            false
+        }
     }
 
     fun canDraw(context: Context): Boolean {
