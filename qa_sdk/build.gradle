@@ -54,13 +54,13 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField("long", "VERSION_CODE", "18")
-            buildConfigField("String","VERSION_NAME","\"1.0.6\"")
+            buildConfigField("String","VERSION_NAME","\"1.0.7\"")
         }
         debug {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField("long", "VERSION_CODE", "18")
-            buildConfigField("String","VERSION_NAME","\"1.0.6\"")
+            buildConfigField("String","VERSION_NAME","\"1.0.7\"")
         }
     }
     packagingOptions {
