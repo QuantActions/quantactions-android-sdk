@@ -16,8 +16,8 @@ apply plugin: 'kotlinx-serialization'
 apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'com.google.devtools.ksp'
 
-def versionName = '1.1.0-alpha06'
-def versionCode = '20'
+def versionName = '1.1.0-beta01'
+def versionCode = '21'
 
 android {
     compileSdk 34
@@ -42,16 +42,10 @@ android {
 
         buildConfigField("String", "QA_UUID", "\"${project.properties["qa_uuid"]}\"")
         buildConfigField("String", "QA_API_ROUTE", "\"https://qa-apis.azure-api.net/tap/v1/\"")
-//        buildConfigField("String", "QA_API_ROUTE", "\"http://localhost:8090/\"")
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
         }
-//        javaCompileOptions {
-//            annotationProcessorOptions {
-//                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
-//            }
-//        }
     }
 
     buildTypes {
@@ -119,7 +113,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-service:2.8.3'
 
     // FIREBASE & GOOGLE SERVICES
-    implementation platform('com.google.firebase:firebase-bom:33.1.1')
+    implementation platform('com.google.firebase:firebase-bom:33.1.2')
     implementation 'com.google.firebase:firebase-crashlytics-ktx'
     implementation 'com.google.firebase:firebase-analytics-ktx'
     implementation 'com.google.firebase:firebase-messaging-ktx'
