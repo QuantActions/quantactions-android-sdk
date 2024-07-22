@@ -12,6 +12,7 @@ package com.quantactions.sdk
 
 import android.app.ActivityManager
 import android.app.AlarmManager
+import android.app.Notification
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.ComponentName
@@ -24,6 +25,7 @@ import android.os.Build
 import android.os.SystemClock
 import android.provider.Settings
 import android.widget.Toast
+import androidx.core.app.NotificationCompat
 import androidx.work.*
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.quantactions.sdk.data.repository.DeviceHealthParsed
@@ -245,6 +247,32 @@ class QABroadcastReceiver : BroadcastReceiver() {
             }
             return true
         }
+    }
+
+    fun createUpdateNotification(
+        context: Context,
+        channelID: String,
+    ): Notification {
+
+//        val pauseIntent = Intent(context, Main2::class.java)
+//        pauseIntent.action = "pauseCollection"
+//
+//        val pausePendingIntent = PendingIntent.getBroadcast(context, 0, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
+        val resumeIntent = Intent(context, QABroadcastReceiver::class.java)
+        resumeIntent.action = "resumeCollection"
+
+        val resumePendingIntent = PendingIntent.getBroadcast(context, 0, resumeIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
+        val mBuilder = NotificationCompat.Builder(context, channelID)
+        mBuilder.setStyle(NotificationCompat.DecoratedCustomViewStyle())
+        mBuilder.setSmallIcon(R.drawable.ic_equalizer_black_24dp)
+        mBuilder.color = context.resources.getColor(R.color.brand_background_icon_color)
+        mBuilder.setWhen(0)
+        mBuilder.setOngoing(true)
+//        mBuilder.setContentText("Taps last 24h: $lastTaps\nSpeed last 24h: ${"%.2f".format(lastSpeed * 60)} taps/m")
+
+        return mBuilder.build()
     }
 
     private fun insertHealthRow(

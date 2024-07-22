@@ -128,6 +128,16 @@ internal class SyncHelper constructor(context: Context) {
                 )
             }
 
+            if (repository.getActivityToSync().isNotEmpty()) {
+                workManager.enqueueUniqueWork(
+                    "activityRecognition",
+                    ExistingWorkPolicy.REPLACE,
+                    OneTimeWorkRequest.Builder(SubmitActivityWorker::class.java)
+                        .addTag("activityRecognition")
+                        .build()
+                )
+            }
+
         } else { // if not we still sync the pending syncs
             Timber.w("ID is not present I will try to register the user unless the task is already there")
             workManager.enqueueUniqueWork(

@@ -26,22 +26,24 @@ import net.sqlcipher.database.SupportFactory
 
 // Annotates class to be a Room Database with tables (entities)
 @Database(
-    entities = [StatisticEntity::class,
-                StatisticStringEntity::class,
-                Questionnaire::class,
-                QuestionnaireResponseEntity::class,
-                Cohort::class,
-                JournalEventEntity::class,
-                JournalEntryEntity::class,
-                JournalEntryJoinsJournalEventEntity::class ,
-                TapDataParsed::class,
-                DeviceHealthParsed::class,
-                HourlyTapsEntity::class,
-                CodeOfApp::class,
-                SleepSummaryEntity::class,
-                TrendEntity::class,
-               ],
-    version = 9, exportSchema = true
+    entities = [
+        StatisticEntity::class,
+        StatisticStringEntity::class,
+        Questionnaire::class,
+        QuestionnaireResponseEntity::class,
+        Cohort::class,
+        JournalEventEntity::class,
+        JournalEntryEntity::class,
+        JournalEntryJoinsJournalEventEntity::class,
+        TapDataParsed::class,
+        DeviceHealthParsed::class,
+        HourlyTapsEntity::class,
+        CodeOfApp::class,
+        SleepSummaryEntity::class,
+        TrendEntity::class,
+        ActivityTransitionEntity::class,
+    ],
+    version = 10, exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class MVPRoomDatabase : RoomDatabase() {
@@ -99,6 +101,10 @@ abstract class MVPRoomDatabase : RoomDatabase() {
                         .addMigrations(MIGRATION_6_8)  // QA Recharge
                         // Adding Trends
                         .addMigrations(MIGRATION_8_9)  // QA Recharge
+                        // Adding activity rec
+                        .addMigrations(MIGRATION_7_10)  // QA Recharge
+                        .addMigrations(MIGRATION_8_10)  // QA Recharge
+                        .addMigrations(MIGRATION_9_10)  // QA Recharge
 
                     // Adding encryption of DB if not debug
                     if (!BuildConfig.DEBUG) {
@@ -135,10 +141,12 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
 
         database.execSQL("CREATE TABLE questionnaire_responses ('id' INTEGER NOT NULL, 'qFullID' TEXT NOT NULL, 'qName' TEXT NOT NULL, 'qCode' TEXT NOT NULL, 'qDate' INTEGER NOT NULL, 'qResponse' TEXT NOT NULL, PRIMARY KEY('id'))")
 
-        database.execSQL("CREATE TABLE studies ('studyId' TEXT NOT NULL, 'privacyPolicy' TEXT, " +
-                "'studyTitle' TEXT, 'dataPattern' TEXT, 'gpsResolution' INTEGER NOT NULL, 'canWithdraw' INTEGER NOT NULL," +
-                "'syncOnScreenOff' INTEGER, 'perimeterCheck' INTEGER, 'permAppId' INTEGER, " +
-                "'permDrawOver' INTEGER, 'permLocation' INTEGER, 'permContact' INTEGER, PRIMARY KEY('studyId'))")
+        database.execSQL(
+            "CREATE TABLE studies ('studyId' TEXT NOT NULL, 'privacyPolicy' TEXT, " +
+                    "'studyTitle' TEXT, 'dataPattern' TEXT, 'gpsResolution' INTEGER NOT NULL, 'canWithdraw' INTEGER NOT NULL," +
+                    "'syncOnScreenOff' INTEGER, 'perimeterCheck' INTEGER, 'permAppId' INTEGER, " +
+                    "'permDrawOver' INTEGER, 'permLocation' INTEGER, 'permContact' INTEGER, PRIMARY KEY('studyId'))"
+        )
     }
 }
 
@@ -156,62 +164,72 @@ val MIGRATION_1_7 = object : Migration(1, 7) {
 
         database.execSQL("CREATE TABLE questionnaire_responses ('id' INTEGER NOT NULL, 'qFullID' TEXT NOT NULL, 'qName' TEXT NOT NULL, 'qCode' TEXT NOT NULL, 'qDate' INTEGER NOT NULL, 'qResponse' TEXT NOT NULL, PRIMARY KEY('id'))")
 
-        database.execSQL("CREATE TABLE studies ('studyId' TEXT NOT NULL, 'privacyPolicy' TEXT, " +
-                "'studyTitle' TEXT, 'dataPattern' TEXT, 'gpsResolution' INTEGER NOT NULL, 'canWithdraw' INTEGER NOT NULL," +
-                "'syncOnScreenOff' INTEGER, 'perimeterCheck' INTEGER, 'permAppId' INTEGER, " +
-                "'permDrawOver' INTEGER, 'permLocation' INTEGER, 'permContact' INTEGER, PRIMARY KEY('studyId'))")
+        database.execSQL(
+            "CREATE TABLE studies ('studyId' TEXT NOT NULL, 'privacyPolicy' TEXT, " +
+                    "'studyTitle' TEXT, 'dataPattern' TEXT, 'gpsResolution' INTEGER NOT NULL, 'canWithdraw' INTEGER NOT NULL," +
+                    "'syncOnScreenOff' INTEGER, 'perimeterCheck' INTEGER, 'permAppId' INTEGER, " +
+                    "'permDrawOver' INTEGER, 'permLocation' INTEGER, 'permContact' INTEGER, PRIMARY KEY('studyId'))"
+        )
 
         // from 4 -> 7
 //        migrateToJournalEntries(database)
-        database.execSQL("CREATE TABLE journal_entry ('id' TEXT NOT NULL, " +
-                "'note' TEXT NOT NULL, " +
-                "'device_id' TEXT NOT NULL, " +
-                "'created' TEXT NOT NULL, " +
-                "'modified' TEXT NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "'deleted' INTEGER NOT NULL DEFAULT 0, " +
-                "'old_id' TEXT NOT NULL DEFAULT '', " +
-                "PRIMARY KEY('id'))")
+        database.execSQL(
+            "CREATE TABLE journal_entry ('id' TEXT NOT NULL, " +
+                    "'note' TEXT NOT NULL, " +
+                    "'device_id' TEXT NOT NULL, " +
+                    "'created' TEXT NOT NULL, " +
+                    "'modified' TEXT NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "'deleted' INTEGER NOT NULL DEFAULT 0, " +
+                    "'old_id' TEXT NOT NULL DEFAULT '', " +
+                    "PRIMARY KEY('id'))"
+        )
 
         database.execSQL("CREATE TABLE journal_event ('id' TEXT NOT NULL, 'public_name' TEXT NOT NULL, 'icon_name' TEXT NOT NULL, 'created' TEXT NOT NULL, 'modified' TEXT NOT NULL, PRIMARY KEY('id'))")
 
-        database.execSQL("CREATE TABLE journal_entry_joins_journal_event ('id' TEXT NOT NULL, " +
-                "'journal_entry_id' TEXT NOT NULL, " +
-                "'journal_event_id' TEXT NOT NULL, " +
-                "'rating' INTEGER NOT NULL, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE journal_entry_joins_journal_event ('id' TEXT NOT NULL, " +
+                    "'journal_entry_id' TEXT NOT NULL, " +
+                    "'journal_event_id' TEXT NOT NULL, " +
+                    "'rating' INTEGER NOT NULL, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 //        migrateToConfidenceIntervals(database)
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'ci_l' REAL;")
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'ci_h' REAL;")
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'conf' REAL;")
 
 //        migrateToParsedData(database)
-        database.execSQL("CREATE TABLE taps_table ('id' INTEGER NOT NULL, " +
-                "'taps' TEXT NOT NULL, " +
-                "'start' INTEGER NOT NULL, " +
-                "'stop' INTEGER NOT NULL, " +
-                "'orientations' TEXT NOT NULL, " +
-                "'appIds0' TEXT NOT NULL, " +
-                "'appIds1' TEXT NOT NULL, " +
-                "'appIds2' TEXT NOT NULL, " +
-                "'tapsSession' INTEGER NOT NULL, " +
-                "'lengthSession' INTEGER NOT NULL, " +
-                "'timeZone' TEXT NOT NULL, " +
-                "'inCharge' TEXT NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE taps_table ('id' INTEGER NOT NULL, " +
+                    "'taps' TEXT NOT NULL, " +
+                    "'start' INTEGER NOT NULL, " +
+                    "'stop' INTEGER NOT NULL, " +
+                    "'orientations' TEXT NOT NULL, " +
+                    "'appIds0' TEXT NOT NULL, " +
+                    "'appIds1' TEXT NOT NULL, " +
+                    "'appIds2' TEXT NOT NULL, " +
+                    "'tapsSession' INTEGER NOT NULL, " +
+                    "'lengthSession' INTEGER NOT NULL, " +
+                    "'timeZone' TEXT NOT NULL, " +
+                    "'inCharge' TEXT NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 
-        database.execSQL("CREATE TABLE health_table ('id' INTEGER NOT NULL, " +
-                "'timestamps' TEXT NOT NULL, " +
-                "'charge' TEXT NOT NULL, " +
-                "'event' TEXT NOT NULL, " +
-                "'start' INTEGER NOT NULL, " +
-                "'stop' INTEGER NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE health_table ('id' INTEGER NOT NULL, " +
+                    "'timestamps' TEXT NOT NULL, " +
+                    "'charge' TEXT NOT NULL, " +
+                    "'event' TEXT NOT NULL, " +
+                    "'start' INTEGER NOT NULL, " +
+                    "'stop' INTEGER NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
     }
 }
 
@@ -226,31 +244,37 @@ val MIGRATION_2_7 = object : Migration(2, 7) {
 
         database.execSQL("CREATE TABLE questionnaire_responses ('id' INTEGER NOT NULL, 'qFullID' TEXT NOT NULL, 'qName' TEXT NOT NULL, 'qCode' TEXT NOT NULL, 'qDate' INTEGER NOT NULL, 'qResponse' TEXT NOT NULL, PRIMARY KEY('id'))")
 
-        database.execSQL("CREATE TABLE studies ('studyId' TEXT NOT NULL, 'privacyPolicy' TEXT, " +
-                "'studyTitle' TEXT, 'dataPattern' TEXT, 'gpsResolution' INTEGER NOT NULL, 'canWithdraw' INTEGER NOT NULL," +
-                "'syncOnScreenOff' INTEGER, 'perimeterCheck' INTEGER, 'permAppId' INTEGER, " +
-                "'permDrawOver' INTEGER, 'permLocation' INTEGER, 'permContact' INTEGER, PRIMARY KEY('studyId'))")
+        database.execSQL(
+            "CREATE TABLE studies ('studyId' TEXT NOT NULL, 'privacyPolicy' TEXT, " +
+                    "'studyTitle' TEXT, 'dataPattern' TEXT, 'gpsResolution' INTEGER NOT NULL, 'canWithdraw' INTEGER NOT NULL," +
+                    "'syncOnScreenOff' INTEGER, 'perimeterCheck' INTEGER, 'permAppId' INTEGER, " +
+                    "'permDrawOver' INTEGER, 'permLocation' INTEGER, 'permContact' INTEGER, PRIMARY KEY('studyId'))"
+        )
 
         // from 4 -> 7
 //        migrateToJournalEntries(database)
-        database.execSQL("CREATE TABLE journal_entry ('id' TEXT NOT NULL, " +
-                "'note' TEXT NOT NULL, " +
-                "'device_id' TEXT NOT NULL, " +
-                "'created' TEXT NOT NULL, " +
-                "'modified' TEXT NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "'deleted' INTEGER NOT NULL DEFAULT 0, " +
-                "'old_id' TEXT NOT NULL DEFAULT '', " +
-                "PRIMARY KEY('id'))")
+        database.execSQL(
+            "CREATE TABLE journal_entry ('id' TEXT NOT NULL, " +
+                    "'note' TEXT NOT NULL, " +
+                    "'device_id' TEXT NOT NULL, " +
+                    "'created' TEXT NOT NULL, " +
+                    "'modified' TEXT NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "'deleted' INTEGER NOT NULL DEFAULT 0, " +
+                    "'old_id' TEXT NOT NULL DEFAULT '', " +
+                    "PRIMARY KEY('id'))"
+        )
 
         database.execSQL("CREATE TABLE journal_event ('id' TEXT NOT NULL, 'public_name' TEXT NOT NULL, 'icon_name' TEXT NOT NULL, 'created' TEXT NOT NULL, 'modified' TEXT NOT NULL, PRIMARY KEY('id'))")
 
-        database.execSQL("CREATE TABLE journal_entry_joins_journal_event ('id' TEXT NOT NULL, " +
-                "'journal_entry_id' TEXT NOT NULL, " +
-                "'journal_event_id' TEXT NOT NULL, " +
-                "'rating' INTEGER NOT NULL, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE journal_entry_joins_journal_event ('id' TEXT NOT NULL, " +
+                    "'journal_entry_id' TEXT NOT NULL, " +
+                    "'journal_event_id' TEXT NOT NULL, " +
+                    "'rating' INTEGER NOT NULL, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 
 //        migrateToConfidenceIntervals(database)
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'ci_l' REAL;")
@@ -259,31 +283,35 @@ val MIGRATION_2_7 = object : Migration(2, 7) {
 
 //        migrateToParsedData(database)
 
-        database.execSQL("CREATE TABLE taps_table ('id' INTEGER NOT NULL, " +
-                "'taps' TEXT NOT NULL, " +
-                "'start' INTEGER NOT NULL, " +
-                "'stop' INTEGER NOT NULL, " +
-                "'orientations' TEXT NOT NULL, " +
-                "'appIds0' TEXT NOT NULL, " +
-                "'appIds1' TEXT NOT NULL, " +
-                "'appIds2' TEXT NOT NULL, " +
-                "'tapsSession' INTEGER NOT NULL, " +
-                "'lengthSession' INTEGER NOT NULL, " +
-                "'timeZone' TEXT NOT NULL, " +
-                "'inCharge' TEXT NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE taps_table ('id' INTEGER NOT NULL, " +
+                    "'taps' TEXT NOT NULL, " +
+                    "'start' INTEGER NOT NULL, " +
+                    "'stop' INTEGER NOT NULL, " +
+                    "'orientations' TEXT NOT NULL, " +
+                    "'appIds0' TEXT NOT NULL, " +
+                    "'appIds1' TEXT NOT NULL, " +
+                    "'appIds2' TEXT NOT NULL, " +
+                    "'tapsSession' INTEGER NOT NULL, " +
+                    "'lengthSession' INTEGER NOT NULL, " +
+                    "'timeZone' TEXT NOT NULL, " +
+                    "'inCharge' TEXT NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 
-        database.execSQL("CREATE TABLE health_table ('id' INTEGER NOT NULL, " +
-                "'timestamps' TEXT NOT NULL, " +
-                "'charge' TEXT NOT NULL, " +
-                "'event' TEXT NOT NULL, " +
-                "'start' INTEGER NOT NULL, " +
-                "'stop' INTEGER NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE health_table ('id' INTEGER NOT NULL, " +
+                    "'timestamps' TEXT NOT NULL, " +
+                    "'charge' TEXT NOT NULL, " +
+                    "'event' TEXT NOT NULL, " +
+                    "'start' INTEGER NOT NULL, " +
+                    "'stop' INTEGER NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 
     }
 }
@@ -299,31 +327,37 @@ val MIGRATION_2_8 = object : Migration(2, 8) {
 
         database.execSQL("CREATE TABLE questionnaire_responses ('id' INTEGER NOT NULL, 'qFullID' TEXT NOT NULL, 'qName' TEXT NOT NULL, 'qCode' TEXT NOT NULL, 'qDate' INTEGER NOT NULL, 'qResponse' TEXT NOT NULL, PRIMARY KEY('id'))")
 
-        database.execSQL("CREATE TABLE studies ('studyId' TEXT NOT NULL, 'privacyPolicy' TEXT, " +
-                "'studyTitle' TEXT, 'dataPattern' TEXT, 'gpsResolution' INTEGER NOT NULL, 'canWithdraw' INTEGER NOT NULL," +
-                "'syncOnScreenOff' INTEGER, 'perimeterCheck' INTEGER, 'permAppId' INTEGER, " +
-                "'permDrawOver' INTEGER, 'permLocation' INTEGER, 'permContact' INTEGER, PRIMARY KEY('studyId'))")
+        database.execSQL(
+            "CREATE TABLE studies ('studyId' TEXT NOT NULL, 'privacyPolicy' TEXT, " +
+                    "'studyTitle' TEXT, 'dataPattern' TEXT, 'gpsResolution' INTEGER NOT NULL, 'canWithdraw' INTEGER NOT NULL," +
+                    "'syncOnScreenOff' INTEGER, 'perimeterCheck' INTEGER, 'permAppId' INTEGER, " +
+                    "'permDrawOver' INTEGER, 'permLocation' INTEGER, 'permContact' INTEGER, PRIMARY KEY('studyId'))"
+        )
 
         // from 4 -> 7
 //        migrateToJournalEntries(database)
-        database.execSQL("CREATE TABLE journal_entry ('id' TEXT NOT NULL, " +
-                "'note' TEXT NOT NULL, " +
-                "'device_id' TEXT NOT NULL, " +
-                "'created' TEXT NOT NULL, " +
-                "'modified' TEXT NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "'deleted' INTEGER NOT NULL DEFAULT 0, " +
-                "'old_id' TEXT NOT NULL DEFAULT '', " +
-                "PRIMARY KEY('id'))")
+        database.execSQL(
+            "CREATE TABLE journal_entry ('id' TEXT NOT NULL, " +
+                    "'note' TEXT NOT NULL, " +
+                    "'device_id' TEXT NOT NULL, " +
+                    "'created' TEXT NOT NULL, " +
+                    "'modified' TEXT NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "'deleted' INTEGER NOT NULL DEFAULT 0, " +
+                    "'old_id' TEXT NOT NULL DEFAULT '', " +
+                    "PRIMARY KEY('id'))"
+        )
 
         database.execSQL("CREATE TABLE journal_event ('id' TEXT NOT NULL, 'public_name' TEXT NOT NULL, 'icon_name' TEXT NOT NULL, 'created' TEXT NOT NULL, 'modified' TEXT NOT NULL, PRIMARY KEY('id'))")
 
-        database.execSQL("CREATE TABLE journal_entry_joins_journal_event ('id' TEXT NOT NULL, " +
-                "'journal_entry_id' TEXT NOT NULL, " +
-                "'journal_event_id' TEXT NOT NULL, " +
-                "'rating' INTEGER NOT NULL, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE journal_entry_joins_journal_event ('id' TEXT NOT NULL, " +
+                    "'journal_entry_id' TEXT NOT NULL, " +
+                    "'journal_event_id' TEXT NOT NULL, " +
+                    "'rating' INTEGER NOT NULL, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 
 //        migrateToConfidenceIntervals(database)
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'ci_l' REAL;")
@@ -332,31 +366,35 @@ val MIGRATION_2_8 = object : Migration(2, 8) {
 
 //        migrateToParsedData(database)
 
-        database.execSQL("CREATE TABLE taps_table ('id' INTEGER NOT NULL, " +
-                "'taps' TEXT NOT NULL, " +
-                "'start' INTEGER NOT NULL, " +
-                "'stop' INTEGER NOT NULL, " +
-                "'orientations' TEXT NOT NULL, " +
-                "'appIds0' TEXT NOT NULL, " +
-                "'appIds1' TEXT NOT NULL, " +
-                "'appIds2' TEXT NOT NULL, " +
-                "'tapsSession' INTEGER NOT NULL, " +
-                "'lengthSession' INTEGER NOT NULL, " +
-                "'timeZone' TEXT NOT NULL, " +
-                "'inCharge' TEXT NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE taps_table ('id' INTEGER NOT NULL, " +
+                    "'taps' TEXT NOT NULL, " +
+                    "'start' INTEGER NOT NULL, " +
+                    "'stop' INTEGER NOT NULL, " +
+                    "'orientations' TEXT NOT NULL, " +
+                    "'appIds0' TEXT NOT NULL, " +
+                    "'appIds1' TEXT NOT NULL, " +
+                    "'appIds2' TEXT NOT NULL, " +
+                    "'tapsSession' INTEGER NOT NULL, " +
+                    "'lengthSession' INTEGER NOT NULL, " +
+                    "'timeZone' TEXT NOT NULL, " +
+                    "'inCharge' TEXT NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 
-        database.execSQL("CREATE TABLE health_table ('id' INTEGER NOT NULL, " +
-                "'timestamps' TEXT NOT NULL, " +
-                "'charge' TEXT NOT NULL, " +
-                "'event' TEXT NOT NULL, " +
-                "'start' INTEGER NOT NULL, " +
-                "'stop' INTEGER NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE health_table ('id' INTEGER NOT NULL, " +
+                    "'timestamps' TEXT NOT NULL, " +
+                    "'charge' TEXT NOT NULL, " +
+                    "'event' TEXT NOT NULL, " +
+                    "'start' INTEGER NOT NULL, " +
+                    "'stop' INTEGER NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 
         // 7 -> 8
         database.execSQL(
@@ -388,7 +426,8 @@ val MIGRATION_2_8 = object : Migration(2, 8) {
                     "'int_ntaps' TEXT NOT NULL, " +
                     "'time_zone_id' TEXT NOT NULL, " +
                     "PRIMARY KEY('id')" +
-                    ")")
+                    ")"
+        )
 
     }
 }
@@ -402,62 +441,72 @@ val MIGRATION_3_7 = object : Migration(3, 7) {
 
         database.execSQL("CREATE TABLE questionnaire_responses ('id' INTEGER NOT NULL, 'qFullID' TEXT NOT NULL, 'qName' TEXT NOT NULL, 'qCode' TEXT NOT NULL, 'qDate' INTEGER NOT NULL, 'qResponse' TEXT NOT NULL, PRIMARY KEY('id'))")
 
-        database.execSQL("CREATE TABLE studies ('studyId' TEXT NOT NULL, 'privacyPolicy' TEXT, " +
-                "'studyTitle' TEXT, 'dataPattern' TEXT, 'gpsResolution' INTEGER NOT NULL, 'canWithdraw' INTEGER NOT NULL," +
-                "'syncOnScreenOff' INTEGER, 'perimeterCheck' INTEGER, 'permAppId' INTEGER, " +
-                "'permDrawOver' INTEGER, 'permLocation' INTEGER, 'permContact' INTEGER, PRIMARY KEY('studyId'))")
+        database.execSQL(
+            "CREATE TABLE studies ('studyId' TEXT NOT NULL, 'privacyPolicy' TEXT, " +
+                    "'studyTitle' TEXT, 'dataPattern' TEXT, 'gpsResolution' INTEGER NOT NULL, 'canWithdraw' INTEGER NOT NULL," +
+                    "'syncOnScreenOff' INTEGER, 'perimeterCheck' INTEGER, 'permAppId' INTEGER, " +
+                    "'permDrawOver' INTEGER, 'permLocation' INTEGER, 'permContact' INTEGER, PRIMARY KEY('studyId'))"
+        )
 
         // from 4 -> 7
 //        migrateToJournalEntries(database)
-        database.execSQL("CREATE TABLE journal_entry ('id' TEXT NOT NULL, " +
-                "'note' TEXT NOT NULL, " +
-                "'device_id' TEXT NOT NULL, " +
-                "'created' TEXT NOT NULL, " +
-                "'modified' TEXT NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "'deleted' INTEGER NOT NULL DEFAULT 0, " +
-                "'old_id' TEXT NOT NULL DEFAULT '', " +
-                "PRIMARY KEY('id'))")
+        database.execSQL(
+            "CREATE TABLE journal_entry ('id' TEXT NOT NULL, " +
+                    "'note' TEXT NOT NULL, " +
+                    "'device_id' TEXT NOT NULL, " +
+                    "'created' TEXT NOT NULL, " +
+                    "'modified' TEXT NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "'deleted' INTEGER NOT NULL DEFAULT 0, " +
+                    "'old_id' TEXT NOT NULL DEFAULT '', " +
+                    "PRIMARY KEY('id'))"
+        )
 
         database.execSQL("CREATE TABLE journal_event ('id' TEXT NOT NULL, 'public_name' TEXT NOT NULL, 'icon_name' TEXT NOT NULL, 'created' TEXT NOT NULL, 'modified' TEXT NOT NULL, PRIMARY KEY('id'))")
 
-        database.execSQL("CREATE TABLE journal_entry_joins_journal_event ('id' TEXT NOT NULL, " +
-                "'journal_entry_id' TEXT NOT NULL, " +
-                "'journal_event_id' TEXT NOT NULL, " +
-                "'rating' INTEGER NOT NULL, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE journal_entry_joins_journal_event ('id' TEXT NOT NULL, " +
+                    "'journal_entry_id' TEXT NOT NULL, " +
+                    "'journal_event_id' TEXT NOT NULL, " +
+                    "'rating' INTEGER NOT NULL, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 //        migrateToConfidenceIntervals(database)
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'ci_l' REAL;")
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'ci_h' REAL;")
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'conf' REAL;")
 
 //        migrateToParsedData(database)
-        database.execSQL("CREATE TABLE taps_table ('id' INTEGER NOT NULL, " +
-                "'taps' TEXT NOT NULL, " +
-                "'start' INTEGER NOT NULL, " +
-                "'stop' INTEGER NOT NULL, " +
-                "'orientations' TEXT NOT NULL, " +
-                "'appIds0' TEXT NOT NULL, " +
-                "'appIds1' TEXT NOT NULL, " +
-                "'appIds2' TEXT NOT NULL, " +
-                "'tapsSession' INTEGER NOT NULL, " +
-                "'lengthSession' INTEGER NOT NULL, " +
-                "'timeZone' TEXT NOT NULL, " +
-                "'inCharge' TEXT NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE taps_table ('id' INTEGER NOT NULL, " +
+                    "'taps' TEXT NOT NULL, " +
+                    "'start' INTEGER NOT NULL, " +
+                    "'stop' INTEGER NOT NULL, " +
+                    "'orientations' TEXT NOT NULL, " +
+                    "'appIds0' TEXT NOT NULL, " +
+                    "'appIds1' TEXT NOT NULL, " +
+                    "'appIds2' TEXT NOT NULL, " +
+                    "'tapsSession' INTEGER NOT NULL, " +
+                    "'lengthSession' INTEGER NOT NULL, " +
+                    "'timeZone' TEXT NOT NULL, " +
+                    "'inCharge' TEXT NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 
-        database.execSQL("CREATE TABLE health_table ('id' INTEGER NOT NULL, " +
-                "'timestamps' TEXT NOT NULL, " +
-                "'charge' TEXT NOT NULL, " +
-                "'event' TEXT NOT NULL, " +
-                "'start' INTEGER NOT NULL, " +
-                "'stop' INTEGER NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE health_table ('id' INTEGER NOT NULL, " +
+                    "'timestamps' TEXT NOT NULL, " +
+                    "'charge' TEXT NOT NULL, " +
+                    "'event' TEXT NOT NULL, " +
+                    "'start' INTEGER NOT NULL, " +
+                    "'stop' INTEGER NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
     }
 }
 
@@ -470,62 +519,72 @@ val MIGRATION_3_8 = object : Migration(3, 8) {
 
         database.execSQL("CREATE TABLE questionnaire_responses ('id' INTEGER NOT NULL, 'qFullID' TEXT NOT NULL, 'qName' TEXT NOT NULL, 'qCode' TEXT NOT NULL, 'qDate' INTEGER NOT NULL, 'qResponse' TEXT NOT NULL, PRIMARY KEY('id'))")
 
-        database.execSQL("CREATE TABLE studies ('studyId' TEXT NOT NULL, 'privacyPolicy' TEXT, " +
-                "'studyTitle' TEXT, 'dataPattern' TEXT, 'gpsResolution' INTEGER NOT NULL, 'canWithdraw' INTEGER NOT NULL," +
-                "'syncOnScreenOff' INTEGER, 'perimeterCheck' INTEGER, 'permAppId' INTEGER, " +
-                "'permDrawOver' INTEGER, 'permLocation' INTEGER, 'permContact' INTEGER, PRIMARY KEY('studyId'))")
+        database.execSQL(
+            "CREATE TABLE studies ('studyId' TEXT NOT NULL, 'privacyPolicy' TEXT, " +
+                    "'studyTitle' TEXT, 'dataPattern' TEXT, 'gpsResolution' INTEGER NOT NULL, 'canWithdraw' INTEGER NOT NULL," +
+                    "'syncOnScreenOff' INTEGER, 'perimeterCheck' INTEGER, 'permAppId' INTEGER, " +
+                    "'permDrawOver' INTEGER, 'permLocation' INTEGER, 'permContact' INTEGER, PRIMARY KEY('studyId'))"
+        )
 
         // from 4 -> 7
 //        migrateToJournalEntries(database)
-        database.execSQL("CREATE TABLE journal_entry ('id' TEXT NOT NULL, " +
-                "'note' TEXT NOT NULL, " +
-                "'device_id' TEXT NOT NULL, " +
-                "'created' TEXT NOT NULL, " +
-                "'modified' TEXT NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "'deleted' INTEGER NOT NULL DEFAULT 0, " +
-                "'old_id' TEXT NOT NULL DEFAULT '', " +
-                "PRIMARY KEY('id'))")
+        database.execSQL(
+            "CREATE TABLE journal_entry ('id' TEXT NOT NULL, " +
+                    "'note' TEXT NOT NULL, " +
+                    "'device_id' TEXT NOT NULL, " +
+                    "'created' TEXT NOT NULL, " +
+                    "'modified' TEXT NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "'deleted' INTEGER NOT NULL DEFAULT 0, " +
+                    "'old_id' TEXT NOT NULL DEFAULT '', " +
+                    "PRIMARY KEY('id'))"
+        )
 
         database.execSQL("CREATE TABLE journal_event ('id' TEXT NOT NULL, 'public_name' TEXT NOT NULL, 'icon_name' TEXT NOT NULL, 'created' TEXT NOT NULL, 'modified' TEXT NOT NULL, PRIMARY KEY('id'))")
 
-        database.execSQL("CREATE TABLE journal_entry_joins_journal_event ('id' TEXT NOT NULL, " +
-                "'journal_entry_id' TEXT NOT NULL, " +
-                "'journal_event_id' TEXT NOT NULL, " +
-                "'rating' INTEGER NOT NULL, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE journal_entry_joins_journal_event ('id' TEXT NOT NULL, " +
+                    "'journal_entry_id' TEXT NOT NULL, " +
+                    "'journal_event_id' TEXT NOT NULL, " +
+                    "'rating' INTEGER NOT NULL, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 //        migrateToConfidenceIntervals(database)
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'ci_l' REAL;")
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'ci_h' REAL;")
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'conf' REAL;")
 
 //        migrateToParsedData(database)
-        database.execSQL("CREATE TABLE taps_table ('id' INTEGER NOT NULL, " +
-                "'taps' TEXT NOT NULL, " +
-                "'start' INTEGER NOT NULL, " +
-                "'stop' INTEGER NOT NULL, " +
-                "'orientations' TEXT NOT NULL, " +
-                "'appIds0' TEXT NOT NULL, " +
-                "'appIds1' TEXT NOT NULL, " +
-                "'appIds2' TEXT NOT NULL, " +
-                "'tapsSession' INTEGER NOT NULL, " +
-                "'lengthSession' INTEGER NOT NULL, " +
-                "'timeZone' TEXT NOT NULL, " +
-                "'inCharge' TEXT NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE taps_table ('id' INTEGER NOT NULL, " +
+                    "'taps' TEXT NOT NULL, " +
+                    "'start' INTEGER NOT NULL, " +
+                    "'stop' INTEGER NOT NULL, " +
+                    "'orientations' TEXT NOT NULL, " +
+                    "'appIds0' TEXT NOT NULL, " +
+                    "'appIds1' TEXT NOT NULL, " +
+                    "'appIds2' TEXT NOT NULL, " +
+                    "'tapsSession' INTEGER NOT NULL, " +
+                    "'lengthSession' INTEGER NOT NULL, " +
+                    "'timeZone' TEXT NOT NULL, " +
+                    "'inCharge' TEXT NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 
-        database.execSQL("CREATE TABLE health_table ('id' INTEGER NOT NULL, " +
-                "'timestamps' TEXT NOT NULL, " +
-                "'charge' TEXT NOT NULL, " +
-                "'event' TEXT NOT NULL, " +
-                "'start' INTEGER NOT NULL, " +
-                "'stop' INTEGER NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE health_table ('id' INTEGER NOT NULL, " +
+                    "'timestamps' TEXT NOT NULL, " +
+                    "'charge' TEXT NOT NULL, " +
+                    "'event' TEXT NOT NULL, " +
+                    "'start' INTEGER NOT NULL, " +
+                    "'stop' INTEGER NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 
         // 7 -> 8
         database.execSQL(
@@ -557,117 +616,134 @@ val MIGRATION_3_8 = object : Migration(3, 8) {
                     "'int_ntaps' TEXT NOT NULL, " +
                     "'time_zone_id' TEXT NOT NULL, " +
                     "PRIMARY KEY('id')" +
-                    ")")
+                    ")"
+        )
     }
 }
 
 val MIGRATION_4_7 = object : Migration(4, 7) {
     override fun migrate(database: SupportSQLiteDatabase) {
 
-        database.execSQL("CREATE TABLE journal_entry ('id' TEXT NOT NULL, " +
-                "'note' TEXT NOT NULL, " +
-                "'device_id' TEXT NOT NULL, " +
-                "'created' TEXT NOT NULL, " +
-                "'modified' TEXT NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "'deleted' INTEGER NOT NULL DEFAULT 0, " +
-                "'old_id' TEXT NOT NULL DEFAULT '', " +
-                "PRIMARY KEY('id'))")
+        database.execSQL(
+            "CREATE TABLE journal_entry ('id' TEXT NOT NULL, " +
+                    "'note' TEXT NOT NULL, " +
+                    "'device_id' TEXT NOT NULL, " +
+                    "'created' TEXT NOT NULL, " +
+                    "'modified' TEXT NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "'deleted' INTEGER NOT NULL DEFAULT 0, " +
+                    "'old_id' TEXT NOT NULL DEFAULT '', " +
+                    "PRIMARY KEY('id'))"
+        )
 
         database.execSQL("CREATE TABLE journal_event ('id' TEXT NOT NULL, 'public_name' TEXT NOT NULL, 'icon_name' TEXT NOT NULL, 'created' TEXT NOT NULL, 'modified' TEXT NOT NULL, PRIMARY KEY('id'))")
 
-        database.execSQL("CREATE TABLE journal_entry_joins_journal_event ('id' TEXT NOT NULL, " +
-                "'journal_entry_id' TEXT NOT NULL, " +
-                "'journal_event_id' TEXT NOT NULL, " +
-                "'rating' INTEGER NOT NULL, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE journal_entry_joins_journal_event ('id' TEXT NOT NULL, " +
+                    "'journal_entry_id' TEXT NOT NULL, " +
+                    "'journal_event_id' TEXT NOT NULL, " +
+                    "'rating' INTEGER NOT NULL, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 //        migrateToConfidenceIntervals(database)
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'ci_l' REAL;")
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'ci_h' REAL;")
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'conf' REAL;")
 
 //        migrateToParsedData(database)
-        database.execSQL("CREATE TABLE taps_table ('id' INTEGER NOT NULL, " +
-                "'taps' TEXT NOT NULL, " +
-                "'start' INTEGER NOT NULL, " +
-                "'stop' INTEGER NOT NULL, " +
-                "'orientations' TEXT NOT NULL, " +
-                "'appIds0' TEXT NOT NULL, " +
-                "'appIds1' TEXT NOT NULL, " +
-                "'appIds2' TEXT NOT NULL, " +
-                "'tapsSession' INTEGER NOT NULL, " +
-                "'lengthSession' INTEGER NOT NULL, " +
-                "'timeZone' TEXT NOT NULL, " +
-                "'inCharge' TEXT NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE taps_table ('id' INTEGER NOT NULL, " +
+                    "'taps' TEXT NOT NULL, " +
+                    "'start' INTEGER NOT NULL, " +
+                    "'stop' INTEGER NOT NULL, " +
+                    "'orientations' TEXT NOT NULL, " +
+                    "'appIds0' TEXT NOT NULL, " +
+                    "'appIds1' TEXT NOT NULL, " +
+                    "'appIds2' TEXT NOT NULL, " +
+                    "'tapsSession' INTEGER NOT NULL, " +
+                    "'lengthSession' INTEGER NOT NULL, " +
+                    "'timeZone' TEXT NOT NULL, " +
+                    "'inCharge' TEXT NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 
-        database.execSQL("CREATE TABLE health_table ('id' INTEGER NOT NULL, " +
-                "'timestamps' TEXT NOT NULL, " +
-                "'charge' TEXT NOT NULL, " +
-                "'event' TEXT NOT NULL, " +
-                "'start' INTEGER NOT NULL, " +
-                "'stop' INTEGER NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE health_table ('id' INTEGER NOT NULL, " +
+                    "'timestamps' TEXT NOT NULL, " +
+                    "'charge' TEXT NOT NULL, " +
+                    "'event' TEXT NOT NULL, " +
+                    "'start' INTEGER NOT NULL, " +
+                    "'stop' INTEGER NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
     }
 }
 
 val MIGRATION_4_8 = object : Migration(4, 8) {
     override fun migrate(database: SupportSQLiteDatabase) {
 
-        database.execSQL("CREATE TABLE journal_entry ('id' TEXT NOT NULL, " +
-                "'note' TEXT NOT NULL, " +
-                "'device_id' TEXT NOT NULL, " +
-                "'created' TEXT NOT NULL, " +
-                "'modified' TEXT NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "'deleted' INTEGER NOT NULL DEFAULT 0, " +
-                "'old_id' TEXT NOT NULL DEFAULT '', " +
-                "PRIMARY KEY('id'))")
+        database.execSQL(
+            "CREATE TABLE journal_entry ('id' TEXT NOT NULL, " +
+                    "'note' TEXT NOT NULL, " +
+                    "'device_id' TEXT NOT NULL, " +
+                    "'created' TEXT NOT NULL, " +
+                    "'modified' TEXT NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "'deleted' INTEGER NOT NULL DEFAULT 0, " +
+                    "'old_id' TEXT NOT NULL DEFAULT '', " +
+                    "PRIMARY KEY('id'))"
+        )
 
         database.execSQL("CREATE TABLE journal_event ('id' TEXT NOT NULL, 'public_name' TEXT NOT NULL, 'icon_name' TEXT NOT NULL, 'created' TEXT NOT NULL, 'modified' TEXT NOT NULL, PRIMARY KEY('id'))")
 
-        database.execSQL("CREATE TABLE journal_entry_joins_journal_event ('id' TEXT NOT NULL, " +
-                "'journal_entry_id' TEXT NOT NULL, " +
-                "'journal_event_id' TEXT NOT NULL, " +
-                "'rating' INTEGER NOT NULL, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE journal_entry_joins_journal_event ('id' TEXT NOT NULL, " +
+                    "'journal_entry_id' TEXT NOT NULL, " +
+                    "'journal_event_id' TEXT NOT NULL, " +
+                    "'rating' INTEGER NOT NULL, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 //        migrateToConfidenceIntervals(database)
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'ci_l' REAL;")
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'ci_h' REAL;")
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'conf' REAL;")
 
 //        migrateToParsedData(database)
-        database.execSQL("CREATE TABLE taps_table ('id' INTEGER NOT NULL, " +
-                "'taps' TEXT NOT NULL, " +
-                "'start' INTEGER NOT NULL, " +
-                "'stop' INTEGER NOT NULL, " +
-                "'orientations' TEXT NOT NULL, " +
-                "'appIds0' TEXT NOT NULL, " +
-                "'appIds1' TEXT NOT NULL, " +
-                "'appIds2' TEXT NOT NULL, " +
-                "'tapsSession' INTEGER NOT NULL, " +
-                "'lengthSession' INTEGER NOT NULL, " +
-                "'timeZone' TEXT NOT NULL, " +
-                "'inCharge' TEXT NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE taps_table ('id' INTEGER NOT NULL, " +
+                    "'taps' TEXT NOT NULL, " +
+                    "'start' INTEGER NOT NULL, " +
+                    "'stop' INTEGER NOT NULL, " +
+                    "'orientations' TEXT NOT NULL, " +
+                    "'appIds0' TEXT NOT NULL, " +
+                    "'appIds1' TEXT NOT NULL, " +
+                    "'appIds2' TEXT NOT NULL, " +
+                    "'tapsSession' INTEGER NOT NULL, " +
+                    "'lengthSession' INTEGER NOT NULL, " +
+                    "'timeZone' TEXT NOT NULL, " +
+                    "'inCharge' TEXT NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 
-        database.execSQL("CREATE TABLE health_table ('id' INTEGER NOT NULL, " +
-                "'timestamps' TEXT NOT NULL, " +
-                "'charge' TEXT NOT NULL, " +
-                "'event' TEXT NOT NULL, " +
-                "'start' INTEGER NOT NULL, " +
-                "'stop' INTEGER NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE health_table ('id' INTEGER NOT NULL, " +
+                    "'timestamps' TEXT NOT NULL, " +
+                    "'charge' TEXT NOT NULL, " +
+                    "'event' TEXT NOT NULL, " +
+                    "'start' INTEGER NOT NULL, " +
+                    "'stop' INTEGER NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 
         database.execSQL(
             "CREATE TABLE hourly_taps ('id' INTEGER NOT NULL, " +
@@ -698,7 +774,8 @@ val MIGRATION_4_8 = object : Migration(4, 8) {
                     "'int_ntaps' TEXT NOT NULL, " +
                     "'time_zone_id' TEXT NOT NULL, " +
                     "PRIMARY KEY('id')" +
-                    ")")
+                    ")"
+        )
     }
 }
 
@@ -713,31 +790,35 @@ val MIGRATION_6_7 = object : Migration(6, 7) {
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'ci_h' REAL;")
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'conf' REAL;")
 
-        database.execSQL("CREATE TABLE taps_table ('id' INTEGER NOT NULL, " +
-                "'taps' TEXT NOT NULL, " +
-                "'start' INTEGER NOT NULL, " +
-                "'stop' INTEGER NOT NULL, " +
-                "'orientations' TEXT NOT NULL, " +
-                "'appIds0' TEXT NOT NULL, " +
-                "'appIds1' TEXT NOT NULL, " +
-                "'appIds2' TEXT NOT NULL, " +
-                "'tapsSession' INTEGER NOT NULL, " +
-                "'lengthSession' INTEGER NOT NULL, " +
-                "'timeZone' TEXT NOT NULL, " +
-                "'inCharge' TEXT NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE taps_table ('id' INTEGER NOT NULL, " +
+                    "'taps' TEXT NOT NULL, " +
+                    "'start' INTEGER NOT NULL, " +
+                    "'stop' INTEGER NOT NULL, " +
+                    "'orientations' TEXT NOT NULL, " +
+                    "'appIds0' TEXT NOT NULL, " +
+                    "'appIds1' TEXT NOT NULL, " +
+                    "'appIds2' TEXT NOT NULL, " +
+                    "'tapsSession' INTEGER NOT NULL, " +
+                    "'lengthSession' INTEGER NOT NULL, " +
+                    "'timeZone' TEXT NOT NULL, " +
+                    "'inCharge' TEXT NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 
-        database.execSQL("CREATE TABLE health_table ('id' INTEGER NOT NULL, " +
-                "'timestamps' TEXT NOT NULL, " +
-                "'charge' TEXT NOT NULL, " +
-                "'event' TEXT NOT NULL, " +
-                "'start' INTEGER NOT NULL, " +
-                "'stop' INTEGER NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE health_table ('id' INTEGER NOT NULL, " +
+                    "'timestamps' TEXT NOT NULL, " +
+                    "'charge' TEXT NOT NULL, " +
+                    "'event' TEXT NOT NULL, " +
+                    "'start' INTEGER NOT NULL, " +
+                    "'stop' INTEGER NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
     }
 }
 
@@ -750,31 +831,35 @@ val MIGRATION_6_8 = object : Migration(6, 8) {
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'ci_h' REAL;")
         database.execSQL("ALTER TABLE stat_table ADD COLUMN 'conf' REAL;")
 
-        database.execSQL("CREATE TABLE taps_table ('id' INTEGER NOT NULL, " +
-                "'taps' TEXT NOT NULL, " +
-                "'start' INTEGER NOT NULL, " +
-                "'stop' INTEGER NOT NULL, " +
-                "'orientations' TEXT NOT NULL, " +
-                "'appIds0' TEXT NOT NULL, " +
-                "'appIds1' TEXT NOT NULL, " +
-                "'appIds2' TEXT NOT NULL, " +
-                "'tapsSession' INTEGER NOT NULL, " +
-                "'lengthSession' INTEGER NOT NULL, " +
-                "'timeZone' TEXT NOT NULL, " +
-                "'inCharge' TEXT NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE taps_table ('id' INTEGER NOT NULL, " +
+                    "'taps' TEXT NOT NULL, " +
+                    "'start' INTEGER NOT NULL, " +
+                    "'stop' INTEGER NOT NULL, " +
+                    "'orientations' TEXT NOT NULL, " +
+                    "'appIds0' TEXT NOT NULL, " +
+                    "'appIds1' TEXT NOT NULL, " +
+                    "'appIds2' TEXT NOT NULL, " +
+                    "'tapsSession' INTEGER NOT NULL, " +
+                    "'lengthSession' INTEGER NOT NULL, " +
+                    "'timeZone' TEXT NOT NULL, " +
+                    "'inCharge' TEXT NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 
-        database.execSQL("CREATE TABLE health_table ('id' INTEGER NOT NULL, " +
-                "'timestamps' TEXT NOT NULL, " +
-                "'charge' TEXT NOT NULL, " +
-                "'event' TEXT NOT NULL, " +
-                "'start' INTEGER NOT NULL, " +
-                "'stop' INTEGER NOT NULL, " +
-                "'sync' INTEGER NOT NULL DEFAULT 0, " +
-                "PRIMARY KEY('id')" +
-                ")")
+        database.execSQL(
+            "CREATE TABLE health_table ('id' INTEGER NOT NULL, " +
+                    "'timestamps' TEXT NOT NULL, " +
+                    "'charge' TEXT NOT NULL, " +
+                    "'event' TEXT NOT NULL, " +
+                    "'start' INTEGER NOT NULL, " +
+                    "'stop' INTEGER NOT NULL, " +
+                    "'sync' INTEGER NOT NULL DEFAULT 0, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
 
         database.execSQL(
             "CREATE TABLE hourly_taps ('id' INTEGER NOT NULL, " +
@@ -805,7 +890,8 @@ val MIGRATION_6_8 = object : Migration(6, 8) {
                     "'int_ntaps' TEXT NOT NULL, " +
                     "'time_zone_id' TEXT NOT NULL, " +
                     "PRIMARY KEY('id')" +
-                    ")")
+                    ")"
+        )
     }
 }
 
@@ -841,7 +927,8 @@ val MIGRATION_7_8 = object : Migration(7, 8) {
                     "'int_ntaps' TEXT NOT NULL, " +
                     "'time_zone_id' TEXT NOT NULL, " +
                     "PRIMARY KEY('id')" +
-                    ")")
+                    ")"
+        )
     }
 }
 
@@ -863,8 +950,128 @@ val MIGRATION_8_9 = object : Migration(8, 9) {
                     "'stat1Y' REAL, " +
                     "'sign1Y' REAL, " +
                     "PRIMARY KEY('id')" +
-                    ")")
+                    ")"
+        )
     }
 }
 
+val MIGRATION_7_10 = object : Migration(7, 10) {
+    override fun migrate(database: SupportSQLiteDatabase) {
 
+
+        database.execSQL(
+            "CREATE TABLE trend_table (" +
+                    "'id' TEXT NOT NULL, " +
+                    "'trend' TEXT NOT NULL, " +
+                    "'timestamp' INTEGER NOT NULL, " +
+                    "'diff2W' REAL, " +
+                    "'stat2W' REAL, " +
+                    "'sign2W' REAL, " +
+                    "'diff6W' REAL, " +
+                    "'stat6W' REAL, " +
+                    "'sign6W' REAL, " +
+                    "'diff1Y' REAL, " +
+                    "'stat1Y' REAL, " +
+                    "'sign1Y' REAL, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
+
+        database.execSQL(
+            "CREATE TABLE activity_transition_table (" +
+                    "'id' INT NOT NULL, " +
+                    "'timestamp' INTEGER NOT NULL, " +
+                    "'action' STRING NOT NULL, " +
+                    "'transition' INT NOT NULL, " +
+                    "'sync' INTEGER NOT NULL, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
+
+
+        database.execSQL(
+            "CREATE TABLE hourly_taps ('id' INTEGER NOT NULL, " +
+                    "'date_tap' TEXT NOT NULL, " +
+                    "'hour' INTEGER NOT NULL, " +
+                    "'num_taps' INTEGER NOT NULL, " +
+                    "'speed' FLOAT NOT NULL, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
+
+        database.execSQL(
+            "CREATE TABLE code_of_app ('id' INTEGER NOT NULL, " +
+                    "'app_name' TEXT NOT NULL, " +
+                    "'sync' INTEGER NOT NULL, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
+
+        database.execSQL(
+            "CREATE TABLE sleep_summary_table (" +
+                    "'id' TEXT NOT NULL, " +
+                    "'timestamp' INTEGER NOT NULL, " +
+                    "'sleep_start' INTEGER NOT NULL, " +
+                    "'sleep_end' INTEGER NOT NULL, " +
+                    "'int_start' TEXT NOT NULL, " +
+                    "'int_stop' TEXT NOT NULL, " +
+                    "'int_ntaps' TEXT NOT NULL, " +
+                    "'time_zone_id' TEXT NOT NULL, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
+
+    }
+
+
+}
+
+val MIGRATION_8_10 = object : Migration(8, 10) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+
+        database.execSQL(
+            "CREATE TABLE trend_table (" +
+                    "'id' TEXT NOT NULL, " +
+                    "'trend' TEXT NOT NULL, " +
+                    "'timestamp' INTEGER NOT NULL, " +
+                    "'diff2W' REAL, " +
+                    "'stat2W' REAL, " +
+                    "'sign2W' REAL, " +
+                    "'diff6W' REAL, " +
+                    "'stat6W' REAL, " +
+                    "'sign6W' REAL, " +
+                    "'diff1Y' REAL, " +
+                    "'stat1Y' REAL, " +
+                    "'sign1Y' REAL, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
+
+        database.execSQL(
+            "CREATE TABLE activity_transition_table (" +
+                    "'id' INTEGER NOT NULL, " +
+                    "'timestamp' INTEGER NOT NULL, " +
+                    "'action' TEXT NOT NULL, " +
+                    "'transition' INTEGER NOT NULL, " +
+                    "'sync' INTEGER NOT NULL, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
+    }
+}
+
+val MIGRATION_9_10 = object : Migration(9, 10) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+
+        database.execSQL(
+            "CREATE TABLE activity_transition_table (" +
+                    "'id' INTEGER NOT NULL, " +
+                    "'timestamp' INTEGER NOT NULL, " +
+                    "'action' TEXT NOT NULL, " +
+                    "'transition' INTEGER NOT NULL, " +
+                    "'sync' INTEGER NOT NULL, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
+    }
+}

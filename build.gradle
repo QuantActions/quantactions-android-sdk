@@ -19,13 +19,13 @@ buildscript {
         maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.2'
-        classpath 'com.google.gms:google-services:4.4.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22"
+        classpath 'com.android.tools.build:gradle:8.5.0'
+        classpath 'com.google.gms:google-services:4.4.2'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:1.9.20"
         classpath "org.jetbrains.dokka:android-documentation-plugin:1.7.20"
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'
-        classpath "org.jetbrains.kotlin:kotlin-serialization:1.9.22"
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.2'
+        classpath "org.jetbrains.kotlin:kotlin-serialization:2.0.0"
 
         // Two necessary plugins
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
@@ -42,7 +42,7 @@ buildscript {
 }
 
 plugins {
-    id 'com.google.devtools.ksp' version '1.8.10-1.0.9' apply false
+    id 'com.google.devtools.ksp' version '2.0.0-1.0.22' apply false
 }
 
 apply plugin: "org.jetbrains.dokka"
@@ -57,8 +57,13 @@ allprojects {
     }
 }
 
-subprojects {
+//tasks.named("dokkaHtmlMultiModule") {
+//    outputDirectory.set(file("../../QA-Android-SDK-docs/htmldocs"))
+//}
 
+subprojects {
+//    apply from: file("../publish.gradle")
+    // DONE:7 Add dokka plugin to each module
     apply plugin: "org.jetbrains.dokka"
 
     tasks.named("dokkaHtml") {
@@ -73,7 +78,36 @@ subprojects {
         )
     }
 
+    // DONE:8 Override dokkaHtml task and add custom output directory
+//    tasks.named("dokkaHtml") {
+//        // DONE:19 Add pluginsMapConfigurations for dokkaHtml, dokkaHtmlPartial
+
+////        outputDirectory.set(file("$rootProject.name-$project.name-dokka"))
+//        outputDirectory.set(file("../../QA-Android-SDK-docs/htmldocs"))
+//        // DONE:17 Add custom naming format for modules
+//        moduleName.set("$rootProject.name-$project.name")
+////        moduleName.set("Android SDK")
+//        // DONE:13 Set suppressInheritedMembers to true in both the tasks
+//        suppressInheritedMembers.set(true)
+//        dokkaSourceSets {
+//            named("main") {
+//                // DONE:14 Set includeNonPublic to true in both the tasks
+//                includeNonPublic.set(true)
+//                // DONE:16 Use custom markdown files for modules/packages
+////                includes.from("module.md")
+//                externalDocumentationLink {
+//                    url.set(new URL("https://square.github.io/picasso/2.x/picasso/"))
+//                }
+//                externalDocumentationLink {
+//                    url.set(new URL("https://bumptech.github.io/glide/javadocs/4120/"))
+//                }
+//            }
+//        }
+//    }
+
+    // DONE:10 Override dokkaHtmlPartial task and add external documentation in it and dokkaHtml both
     tasks.named("dokkaHtmlPartial") {
+//        // DONE:19 Add pluginsMapConfigurations for dokkaHtml, dokkaHtmlPartial
         pluginsMapConfiguration.set(
                 [
                         "org.jetbrains.dokka.base.DokkaBase": """{
@@ -83,6 +117,26 @@ subprojects {
                 ]
         )
     }
+//        // DONE:17 Add custom naming format for modules
+//        moduleName.set("$rootProject.name-$project.name")
+////        moduleName.set("Android SDK")
+//        // DONE:13 Set suppressInheritedMembers to true in both the tasks
+//        suppressInheritedMembers.set(true)
+//        dokkaSourceSets {
+//            named("main") {
+//                // DONE:14 Set includeNonPublic to true in both the tasks
+//                includeNonPublic.set(true)
+//                // DONE:16 Use custom markdown files for modules/packages
+//                includes.from("module.md")
+//                externalDocumentationLink {
+//                    url.set(new URL("https://square.github.io/picasso/2.x/picasso/"))
+//                }
+//                externalDocumentationLink {
+//                    url.set(new URL("https://bumptech.github.io/glide/javadocs/4120/"))
+//                }
+//            }
+//        }
+//    }
 
     dependencies {
         dokkaHtmlPlugin('org.jetbrains.dokka:android-documentation-plugin:1.7.20')
