@@ -42,6 +42,7 @@ android {
 
         buildConfigField("String", "QA_UUID", "\"${project.properties["qa_uuid"]}\"")
         buildConfigField("String", "QA_API_ROUTE", "\"https://qa-apis.azure-api.net/tap/v1/\"")
+//        buildConfigField("String", "QA_API_ROUTE", "\"http://localhost:8090/\"")
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")

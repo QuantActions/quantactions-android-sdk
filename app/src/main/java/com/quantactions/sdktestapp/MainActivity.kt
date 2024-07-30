@@ -9,77 +9,98 @@
 
 package com.quantactions.sdktestapp
 
+import android.app.NotificationManager
 import android.os.Bundle
 import android.os.StrictMode
-import android.widget.Button
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.coroutineScope
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.viewModels
+import androidx.compose.animation.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.RadioButton
+import androidx.compose.material.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+
+import androidx.navigation.NavHostController
+
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.crashlytics.ktx.crashlytics
+
 import com.google.firebase.ktx.Firebase
-import androidx.lifecycle.lifecycleScope
-import com.quantactions.sdk.BasicInfo
 import com.quantactions.sdk.QA
-import com.quantactions.sdktestapp.BuildConfig.QA_API_KEY
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import timber.log.Timber
+import com.quantactions.sdktestapp.charts.Chart
+import com.quantactions.sdktestapp.core_ui.theme.TP
+import com.quantactions.sdktestapp.utils.MainColumn
 
-class MainActivity : AppCompatActivity() {
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-    private lateinit var mainViewModel: MainViewModel
-    private lateinit var mainTextView: TextView
-    private lateinit var buttonDraw: Button
-    private lateinit var buttonId: Button
-    @ExperimentalCoroutinesApi
+
+/**
+ * Main Activity of the App that is launched when one opens the app.
+ * */
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var qa: QA
+    lateinit var navController: NavHostController
+
+    private val metricsViewModel: MetricsViewModel by viewModels()
+    private lateinit var mNotificationManager: NotificationManager
+
+    @OptIn(ExperimentalAnimationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-        mainViewModel = MainViewModel(application)
-
-        mainTextView = findViewById(R.id.mainTextView)
-        buttonDraw = findViewById(R.id.button1)
-        buttonId = findViewById(R.id.button2)
 
         if (BuildConfig.DEBUG) prepareDebugEnvironment()
 
-        // Setup QA SDK
-        val qa = QA.getInstance(this@MainActivity)
+        setContent {
 
-        lifecycle.coroutineScope.launch(Dispatchers.IO) {
-//            qa.init(this@MainActivity, QA_API_KEY, BasicInfo(0, QA.Gender.UNKNOWN, false))
-//            Timber.d("MainActivity-QA-SDK", "ID :: " + qa.deviceID)
-//            qa.syncData(this@MainActivity)
+            val systemUiController = rememberSystemUiController()
+            systemUiController.setSystemBarsColor(
+                color = Color.White
+            )
 
+            val sleepScoreState by metricsViewModel.mapOfScoresStateFlows[Score.SLEEP_SCORE]!!.collectAsState()
+            val cognitiveFitnessState by metricsViewModel.mapOfScoresStateFlows[Score.COGNITIVE_FITNESS]!!.collectAsState()
+            val cognitiveFitnessTrendState by metricsViewModel.mapOfScoresStateFlows[ScoreTrend.COGNITIVE_FITNESS]!!.collectAsState()
+            val socialEngagementScoreState by metricsViewModel.mapOfScoresStateFlows[Score.SOCIAL_ENGAGEMENT]!!.collectAsState()
+            val actionSpeed by metricsViewModel.mapOfScoresStateFlows[Score.ACTION_SPEED]!!.collectAsState()
+            val sleepSummaryState by metricsViewModel.mapOfScoresStateFlows[Score.SLEEP_SUMMARY]!!.collectAsState()
+            val screenTimeState by metricsViewModel.mapOfScoresStateFlows[Score.SCREEN_TIME_AGGREGATE]!!.collectAsState()
+
+            var selectedChart by remember { mutableStateOf(Chart.WEEK) }
+
+            Column {
+
+                ChartRadioButton(selectedChart = selectedChart) {
+                    selectedChart = it
+                }
+
+                MainColumn(
+                    cognitiveFitness = cognitiveFitnessState,
+                    cognitiveFitnessTrend = cognitiveFitnessTrendState,
+                    sleepQuality = sleepScoreState,
+                    sleepSummary = sleepSummaryState,
+                    socialEngagement = socialEngagementScoreState,
+                    screenTimeAggregate = screenTimeState,
+                    actionSpeed = actionSpeed,
+                    currentChart = selectedChart
+                )
+            }
         }
-
-        Timber.d("ID :: " + qa.deviceID)
-
-//        qa.updateBasicInfo(2000, QA.Gender.FEMALE, true)
-//        qa.syncData()
-//        qa.linkIdentities()
-//
-        buttonDraw.setOnClickListener { qa.requestOverlayPermission(this) }
-        buttonId.setOnClickListener { qa.requestUsagePermission(this) }
-
-        // Retrieve scores
-//        mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
-        mainViewModel.getStatSample(QA_API_KEY).observe(
-            this
-        ) {
-            if (it.values.isNotEmpty())
-                mainTextView.text = "QA Score : ${it.values.last()} @ ${it.timestamps.last()}"
-        }
-
     }
 
     private fun prepareDebugEnvironment(strictMode: Boolean = false) {
-        Timber.plant(Timber.DebugTree())
         Firebase.analytics.setAnalyticsCollectionEnabled(false)
         Firebase.crashlytics.setCrashlyticsCollectionEnabled(false)
         if (strictMode) {
