@@ -1,9 +1,17 @@
+/*
+ * *******************************************************************************
+ * Copyright (C) QuantActions AG - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Enea Ceolini <enea.ceolini@quantactions.com>, July 2024
+ * *******************************************************************************
+ */
+
 package com.quantactions.sdktestapp.charts
 
 import android.graphics.PointF
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -14,7 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -22,27 +29,22 @@ import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.quantactions.sdk.TimeSeries
+import com.quantactions.sdktestapp.R
 import com.quantactions.sdktestapp.core_ui.theme.ColdGrey01
 import com.quantactions.sdktestapp.core_ui.theme.ColdGrey04
 import com.quantactions.sdktestapp.core_ui.theme.ColdGrey07
-import com.quantactions.sdk.TimeSeries
-import com.quantactions.sdk.data.model.JournalEntry
-import com.quantactions.sdktestapp.R
 import com.quantactions.sdktestapp.core_ui.theme.TP
 import com.quantactions.sdktestapp.utils.ScoreState
 import com.quantactions.sdktestapp.utils.StringFormatter
 import java.time.DayOfWeek
-import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 import java.time.temporal.IsoFields
-import java.time.temporal.TemporalAdjusters
 
 /**
  * Chart with the last 7 days of data within the circular indicator in the summary view of the
  * metrics
  * */
-@OptIn(ExperimentalTextApi::class)
 @Composable
 fun MultiShadedLineChart(
     scoreStates: List<ScoreState.ScoreAvailable>,
@@ -51,20 +53,15 @@ fun MultiShadedLineChart(
 ) {
 
     // Here I need to custom for number fo values
-    val basicDateFormatter: DateTimeFormatter =
-        DateTimeFormatter.ofPattern(StringFormatter.BasicDate.pattern)
     val nVerticalLines = chartType.numValues
     val horizontalBias: Dp
     val times: TimeSeries<Double>
-    val journalEntries: List<Boolean>
 
     val valuesToPlot: List<TimeSeries<Double>>
-    var selectedTimePoint by remember { mutableStateOf(-1) }
 
     val xLabelFormatter = DateTimeFormatter.ofPattern(StringFormatter.ChartXWeek.pattern)
     val textMeasure = rememberTextMeasurer()
     val xLabelsText: List<AnnotatedString>
-    val flatPointsList: List<PointF>
 
     when (chartType) {
         Chart.WEEK -> {
@@ -136,7 +133,6 @@ fun MultiShadedLineChart(
             valuesToPlot = monthlyAverages.map { it.takeLast(Chart.YEAR.numValues) }
             times = TimeSeries.DoubleTimeSeries().fillMissingDays(366).extractMonthlyAverages()
                 .takeLast(Chart.YEAR.numValues)
-            journalEntries = List(Chart.YEAR.numValues) { false }
             horizontalBias = 8.dp
             // x labels
             xLabelsText = times.timestamps.map { timestamp ->
@@ -215,14 +211,7 @@ fun MultiShadedLineChart(
                 )
             }
         }
-        flatPointsList = calculatePointsForDataGeneralFlat(
-            times.values,
-            width.toPx(),
-            height.toPx(),
-            horizontalBias = horizontalBias.toPx(),
-            maxVal = 100f,
-            minVal = 0f
-        )
+
 
         // MAIN LINE
         pointsList = valuesToPlot.map {

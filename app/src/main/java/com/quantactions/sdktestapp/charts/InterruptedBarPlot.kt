@@ -1,3 +1,12 @@
+/*
+ * *******************************************************************************
+ * Copyright (C) QuantActions AG - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Enea Ceolini <enea.ceolini@quantactions.com>, July 2024
+ * *******************************************************************************
+ */
+
 package com.quantactions.sdktestapp.charts
 
 
@@ -5,46 +14,73 @@ import android.graphics.PointF
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.*
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.quantactions.sdk.TimeSeries
+import com.quantactions.sdk.data.model.SleepSummary.Companion.ZonedDateTimePlaceholder
+import com.quantactions.sdk.dropna
+import com.quantactions.sdk.periodicMean
 import com.quantactions.sdktestapp.R
 import com.quantactions.sdktestapp.Score
 import com.quantactions.sdktestapp.core_ui.metrics.toSpanStyle
-import com.quantactions.sdktestapp.core_ui.theme.*
-import com.quantactions.sdk.*
-import com.quantactions.sdk.data.model.JournalEntry
-import com.quantactions.sdk.data.model.SleepSummary.Companion.ZonedDateTimePlaceholder
+import com.quantactions.sdktestapp.core_ui.theme.ColdGrey01
+import com.quantactions.sdktestapp.core_ui.theme.ColdGrey04
+import com.quantactions.sdktestapp.core_ui.theme.ColdGrey07
+import com.quantactions.sdktestapp.core_ui.theme.TP
+import com.quantactions.sdktestapp.utils.StringFormatter
 import java.lang.Integer.max
+import java.time.DayOfWeek
 import java.time.LocalDateTime
-import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.time.temporal.IsoFields
 
 
 /**
  * Chart with the last 7 days of data within the circular indicator in the summary view of the
  * metrics
  * */
-@OptIn(ExperimentalTextApi::class)
 @Composable
 fun InterruptedBarPlot(
     sleepSummary: TimeSeries.SleepSummaryTimeTimeSeries,
@@ -57,28 +93,135 @@ fun InterruptedBarPlot(
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
 
-    var selectedPoint by remember { mutableStateOf(-1) }
+    var selectedPoint by remember { mutableIntStateOf(-1) }
 
-    val cH = BasicChart(
-        sleepSummary,
-        sleepScore,
-        score,
-        selectedPoint,
-        chartType,
-        marginLeft = 48.dp,
-        marginRight = 22.dp,
-        marginTopPlot = 8.dp,
-        screenWidth,
-        weekString = stringResource(id = R.string.week)
-    )
+    val marginLeft = 48.dp
+    val marginRight = 22.dp
+    val marginTopPlot = 8.dp
+
+    val nVerticalLines = chartType.numValues
+    val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("EEE")
+
+    val width = screenWidth - marginRight - marginLeft
+    val lineStroke = 1.dp
+    val barWidth: Dp
+
+    var valuesToPlot by remember { mutableStateOf(TimeSeries.SleepSummaryTimeTimeSeries()) }
+    var scoreValuesToPlot by remember { mutableStateOf(TimeSeries.DoubleTimeSeries()) }
+    val xLabelsText: List<AnnotatedString>
+    val times: TimeSeries.DoubleTimeSeries
+
+    when (chartType) {
+        Chart.WEEK -> {
+            valuesToPlot =
+                sleepSummary.fillMissingDays(Chart.WEEK.numValues)
+                    .takeLast(Chart.WEEK.numValues)
+
+            scoreValuesToPlot =
+                sleepScore.fillMissingDays(Chart.WEEK.numValues)
+                    .takeLast(Chart.WEEK.numValues)
+
+            times = TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.WEEK.numValues)
+                .takeLast(Chart.WEEK.numValues)
+
+            barWidth = 8.dp
+
+            // x labels
+            xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
+                buildAnnotatedString {
+                    withStyle(
+                        style = SpanStyle(
+                            color = if (i == selectedPoint) score.colors.color else {
+                                if (timestamp.dayOfWeek in listOf(
+                                        DayOfWeek.SATURDAY,
+                                        DayOfWeek.SUNDAY
+                                    )
+                                ) ColdGrey07 else ColdGrey04
+                            },
+                            fontSize = TP.regular.overline.fontSize,
+                            fontStyle = TP.regular.overline.fontStyle,
+                            fontWeight = TP.regular.overline.fontWeight
+                        )
+                    ) {
+                        append(formatter.format(timestamp).substring(0, 2))
+                    }
+                }
+            }
+        }
+
+        Chart.MONTH -> {
+            valuesToPlot =
+                sleepSummary.fillMissingDays(Chart.MONTH.numValues * 7)
+                    .extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
+
+
+            scoreValuesToPlot =
+                sleepScore.fillMissingDays(Chart.MONTH.numValues * 7)
+                    .extractWeeklyAverages()
+                    .takeLast(Chart.MONTH.numValues)
+
+
+            times = TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.MONTH.numValues * 7)
+                .extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
+
+
+            barWidth = 20.dp
+            // x labels
+            xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
+                buildAnnotatedString {
+                    withStyle(
+                        style = SpanStyle(
+                            color = if (i == selectedPoint) score.colors.color else ColdGrey04,
+                            fontSize = TP.regular.overline.fontSize,
+                            fontStyle = TP.regular.overline.fontStyle,
+                            fontWeight = TP.regular.overline.fontWeight
+                        )
+                    ) {
+                        append(
+                            String.format(stringResource(id = R.string.week),
+                                timestamp.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR))
+                        )
+                    }
+                }
+            }
+        }
+
+        Chart.YEAR -> {
+            valuesToPlot =
+                sleepSummary.fillMissingDays(366).extractMonthlyAverages()
+                    .takeLast(Chart.YEAR.numValues)
+
+            scoreValuesToPlot =
+                sleepScore.fillMissingDays(366)
+                    .extractMonthlyAverages()
+                    .takeLast(Chart.YEAR.numValues)
+
+            times = TimeSeries.DoubleTimeSeries().fillMissingDays(366).extractMonthlyAverages()
+                .takeLast(Chart.YEAR.numValues)
+
+            barWidth = 10.dp
+            // x labels
+            xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
+                buildAnnotatedString {
+                    withStyle(
+                        style = TP.regular.overline.toSpanStyle(if (i == selectedPoint) score.colors.color else ColdGrey04)
+                    ) {
+                        append(
+                            DateTimeFormatter.ofPattern(StringFormatter.ChartXYear.pattern)
+                                .format(timestamp)
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     val interruptionWidth = 6.dp
     val interruptionHeight = 4.dp
 
-    var prevSelectedPoint by remember { mutableStateOf(-1) }
+    var prevSelectedPoint by remember { mutableIntStateOf(-1) }
     var showNoDataInfo by remember { mutableStateOf(false) }
-    var selectedTimePoint by remember { mutableStateOf(-1) }
-    var lastXValue by remember { mutableStateOf(-1.0f) }
+    var lastXValue by remember { mutableFloatStateOf(-1.0f) }
 
     val scoreBubbleWidth = 8.dp
     val scoreBubbleHeight = 6.dp
@@ -120,8 +263,8 @@ fun InterruptedBarPlot(
         }
     }
 
-    val minHour = findMinSleepStart(cH.valuesToPlot.dropna())
-    val maxHour = findMaxSleepEnd(cH.valuesToPlot.dropna())
+    val minHour = findMinSleepStart(valuesToPlot.dropna())
+    val maxHour = findMaxSleepEnd(valuesToPlot.dropna())
 
     val reference = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS)
     val minTime = reference.plusSeconds(minHour)
@@ -129,41 +272,35 @@ fun InterruptedBarPlot(
     val nHours = ChronoUnit.HOURS.between(minTime, maxTime).toInt() + 1
     val yLabels = List(nHours) { formatterHours.format(minTime.plusHours(it.toLong())) }
 
-    cH.setHeight(yLabels.size, 20.dp.times(yLabels.size))
-
-//    val nHorizontalLines = yLabels.size
-//    val height = 20.dp.times(nHorizontalLines)
-//    // -------------------------------
-//
-//    val stepVerticalLines =
-//        (cH.width - cH.barWidth.times(2) - cH.lineStroke.times(cH.nVerticalLines - 1)).div(cH.nVerticalLines - 1)
-//    val stepHorizontalLines =
-//        (height - cH.lineStroke.times(nHorizontalLines - 1)).div(nHorizontalLines - 1)
+    val nHorizontalLines = yLabels.size
+    val height = 20.dp.times(nHorizontalLines)
+    val stepVerticalLines = (width - barWidth.times(2) - lineStroke.times(nVerticalLines - 1)).div(nVerticalLines - 1)
+    val stepHorizontalLines = (height - lineStroke.times(nHorizontalLines - 1)).div(nHorizontalLines - 1)
 
     with(LocalDensity.current) {
         // GRID
         pathHorizontal = Path().apply {
             moveTo(0f, 0f)
-            for (step in 0 until cH.nHorizontalLines) {
-                lineTo(cH.width.toPx(), (cH.stepHorizontalLines + cH.lineStroke).times(step).toPx())
-                moveTo(0f, (cH.stepHorizontalLines + cH.lineStroke).times(step + 1).toPx())
+            for (step in 0 until nHorizontalLines) {
+                lineTo(width.toPx(), (stepHorizontalLines + lineStroke).times(step).toPx())
+                moveTo(0f, (stepHorizontalLines + lineStroke).times(step + 1).toPx())
             }
         }
         pathVertical = Path().apply {
-            moveTo(cH.barWidth.toPx(), 0f)
-            for (step in 0 until cH.nVerticalLines) {
+            moveTo(barWidth.toPx(), 0f)
+            for (step in 0 until nVerticalLines) {
                 lineTo(
-                    (cH.stepVerticalLines + cH.lineStroke).times(step).toPx() + cH.barWidth.toPx(),
-                    cH.height.toPx()
+                    (stepVerticalLines + lineStroke).times(step).toPx() + barWidth.toPx(),
+                    height.toPx()
                 )
                 moveTo(
-                    (cH.stepVerticalLines + cH.lineStroke).times(step + 1).toPx() + cH.barWidth.toPx(),
+                    (stepVerticalLines + lineStroke).times(step + 1).toPx() + barWidth.toPx(),
                     0f
                 )
             }
         }
 
-        bottomTops = cH.valuesToPlot.map { sleepSummary, zonedDateTime ->
+        bottomTops = valuesToPlot.map { sleepSummary, zonedDateTime ->
             lengthFromSleepWake(
                 sleepSummary.sleepStart,
                 sleepSummary.sleepEnd,
@@ -172,13 +309,13 @@ fun InterruptedBarPlot(
         }
 
         val meanStart = periodicMean(
-            cH.valuesToPlot.values.map { it.sleepStart }.dropna(),
-            cH.valuesToPlot.dropna().timestamps, LocalDateTime.now().truncatedTo(ChronoUnit.DAYS)
+            valuesToPlot.values.map { it.sleepStart }.dropna(),
+            valuesToPlot.dropna().timestamps, LocalDateTime.now().truncatedTo(ChronoUnit.DAYS)
         )
 
         val meanEnd = periodicMean(
-            cH.valuesToPlot.values.map { it.sleepEnd }.dropna(),
-            cH.valuesToPlot.dropna().timestamps, LocalDateTime.now().truncatedTo(ChronoUnit.DAYS)
+            valuesToPlot.values.map { it.sleepEnd }.dropna(),
+            valuesToPlot.dropna().timestamps, LocalDateTime.now().truncatedTo(ChronoUnit.DAYS)
         )
         averageBottomTops = Pair(
             mapTimeToPlot(meanEnd.toLocalDateTime(), reference),
@@ -186,12 +323,11 @@ fun InterruptedBarPlot(
         )
 
         // MAIN LINE
-
         flatPointsList = calculatePointsForDataGeneralFlat(
-            cH.times.values,
-            cH.width.toPx(),
-            cH.height.toPx(),
-            horizontalBias = cH.barWidth.toPx(),
+            times.values,
+            width.toPx(),
+            height.toPx(),
+            horizontalBias = barWidth.toPx(),
             maxVal = (maxHour - minHour).toFloat(),
             minVal = 0f
         )
@@ -199,10 +335,10 @@ fun InterruptedBarPlot(
 
         pointsTop = calculatePointsForDataGeneral(
             bottomTops.map { (top, _) -> top.toDouble() - minHour },
-            cH.width.toPx(),
-            cH.height.toPx(),
+            width.toPx(),
+            height.toPx(),
             maxVal = (maxHour - minHour).toFloat(),
-            horizontalBias = cH.barWidth.toPx(),
+            horizontalBias = barWidth.toPx(),
             includeOutOfChartLeft = false,
             fromTop = true,
             minVal = 0f
@@ -210,10 +346,10 @@ fun InterruptedBarPlot(
 
         pointsBottom = calculatePointsForDataGeneral(
             bottomTops.map { (_, bottom) -> bottom.toDouble() - minHour },
-            cH.width.toPx(),
-            cH.height.toPx(),
+            width.toPx(),
+            height.toPx(),
             maxVal = (maxHour - minHour).toFloat(),
-            horizontalBias = cH.barWidth.toPx(),
+            horizontalBias = barWidth.toPx(),
             includeOutOfChartLeft = false,
             fromTop = true,
             minVal = 0f
@@ -223,46 +359,46 @@ fun InterruptedBarPlot(
             theseTops.zip(theseBottoms).forEach { (top, bottom) ->
                 paths.add(
                     Path().apply {
-                        moveTo(bottom.x - cH.barWidth.toPx(), bottom.y)
-                        lineTo(bottom.x + cH.barWidth.toPx(), bottom.y)
-                        lineTo(bottom.x + cH.barWidth.toPx(), top.y)
-                        lineTo(bottom.x - cH.barWidth.toPx(), top.y)
+                        moveTo(bottom.x - barWidth.toPx(), bottom.y)
+                        lineTo(bottom.x + barWidth.toPx(), bottom.y)
+                        lineTo(bottom.x + barWidth.toPx(), top.y)
+                        lineTo(bottom.x - barWidth.toPx(), top.y)
                         close()
                     }
                 )
                 pathsHighlightTop.add(Path().apply {
-                    moveTo(bottom.x - cH.barWidth.toPx(), top.y)
-                    lineTo(bottom.x + cH.barWidth.toPx(), top.y)
-                    lineTo(bottom.x + cH.barWidth.toPx(), cH.height.toPx())
-                    lineTo(bottom.x - cH.barWidth.toPx(), cH.height.toPx())
+                    moveTo(bottom.x - barWidth.toPx(), top.y)
+                    lineTo(bottom.x + barWidth.toPx(), top.y)
+                    lineTo(bottom.x + barWidth.toPx(), height.toPx())
+                    lineTo(bottom.x - barWidth.toPx(), height.toPx())
                     close()
                 })
                 pathsHighlightBottom.add(Path().apply {
-                    moveTo(bottom.x - cH.barWidth.toPx(), 0f)
-                    lineTo(bottom.x + cH.barWidth.toPx(), 0f)
-                    lineTo(bottom.x + cH.barWidth.toPx(), spaceForText.toPx())
-                    lineTo(bottom.x - cH.barWidth.toPx(), spaceForText.toPx())
+                    moveTo(bottom.x - barWidth.toPx(), 0f)
+                    lineTo(bottom.x + barWidth.toPx(), 0f)
+                    lineTo(bottom.x + barWidth.toPx(), spaceForText.toPx())
+                    lineTo(bottom.x - barWidth.toPx(), spaceForText.toPx())
                     close()
                 })
             }
         }
 
         // interruptions
-        cH.valuesToPlot.map { sleepSummary, zonedDateTime ->
+        valuesToPlot.map { sleepSummary, zonedDateTime ->
             Pair(
                 sleepSummary.interruptionsStart,
                 zonedDateTime
             )
         }
             .forEachIndexed { i, (interruptions, t) ->
-                val xDiff = (cH.width.toPx() - cH.barWidth.toPx() * 2) / (cH.valuesToPlot.size - 1)
-                val xP = xDiff * i + cH.barWidth.toPx()
+                val xDiff = (width.toPx() - barWidth.toPx() * 2) / (valuesToPlot.size - 1)
+                val xP = xDiff * i + barWidth.toPx()
                 calculatePointsForDataGeneral(
                     interruptions.map { mapTimeToPlot(it, t).toDouble() - minHour },
-                    cH.width.toPx(),
-                    cH.height.toPx(),
+                    width.toPx(),
+                    height.toPx(),
                     maxVal = (maxHour - minHour).toFloat(),
-                    horizontalBias = cH.barWidth.toPx(),
+                    horizontalBias = barWidth.toPx(),
                     includeOutOfChartLeft = false,
                     fromTop = true,
                     minVal = 0f
@@ -289,8 +425,8 @@ fun InterruptedBarPlot(
                 averageBottomTops.second.toDouble() - minHour,
                 averageBottomTops.first.toDouble() - minHour,
             ),
-            cH.width.toPx(),
-            cH.height.toPx(),
+            width.toPx(),
+            height.toPx(),
             maxVal = (maxHour - minHour).toFloat(),
             horizontalBias = 8.dp.toPx(),
             includeOutOfChartLeft = false,
@@ -299,13 +435,13 @@ fun InterruptedBarPlot(
         )
         linesArea = Path().apply {
             moveTo(0f, minMax[0][1].y)
-            lineTo(cH.width.toPx(), minMax[0][1].y)
-            moveTo(cH.width.toPx(), minMax[0][0].y)
+            lineTo(width.toPx(), minMax[0][1].y)
+            moveTo(width.toPx(), minMax[0][0].y)
             lineTo(0f, minMax[0][0].y)
         }
     }
 
-    val scoreTexts = cH.scoreValuesToPlot.values.map { value ->
+    val scoreTexts = scoreValuesToPlot.values.map { value ->
         buildAnnotatedString {
             withStyle(
                 style = TP.regular.subtitle1.toSpanStyle(Color.White)
@@ -316,7 +452,7 @@ fun InterruptedBarPlot(
     }
 
     val interruptionsTexts =
-        cH.valuesToPlot.values.mapIndexed { i, localSleepSummary ->
+        valuesToPlot.values.mapIndexed { i, localSleepSummary ->
             buildAnnotatedString {
                 withStyle(
                     style = TP.regular.overline.toSpanStyle(
@@ -333,7 +469,7 @@ fun InterruptedBarPlot(
         }
 
     val interruptionsTimesTexts =
-        cH.valuesToPlot.values.map { it.interruptionsStart }[selectedPoint.coerceAtLeast(
+        valuesToPlot.values.map { it.interruptionsStart }[selectedPoint.coerceAtLeast(
             0
         )].map { interruption ->
             buildAnnotatedString {
@@ -358,13 +494,13 @@ fun InterruptedBarPlot(
             append(
                 "${
                     formatterHours.format(
-                        cH.valuesToPlot.values.map { it.sleepStart }[selectedPoint.coerceAtLeast(
+                        valuesToPlot.values.map { it.sleepStart }[selectedPoint.coerceAtLeast(
                             0
                         )]
                     )
                 } - ${
                     formatterHours.format(
-                        cH.valuesToPlot.values.map { it.sleepEnd }[selectedPoint.coerceAtLeast(
+                        valuesToPlot.values.map { it.sleepEnd }[selectedPoint.coerceAtLeast(
                             0
                         )]
                     )
@@ -390,9 +526,9 @@ fun InterruptedBarPlot(
     }
 
     val sleepLength = sleepLength(
-        cH.valuesToPlot.values.map { it.sleepStart }[selectedPoint.coerceAtLeast(
+        valuesToPlot.values.map { it.sleepStart }[selectedPoint.coerceAtLeast(
             0
-        )], cH.valuesToPlot.values.map { it.sleepEnd }[selectedPoint.coerceAtLeast(0)]
+        )], valuesToPlot.values.map { it.sleepEnd }[selectedPoint.coerceAtLeast(0)]
     )
 
     val textSecondLine = buildAnnotatedString {
@@ -421,7 +557,7 @@ fun InterruptedBarPlot(
     val noDataLayoutResult: TextLayoutResult = textMeasure.measure(text = noDataText)
     val noDataLineSize = noDataLayoutResult.size
 
-    val xLabelsTextLayoutResults = cH.xLabelsText.map { textMeasure.measure(text = it) }
+    val xLabelsTextLayoutResults = xLabelsText.map { textMeasure.measure(text = it) }
     val xLabelsTextSizes = xLabelsTextLayoutResults.map { it.size }
 
     val interruptionsTimesTextLayoutResult =
@@ -434,24 +570,6 @@ fun InterruptedBarPlot(
     val interruptionsTextLayoutResults = interruptionsTexts.map { textMeasure.measure(text = it) }
     val interruptionsTextSizes = interruptionsTextLayoutResults.map { it.size }
 
-    fun onSelectColumn(
-        tapOffset: Offset,
-    ) {
-        prevSelectedPoint = selectedPoint
-        selectedPoint =
-            findClosest(
-                pointsTop
-                    .flatten()
-                    .map { it.x }, tapOffset.x
-            ) ?: -1
-
-        if (prevSelectedPoint == selectedPoint) selectedPoint = -1
-        if (selectedPoint >= 0) {
-            showNoDataInfo =
-                cH.valuesToPlot.values.map { it.sleepStart }[selectedPoint] == ZonedDateTimePlaceholder
-        }
-    }
-
     Column {
         Row(Modifier.padding(start = 8.dp)) {
             Column {
@@ -459,8 +577,8 @@ fun InterruptedBarPlot(
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier
-                        .height(cH.height + cH.marginTopPlot.times(2))
-                        .width(cH.marginLeft)
+                        .height(height + marginTopPlot.times(2))
+                        .width(marginLeft)
                 ) {
                     yLabels.forEach {
                         Text(
@@ -489,28 +607,53 @@ fun InterruptedBarPlot(
 
             Column(
                 Modifier
-                    .padding(top = cH.marginTopPlot)
+                    .padding(top = marginTopPlot)
             ) {
                 Canvas(
                     modifier = Modifier
-                        .width(cH.width)
-                        .height(cH.height)
+                        .width(width)
+                        .height(height)
                         .background(Color.White)
                         .onFocusChanged { focusState ->
                             if (!focusState.isFocused) selectedPoint = -1
                         }
                         .pointerInput(Unit) {
-                            detectTapGestures(onTap = { onSelectColumn(it) })
+                            detectTapGestures(onTap = { tapOffset ->
+                                prevSelectedPoint = selectedPoint
+                                selectedPoint =
+                                    findClosest(
+                                        pointsTop
+                                            .flatten()
+                                            .map { it.x }, tapOffset.x
+                                    ) ?: -1
+
+                                if (prevSelectedPoint == selectedPoint) selectedPoint = -1
+                                if (selectedPoint >= 0) {
+                                    showNoDataInfo =
+                                        valuesToPlot.values.map { it.sleepStart }[selectedPoint] == ZonedDateTimePlaceholder
+                                }
+                            })
                         }
                 ) {
 
-                    cH.drawGrid(this, pathHorizontal, pathVertical)
+                    // GRID
+                    drawPath(
+                        path = pathHorizontal, color = ColdGrey01,
+                        style = Stroke(width = lineStroke.toPx(), cap = StrokeCap.Square)
+                    )
+                    drawPath(
+                        path = pathVertical, color = ColdGrey01,
+                        style = Stroke(width = lineStroke.toPx(), cap = StrokeCap.Square)
+                    )
+                    // end GRID
+
+//                    drawGrid(this, pathHorizontal, pathVertical)
 
                     // baseline shading
                     drawPath(
                         path = linesArea, color = score.colors.color,
                         style = Stroke(
-                            width = cH.lineStroke.toPx(),
+                            width = lineStroke.toPx(),
                             cap = StrokeCap.Square,
                             pathEffect = PathEffect.dashPathEffect(floatArrayOf(25f, 10f), 5f)
                         )
@@ -556,8 +699,8 @@ fun InterruptedBarPlot(
                             textSecondLineSize.width
                         ) + padInfo.times(2).toPx()
 
-                        val xPos = (cH.stepVerticalLines + cH.lineStroke).times(selectedPoint)
-                            .toPx() + cH.barWidth.toPx()
+                        val xPos = (stepVerticalLines + lineStroke).times(selectedPoint)
+                            .toPx() + barWidth.toPx()
                         val yPos = (pointsBottom.flatten()[selectedPoint].y - 6.dp.toPx())
                             .coerceAtLeast(thisInfoHeight)
 
@@ -574,7 +717,7 @@ fun InterruptedBarPlot(
                             score.colors.color,
                             size = Size(thisInfoWidth, thisInfoHeight),
                             topLeft = Offset(
-                                (xPos - thisInfoWidth.div(2)).coerceAtMost(cH.width.toPx() - thisInfoWidth),
+                                (xPos - thisInfoWidth.div(2)).coerceAtMost(width.toPx() - thisInfoWidth),
                                 (yPos - thisInfoHeight).coerceAtLeast(0f)
                             ),
                             cornerRadius = CornerRadius(4.dp.toPx())
@@ -589,7 +732,7 @@ fun InterruptedBarPlot(
                             text = textFirstLine,
                             topLeft = Offset(
                                 (xPos - textFirstLineSize.width / 2f).coerceAtMost(
-                                    cH.width.toPx() - textFirstLineSize.width - padInfo.toPx()
+                                    width.toPx() - textFirstLineSize.width - padInfo.toPx()
                                 ),
                                 (yPos - thisInfoHeight + padInfo.toPx()).coerceAtLeast(padInfo.toPx())
                             )
@@ -599,7 +742,7 @@ fun InterruptedBarPlot(
                             text = textSecondLine,
                             topLeft = Offset(
                                 (xPos - textSecondLineSize.width / 2f).coerceAtMost(
-                                    cH.width.toPx() - textSecondLineSize.width.div(2) - thisInfoWidth.div(
+                                    width.toPx() - textSecondLineSize.width.div(2) - thisInfoWidth.div(
                                         2
                                     )
                                 ),
@@ -623,10 +766,10 @@ fun InterruptedBarPlot(
                                 )
                                     .toPx()
 
-                            val xPosInt = if (selectedPoint <= cH.valuesToPlot.size / 2)
-                                (cH.stepVerticalLines + cH.lineStroke).times(selectedPoint)
-                                    .toPx() + cH.barWidth.toPx().times(2) + 6.dp.toPx()
-                            else (cH.stepVerticalLines + cH.lineStroke).times(selectedPoint)
+                            val xPosInt = if (selectedPoint <= valuesToPlot.size / 2)
+                                (stepVerticalLines + lineStroke).times(selectedPoint)
+                                    .toPx() + barWidth.toPx().times(2) + 6.dp.toPx()
+                            else (stepVerticalLines + lineStroke).times(selectedPoint)
                                 .toPx() - infoWidthInt - 6.dp.toPx()
 
                             val yPosInt =
@@ -639,7 +782,7 @@ fun InterruptedBarPlot(
                                     score.colors.color,
                                     size = Size(infoWidthInt, infoHeightInt),
                                     topLeft = Offset(
-                                        (xPosInt).coerceAtMost(cH.width.toPx() - infoWidthInt),
+                                        (xPosInt).coerceAtMost(width.toPx() - infoWidthInt),
                                         yPosInt.coerceAtLeast(0f)
                                     ),
                                     cornerRadius = CornerRadius(4.dp.toPx())
@@ -650,7 +793,7 @@ fun InterruptedBarPlot(
                                     text = awakeAtText,
                                     topLeft = Offset(
                                         (xPosInt + padInfo.toPx()).coerceAtMost(
-                                            cH.width.toPx() - awakeAtLineSize.width.div(2) - padInfo.toPx()
+                                            width.toPx() - awakeAtLineSize.width.div(2) - padInfo.toPx()
                                         ),
                                         (yPosInt + padInfo.toPx()).coerceAtLeast(
                                             padInfo.toPx()
@@ -664,7 +807,7 @@ fun InterruptedBarPlot(
                                         text = interruptionsTimesTexts[ii],
                                         topLeft = Offset(
                                             (xPosInt + padInfo.toPx()).coerceAtMost(
-                                                cH.width.toPx() - interruptionTimeText.width - padInfo.toPx()
+                                                width.toPx() - interruptionTimeText.width - padInfo.toPx()
                                             ),
                                             (yPosInt + ii * interruptionTimeText.height + awakeAtLineSize.height + padInfo.toPx()).coerceAtLeast(
                                                 padInfo.toPx()
@@ -680,9 +823,9 @@ fun InterruptedBarPlot(
 
                     if (selectedPoint >= 0 && showNoDataInfo) {
 
-                        val xPos = (cH.stepVerticalLines + cH.lineStroke).times(selectedPoint)
-                            .toPx() + cH.barWidth.toPx()
-                        val yPos = cH.height.div(2).toPx()
+                        val xPos = (stepVerticalLines + lineStroke).times(selectedPoint)
+                            .toPx() + barWidth.toPx()
+                        val yPos = height.div(2).toPx()
 
                         val trianglePath = Path().let {
                             it.moveTo(xPos, yPos + 6.dp.toPx())
@@ -700,7 +843,7 @@ fun InterruptedBarPlot(
                                 noDataLineSize.height.toFloat() + 6.dp.toPx()
                             ),
                             topLeft = Offset(
-                                (xPos - noDataLineSize.width / 2 - 6.dp.toPx()).coerceAtMost(cH.width.toPx() - noDataLineSize.width),
+                                (xPos - noDataLineSize.width / 2 - 6.dp.toPx()).coerceAtMost(width.toPx() - noDataLineSize.width),
                                 yPos - noDataLineSize.height - 6.dp.toPx()
                             ),
                             cornerRadius = CornerRadius(4.dp.toPx())
@@ -715,7 +858,7 @@ fun InterruptedBarPlot(
                             text = noDataText,
                             topLeft = Offset(
                                 (xPos - noDataLineSize.width / 2).coerceAtMost(
-                                    cH.width.toPx() - noDataLineSize.width
+                                    width.toPx() - noDataLineSize.width
                                 ),
                                 yPos - noDataLineSize.height - 3.dp.toPx()
                             )
@@ -724,7 +867,7 @@ fun InterruptedBarPlot(
                 }
                 Canvas(
                     modifier = Modifier
-                        .width(cH.width)
+                        .width(width)
                         .height(spaceForText)
                         .background(Color.Transparent)
                         .onFocusChanged { focusState ->
@@ -739,22 +882,22 @@ fun InterruptedBarPlot(
                         )
                     }
 
-                    for (step in 0 until cH.valuesToPlot.size) {
+                    for (step in 0 until valuesToPlot.size) {
 
-                        val xP = (cH.stepVerticalLines + cH.lineStroke).times(step)
-                            .toPx() + cH.barWidth.toPx()
+                        val xP = (stepVerticalLines + lineStroke).times(step)
+                            .toPx() + barWidth.toPx()
 
                         drawText(
                             textMeasurer = textMeasure,
-                            text = cH.xLabelsText[step],
+                            text = xLabelsText[step],
                             topLeft = Offset(
-                                (xP - xLabelsTextSizes[step].width / 2f).coerceAtMost(cH.width.toPx() - xLabelsTextSizes[step].width),
+                                (xP - xLabelsTextSizes[step].width / 2f).coerceAtMost(width.toPx() - xLabelsTextSizes[step].width),
                                 48.dp.toPx() + interruptionsTextSizes[step].height + 12.dp.toPx()
                             )
                         )
 
                         drawRoundRect(
-                            color = if (cH.scoreValuesToPlot.values[step].isNaN()) Color.White else score.colors.color,
+                            color = if (scoreValuesToPlot.values[step].isNaN()) Color.White else score.colors.color,
                             size = Size(
                                 scoreBubbleWidth.times(2).toPx(),
                                 scoreBubbleHeight.times(2).toPx()
@@ -771,8 +914,8 @@ fun InterruptedBarPlot(
                             textMeasurer = textMeasure,
                             text = scoreTexts[step],
                             topLeft = Offset(
-                                (cH.stepVerticalLines + cH.lineStroke).times(step)
-                                    .toPx() + cH.barWidth.toPx() - scoreTextSizes[step].width / 2f,
+                                (stepVerticalLines + lineStroke).times(step)
+                                    .toPx() + barWidth.toPx() - scoreTextSizes[step].width / 2f,
                                 32.dp.toPx() + interruptionsTextSizes[step].height - 1.dp.toPx()
                             )
                         )
@@ -781,8 +924,8 @@ fun InterruptedBarPlot(
                             textMeasurer = textMeasure,
                             text = interruptionsTexts[step],
                             topLeft = Offset(
-                                (cH.stepVerticalLines + cH.lineStroke).times(step)
-                                    .toPx() + cH.barWidth.toPx() - interruptionsTextSizes[step].width / 2f,
+                                (stepVerticalLines + lineStroke).times(step)
+                                    .toPx() + barWidth.toPx() - interruptionsTextSizes[step].width / 2f,
                                 16.dp.toPx()
                             )
                         )

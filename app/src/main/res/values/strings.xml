@@ -8,7 +8,7 @@
   -->
 
 <resources>
-    <string name="app_name">SDK test</string>
+    <string name="app_name">QA SDK samples</string>
     <string name="how_to_contact_us">How to contact us</string>
     <string name="how_to_contact_info">If you have any questions about BrainAware, our data privacy and security policy, or you would like to exercise one of your data protection rights, please do not hesitate to visit our website or contact us.</string>
 

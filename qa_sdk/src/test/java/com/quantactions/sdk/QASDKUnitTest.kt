@@ -9,16 +9,7 @@
 
 package com.quantactions.sdk
 
-import com.hadiyarajesh.flower_core.ApiEmptyResponse
-import com.hadiyarajesh.flower_core.ApiErrorResponse
-import com.hadiyarajesh.flower_core.ApiSuccessResponse
-import com.quantactions.sdk.data.api.ApiService
-import com.quantactions.sdk.data.api.TokenApi
-import com.quantactions.sdk.data.model.SignUpForStudy
-import com.quantactions.sdk.data.repository.MVPRepository
-import com.quantactions.sdk.exceptions.SDKNotInitialisedException
 import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.fail
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -35,7 +26,6 @@ import kotlin.random.Random
 
 class SDKUnitFunctionalityTest {
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun testWeeklyAverages() = runTest {
 

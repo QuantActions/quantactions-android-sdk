@@ -9,9 +9,7 @@
 
 package com.quantactions.sdktestapp.utils
 
-import android.text.Layout
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -23,14 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.quantactions.sdk.BasicInfo
-import com.quantactions.sdk.Metric
 import com.quantactions.sdk.TimeSeries
-import com.quantactions.sdk.data.model.ScreenTimeAggregate
-import com.quantactions.sdk.data.model.SleepSummary
 import com.quantactions.sdktestapp.Score
 import com.quantactions.sdktestapp.charts.AdjustableBarPlot
 import com.quantactions.sdktestapp.charts.Chart
@@ -46,7 +40,7 @@ import com.quantactions.sdktestapp.core_ui.theme.TP
 
 
 @Composable
-fun MainColumn(
+fun Components(
     cognitiveFitness: ScoreState,
     cognitiveFitnessTrend: ScoreState,
     sleepQuality: ScoreState,
@@ -154,7 +148,6 @@ fun MainColumn(
         CumulativeBarPlot(
             thisScreenTime,
             thisEngagementScore,
-            listOf(),
             Score.SOCIAL_ENGAGEMENT,
             currentChart
         )

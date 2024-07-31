@@ -1,3 +1,12 @@
+/*
+ * *******************************************************************************
+ * Copyright (C) QuantActions AG - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Enea Ceolini <enea.ceolini@quantactions.com>, July 2024
+ * *******************************************************************************
+ */
+
 @file:Suppress("unused")
 
 package com.quantactions.sdktestapp
@@ -30,17 +39,16 @@ import javax.inject.Inject
  * to add them to here
  * @param application Android application
  * */
-@Suppress("PropertyName")
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 open class MetricsViewModel @Inject constructor(
     application: Application,
-    val qa: QA,
+    private val qa: QA,
 ) : AndroidViewModel(application) {
 
-    val apiKey = BuildConfig.QA_API_KEY
+    private val apiKey = BuildConfig.QA_API_KEY
 
-    internal val mapOfScoresStates =
+    private val mapOfScoresStates =
         mutableMapOf<WatchableScoreOrTrend, MutableStateFlow<ScoreState>>(
 
             // Scores
@@ -107,7 +115,7 @@ open class MetricsViewModel @Inject constructor(
     private val _showConfidence = MutableStateFlow(true)
     val showConfidence = _showConfidence.asStateFlow()
 
-    val metricsAndTrendsList = listOf(
+    private val metricsAndTrendsList = listOf(
         Metric.COGNITIVE_FITNESS,
         Metric.ACTION_SPEED,
         Metric.TYPING_SPEED,

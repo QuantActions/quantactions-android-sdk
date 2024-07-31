@@ -1,12 +1,34 @@
+/*
+ * *******************************************************************************
+ * Copyright (C) QuantActions AG - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Enea Ceolini <enea.ceolini@quantactions.com>, July 2024
+ * *******************************************************************************
+ */
+
 package com.quantactions.sdktestapp.charts
 
 import android.graphics.PointF
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
@@ -22,31 +44,40 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.*
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.quantactions.sdktestapp.core_ui.theme.ColdGrey04
 import com.quantactions.sdk.BasicInfo
 import com.quantactions.sdk.TimeSeries
-import com.quantactions.sdk.data.model.JournalEntry
 import com.quantactions.sdktestapp.R
 import com.quantactions.sdktestapp.Score
+import com.quantactions.sdktestapp.core_ui.metrics.toSpanStyle
+import com.quantactions.sdktestapp.core_ui.theme.ColdGrey01
+import com.quantactions.sdktestapp.core_ui.theme.ColdGrey04
+import com.quantactions.sdktestapp.core_ui.theme.ColdGrey07
 import com.quantactions.sdktestapp.core_ui.theme.TP
+import com.quantactions.sdktestapp.utils.StringFormatter
 import org.nield.kotlinstatistics.percentile
 import java.time.DayOfWeek
-import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.IsoFields
 import kotlin.math.abs
 
 /**
  * Chart that shows lines with their confidence intervals.
  * @param timeSeries to plot
- * @param journal journal entries resolved
  * @param score that we are plotting
  * @param chartType from [Chart]
  * @param showConfidence whether ot not to show the confidence intervals
  * */
 @Composable
-@OptIn(ExperimentalTextApi::class)
 fun ShadedLineChart(
     timeSeries: TimeSeries.DoubleTimeSeries,
     score: Score,
@@ -57,28 +88,125 @@ fun ShadedLineChart(
     adaptiveRange: Boolean,
 ) {
     var selectedPoint by remember {
-        mutableStateOf(-1)
+        mutableIntStateOf(-1)
     }
 
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
 
-    val cH = BasicChart(
-        timeSeries,
-        TimeSeries.DoubleTimeSeries(),
-        score,
-        selectedPoint,
-        chartType,
-        marginLeft = 48.dp,
-        marginRight = 22.dp,
-        marginTopPlot = 8.dp,
-        screenWidth,
-        true,
-        weekString = stringResource(id = R.string.week)
-    )
+        val marginLeft = 48.dp
+        val marginRight = 22.dp
+        val marginTopPlot = 8.dp
+
+
+    val nVerticalLines = chartType.numValues
+    val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("EEE")
+    val width = screenWidth - marginRight - marginLeft
+    val lineStroke = 1.dp
+
+    var valuesToPlot by remember { mutableStateOf(TimeSeries.DoubleTimeSeries()) } 
+    val xLabelsText: List<AnnotatedString>
+    val times: TimeSeries.DoubleTimeSeries
+    val horizontalBias: Dp
+
+    // other
+
+    when (chartType) {
+        Chart.WEEK -> {
+
+            valuesToPlot =
+                timeSeries.fillMissingDays(Chart.WEEK.numValues)
+                    .takeLast(Chart.WEEK.numValues)
+
+
+            times = TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.WEEK.numValues)
+                .takeLast(Chart.WEEK.numValues)
+
+            horizontalBias = 8.dp
+
+            // x labels
+            xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
+                buildAnnotatedString {
+                    withStyle(
+                        style = SpanStyle(
+                            color = if (i == (selectedPoint - 1)) score.colors.color else {
+                                if (timestamp.dayOfWeek in listOf(
+                                        DayOfWeek.SATURDAY,
+                                        DayOfWeek.SUNDAY
+                                    )
+                                ) ColdGrey07 else ColdGrey04
+                            },
+                            fontSize = TP.regular.overline.fontSize,
+                            fontStyle = TP.regular.overline.fontStyle,
+                            fontWeight = TP.regular.overline.fontWeight
+                        )
+                    ) {
+                        append(formatter.format(timestamp).substring(0, 2))
+                    }
+                }
+            }
+        }
+
+        Chart.MONTH -> {
+            valuesToPlot =
+                timeSeries.fillMissingDays(Chart.MONTH.numValues * 7)
+                    .extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
+
+
+            times = TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.MONTH.numValues * 7)
+                .extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
+
+
+            horizontalBias = 20.dp
+            // x labels
+            xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
+                buildAnnotatedString {
+                    withStyle(
+                        style = SpanStyle(
+                            color = if (i == selectedPoint - 1) score.colors.color else ColdGrey04,
+                            fontSize = TP.regular.overline.fontSize,
+                            fontStyle = TP.regular.overline.fontStyle,
+                            fontWeight = TP.regular.overline.fontWeight
+                        )
+                    ) {
+                        append(
+                            String.format(
+                                stringResource(id = R.string.week),
+                                timestamp.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR))
+                        )
+                    }
+                }
+            }
+        }
+
+        Chart.YEAR -> {
+            // here I need to massage and extract averages over months
+            valuesToPlot =
+                timeSeries.fillMissingDays(366).extractMonthlyAverages()
+                    .takeLast(Chart.YEAR.numValues)
+
+            times = TimeSeries.DoubleTimeSeries().fillMissingDays(366).extractMonthlyAverages()
+                .takeLast(Chart.YEAR.numValues)
+
+            horizontalBias = 8.dp
+            // x labels
+            xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
+                buildAnnotatedString {
+                    withStyle(
+                        style = TP.regular.overline.toSpanStyle(if (i == selectedPoint - 1) score.colors.color else ColdGrey04)
+                    ) {
+                        append(
+                            DateTimeFormatter.ofPattern(StringFormatter.ChartXYear.pattern)
+                                .format(timestamp)
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     var prevSelectedPoint by remember {
-        mutableStateOf(-1)
+        mutableIntStateOf(-1)
     }
 
     var minVal = 0f
@@ -97,9 +225,9 @@ fun ShadedLineChart(
     val nHorizontalLines = 11
 
     val stepVerticalLines =
-        (cH.width - cH.horizontalBias.times(2) - cH.lineStroke.times(cH.nVerticalLines - 1)).div(cH.nVerticalLines - 1)
+        (width - horizontalBias.times(2) - lineStroke.times(nVerticalLines - 1)).div(nVerticalLines - 1)
     val stepHorizontalLines =
-        (height - cH.lineStroke.times(nHorizontalLines - 1)).div(nHorizontalLines - 1)
+        (height - lineStroke.times(nHorizontalLines - 1)).div(nHorizontalLines - 1)
 
     val pointsList: List<List<PointF>>
     val pointsListCircles: List<List<PointF>>
@@ -113,12 +241,12 @@ fun ShadedLineChart(
     val connPointsListCIH: List<Pair<List<PointF>, List<PointF>>>
     val connPointsListCIL: List<Pair<List<PointF>, List<PointF>>>
     val pathsH: List<Path>
-    var selectedY by remember { mutableStateOf(-1) }
-    var selectedX by remember { mutableStateOf(-1.0f) }
-    var selectedTimePoint by remember { mutableStateOf(-1) }
-    var selectedLowY by remember { mutableStateOf(-1) }
-    var selectedHighY by remember { mutableStateOf(-1) }
-    var lastXValue by remember { mutableStateOf(-1.0f) }
+    var selectedY by remember { mutableIntStateOf(-1) }
+    var selectedX by remember { mutableFloatStateOf(-1.0f) }
+    var selectedTimePoint by remember { mutableIntStateOf(-1) }
+    var selectedLowY by remember { mutableIntStateOf(-1) }
+    var selectedHighY by remember { mutableIntStateOf(-1) }
+    var lastXValue by remember { mutableFloatStateOf(-1.0f) }
     val shadedArea: Path
     val linesArea: Path
 
@@ -127,19 +255,19 @@ fun ShadedLineChart(
         pathHorizontal = Path().apply {
             moveTo(0f, 0f)
             for (step in 0 until nHorizontalLines) {
-                lineTo(cH.width.toPx(), (stepHorizontalLines + cH.lineStroke).times(step).toPx())
-                moveTo(0f, (stepHorizontalLines + cH.lineStroke).times(step + 1).toPx())
+                lineTo(width.toPx(), (stepHorizontalLines + lineStroke).times(step).toPx())
+                moveTo(0f, (stepHorizontalLines + lineStroke).times(step + 1).toPx())
             }
         }
         pathVertical = Path().apply {
-            moveTo(cH.horizontalBias.toPx(), 0f)
-            for (step in 0 until cH.nVerticalLines) {
+            moveTo(horizontalBias.toPx(), 0f)
+            for (step in 0 until nVerticalLines) {
                 lineTo(
-                    (stepVerticalLines + cH.lineStroke).times(step).toPx() + cH.horizontalBias.toPx(),
+                    (stepVerticalLines + lineStroke).times(step).toPx() + horizontalBias.toPx(),
                     height.toPx()
                 )
                 moveTo(
-                    (stepVerticalLines + cH.lineStroke).times(step + 1).toPx() + cH.horizontalBias.toPx(),
+                    (stepVerticalLines + lineStroke).times(step + 1).toPx() + horizontalBias.toPx(),
                     0f
                 )
             }
@@ -147,26 +275,26 @@ fun ShadedLineChart(
 
         // MAIN LINE
         pointsList = calculatePointsForDataGeneral(
-            cH.valuesToPlot.values,
-            cH.width.toPx(),
+            valuesToPlot.values,
+            width.toPx(),
             height.toPx(),
-            horizontalBias = cH.horizontalBias.toPx(),
+            horizontalBias = horizontalBias.toPx(),
             maxVal = maxVal,
             minVal = minVal
         )
         pointsListCircles = calculatePointsForDataGeneral(
-            cH.valuesToPlot.values,
-            cH.width.toPx(),
+            valuesToPlot.values,
+            width.toPx(),
             height.toPx(),
-            horizontalBias = cH.horizontalBias.toPx(),
+            horizontalBias = horizontalBias.toPx(),
             maxVal = maxVal,
             minVal = minVal
         )
         flatPointsList = calculatePointsForDataGeneralFlat(
-            cH.times.values,
-            cH.width.toPx(),
+            times.values,
+            width.toPx(),
             height.toPx(),
-            horizontalBias = cH.horizontalBias.toPx(),
+            horizontalBias = horizontalBias.toPx(),
             maxVal = maxVal,
             minVal = minVal
         )
@@ -189,19 +317,19 @@ fun ShadedLineChart(
 
         // CONFIDENCE SHADING
         pointsListCIH = calculatePointsForDataGeneral(
-            cH.valuesToPlot.confidenceIntervalHigh,
-            cH.width.toPx(),
+            valuesToPlot.confidenceIntervalHigh,
+            width.toPx(),
             height.toPx(),
-            horizontalBias = cH.horizontalBias.toPx(),
+            horizontalBias = horizontalBias.toPx(),
             maxVal = maxVal,
             minVal = minVal
         )
         pointsListCIL = calculatePointsForDataGeneral(
-            cH.valuesToPlot.confidenceIntervalLow,
-            cH.width.toPx(),
+            valuesToPlot.confidenceIntervalLow,
+            width.toPx(),
             height.toPx(),
             reverse = true,
-            horizontalBias = cH.horizontalBias.toPx(),
+            horizontalBias = horizontalBias.toPx(),
             maxVal = maxVal,
             minVal = minVal
         )
@@ -245,7 +373,7 @@ fun ShadedLineChart(
                 range.low.toDouble(),
                 range.high.toDouble()
             ),
-            cH.width.toPx(),
+            width.toPx(),
             height.toPx(),
             horizontalBias = 8.dp.toPx(),
             includeOutOfChartLeft = false,
@@ -254,15 +382,15 @@ fun ShadedLineChart(
         )
         shadedArea = Path().apply {
             moveTo(0f, minMax[0][1].y)
-            lineTo(cH.width.toPx(), minMax[0][1].y)
-            lineTo(cH.width.toPx(), minMax[0][0].y)
+            lineTo(width.toPx(), minMax[0][1].y)
+            lineTo(width.toPx(), minMax[0][0].y)
             lineTo(0f, minMax[0][0].y)
             this.close()
         }
         linesArea = Path().apply {
             moveTo(0f, minMax[0][1].y)
-            lineTo(cH.width.toPx(), minMax[0][1].y)
-            moveTo(cH.width.toPx(), minMax[0][0].y)
+            lineTo(width.toPx(), minMax[0][1].y)
+            moveTo(width.toPx(), minMax[0][0].y)
             lineTo(0f, minMax[0][0].y)
         }
     }
@@ -297,7 +425,7 @@ fun ShadedLineChart(
     val textSecondLineLayoutResult: TextLayoutResult = textMeasure.measure(text = textSecondLine)
     val textSecondLineSize = textSecondLineLayoutResult.size
 
-    val xLabelsTextLayoutResults = cH.xLabelsText.map { textMeasure.measure(text = it) }
+    val xLabelsTextLayoutResults = xLabelsText.map { textMeasure.measure(text = it) }
     val xLabelsTextSizes = xLabelsTextLayoutResults.map { it.size }
     val spaceForText = 48.dp
 
@@ -307,7 +435,7 @@ fun ShadedLineChart(
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
-                    .height(height + cH.marginTopPlot.times(2))
+                    .height(height + marginTopPlot.times(2))
                     .padding(start = 20.dp, end = 6.dp)
             ) {
 
@@ -322,12 +450,12 @@ fun ShadedLineChart(
             }
             Column(
                 Modifier
-                    .padding(top = cH.marginTopPlot)
+                    .padding(top = marginTopPlot)
             ) {
                 Box {
                     Canvas(
                         modifier = Modifier
-                            .width(cH.width)
+                            .width(width)
                             .height(height)
                             .background(Color.White)
                             .onFocusChanged { focusState ->
@@ -336,7 +464,7 @@ fun ShadedLineChart(
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onTap = { tapOffset ->
-                                        if (cH.valuesToPlot.values.isNotEmpty()) {
+                                        if (valuesToPlot.values.isNotEmpty()) {
                                             prevSelectedPoint = selectedPoint
 
                                             selectedPoint =
@@ -346,9 +474,8 @@ fun ShadedLineChart(
                                                 )
                                                     ?: -1
 
-                                            if (selectedPoint > 0 && cH.valuesToPlot.values[selectedPoint - 1].isNaN()) selectedPoint =
+                                            if (selectedPoint > 0 && valuesToPlot.values[selectedPoint - 1].isNaN()) selectedPoint =
                                                 -1
-
                                             if (prevSelectedPoint == selectedPoint) {
                                                 selectedPoint = -1
                                                 selectedY = -1
@@ -358,13 +485,13 @@ fun ShadedLineChart(
                                             }
                                             if (selectedPoint > 0) {
                                                 selectedY =
-                                                    cH.valuesToPlot.values[selectedPoint - 1].toInt()
+                                                    valuesToPlot.values[selectedPoint - 1].toInt()
                                                 selectedX =
                                                     flatPointsList.map { it.x }[selectedPoint]
                                                 selectedHighY =
-                                                    cH.valuesToPlot.confidenceIntervalHigh[selectedPoint - 1].toInt()
+                                                    valuesToPlot.confidenceIntervalHigh[selectedPoint - 1].toInt()
                                                 selectedLowY =
-                                                    cH.valuesToPlot.confidenceIntervalLow[selectedPoint - 1].toInt()
+                                                    valuesToPlot.confidenceIntervalLow[selectedPoint - 1].toInt()
 
                                                 if (abs(flatPointsList.map { it.y }[selectedPoint] - tapOffset.y) > height
                                                         .div(
@@ -385,7 +512,17 @@ fun ShadedLineChart(
                             }
                     ) {
 
-                        cH.drawGrid(this, pathHorizontal, pathVertical)
+                        // GRID
+                        drawPath(
+                            path = pathHorizontal, color = ColdGrey01,
+                            style = Stroke(width = lineStroke.toPx(), cap = StrokeCap.Square)
+                        )
+                        drawPath(
+                            path = pathVertical, color = ColdGrey01,
+                            style = Stroke(width = lineStroke.toPx(), cap = StrokeCap.Square)
+                        )
+                        // end GRID
+//                        drawGrid(this, pathHorizontal, pathVertical)
 
                         // baseline shading
                         val range = score.getReferencePopulationRange(basicInfo)
@@ -396,7 +533,7 @@ fun ShadedLineChart(
                             drawPath(
                                 path = linesArea, color = ColdGrey04,
                                 style = Stroke(
-                                    width = cH.lineStroke.toPx(),
+                                    width = lineStroke.toPx(),
                                     cap = StrokeCap.Square,
                                     pathEffect = PathEffect.dashPathEffect(
                                         floatArrayOf(10f, 10f),
@@ -430,7 +567,7 @@ fun ShadedLineChart(
                             singleList.forEach {
                                 if ( it.x > 0) {
                                     if (!(it.x == lastXValue &&
-                                                cH.valuesToPlot.timestamps.last().dayOfWeek != DayOfWeek.SUNDAY &&
+                                                valuesToPlot.timestamps.last().dayOfWeek != DayOfWeek.SUNDAY &&
                                                 chartType in listOf(
                                             Chart.MONTH,
                                             Chart.YEAR
@@ -460,8 +597,8 @@ fun ShadedLineChart(
                             val thisInfoWidth = if (showConfidence) maxOf(textFirstLineSize.width, textSecondLineSize.width) + padInfo.times(2).toPx()
                             else textFirstLineSize.width + padInfo.times(2).toPx()
 
-                            val xPos = (stepVerticalLines + cH.lineStroke).times(selectedPoint - 1)
-                                .toPx() + cH.horizontalBias.toPx()
+                            val xPos = (stepVerticalLines + lineStroke).times(selectedPoint - 1)
+                                .toPx() + horizontalBias.toPx()
                             val selectedVertical = Path().apply {
                                 moveTo(xPos, 0f)
                                 lineTo(xPos, height.toPx())
@@ -469,11 +606,11 @@ fun ShadedLineChart(
 
                             drawPath(
                                 path = selectedVertical, color = score.colors.color,
-                                style = Stroke(width = cH.lineStroke.toPx(), cap = StrokeCap.Square)
+                                style = Stroke(width = lineStroke.toPx(), cap = StrokeCap.Square)
                             )
 
                             // Info
-                            if (cH.valuesToPlot.values[selectedPoint - 1] < 70) {
+                            if (valuesToPlot.values[selectedPoint - 1] < 70) {
                                 val trianglePath = Path().let {
                                     it.moveTo(xPos, thisInfoHeight + 6.dp.toPx())
                                     it.lineTo(xPos - 9.dp.div(2).toPx(), thisInfoHeight - 1)
@@ -485,9 +622,9 @@ fun ShadedLineChart(
                                     score.colors.color,
                                     size = Size(thisInfoWidth, thisInfoHeight),
                                     topLeft = Offset(
-                                        if (selectedPoint != cH.valuesToPlot.size)
+                                        if (selectedPoint != valuesToPlot.size)
                                             xPos - thisInfoWidth.div(2) else
-                                            cH.width.toPx() - thisInfoWidth,
+                                            width.toPx() - thisInfoWidth,
                                         0f
                                     ),
                                     cornerRadius = CornerRadius(4.dp.toPx())
@@ -500,9 +637,9 @@ fun ShadedLineChart(
                                     textMeasurer = textMeasure,
                                     text = textFirstLine,
                                     topLeft = Offset(
-                                        if (selectedPoint != cH.valuesToPlot.size)
+                                        if (selectedPoint != valuesToPlot.size)
                                             xPos - textFirstLineSize.width / 2f else
-                                            cH.width.toPx() - thisInfoWidth.div(2)
+                                            width.toPx() - thisInfoWidth.div(2)
                                                     - textFirstLineSize.width / 2f,
                                         0f
                                     )
@@ -512,9 +649,9 @@ fun ShadedLineChart(
                                         textMeasurer = textMeasure,
                                         text = textSecondLine,
                                         topLeft = Offset(
-                                            if (selectedPoint != cH.valuesToPlot.size)
+                                            if (selectedPoint != valuesToPlot.size)
                                                 xPos - textSecondLineSize.width / 2f else
-                                                cH.width.toPx() - thisInfoWidth.div(2)
+                                                width.toPx() - thisInfoWidth.div(2)
                                                         - textSecondLineSize.width / 2f,
                                             textFirstLineSize.height.toFloat()
                                         )
@@ -540,9 +677,9 @@ fun ShadedLineChart(
                                     score.colors.color,
                                     size = Size(thisInfoWidth, thisInfoHeight),
                                     topLeft = Offset(
-                                        if (selectedPoint != cH.valuesToPlot.size)
+                                        if (selectedPoint != valuesToPlot.size)
                                             xPos - thisInfoWidth.div(2) else
-                                            cH.width.toPx() - thisInfoWidth,
+                                            width.toPx() - thisInfoWidth,
                                         refHeight - thisInfoHeight
                                     ),
                                     cornerRadius = CornerRadius(4.dp.toPx())
@@ -555,9 +692,9 @@ fun ShadedLineChart(
                                     textMeasurer = textMeasure,
                                     text = textFirstLine,
                                     topLeft = Offset(
-                                        if (selectedPoint != cH.valuesToPlot.size)
+                                        if (selectedPoint != valuesToPlot.size)
                                             xPos - textFirstLineSize.width / 2f else
-                                            cH.width.toPx() - thisInfoWidth.div(2)
+                                            width.toPx() - thisInfoWidth.div(2)
                                                     - textFirstLineSize.width / 2f,
 
                                         refHeight - thisInfoHeight
@@ -568,9 +705,9 @@ fun ShadedLineChart(
                                         textMeasurer = textMeasure,
                                         text = textSecondLine,
                                         topLeft = Offset(
-                                            if (selectedPoint != cH.valuesToPlot.size)
+                                            if (selectedPoint != valuesToPlot.size)
                                                 xPos - textSecondLineSize.width / 2f else
-                                                cH.width.toPx() - thisInfoWidth.div(2)
+                                                width.toPx() - thisInfoWidth.div(2)
                                                         - textSecondLineSize.width / 2f,
                                             refHeight - thisInfoHeight + textFirstLineSize.height.toFloat()
                                         )
@@ -583,7 +720,7 @@ fun ShadedLineChart(
                 // Canvas for the text and the journal bubbles
                 Canvas(
                     modifier = Modifier
-                        .width(cH.width)
+                        .width(width)
                         .height(spaceForText)
                         .background(Color.Transparent)
                         .pointerInput(Unit) {
@@ -600,15 +737,15 @@ fun ShadedLineChart(
                         }
                 ) {
 
-                    for (step in 0 until cH.valuesToPlot.size) {
-                        val xP = (stepVerticalLines + cH.lineStroke).times(step)
-                            .toPx() + cH.horizontalBias.toPx()
+                    for (step in 0 until valuesToPlot.size) {
+                        val xP = (stepVerticalLines + lineStroke).times(step)
+                            .toPx() + horizontalBias.toPx()
                         // x label
                         drawText(
                             textMeasurer = textMeasure,
-                            text = cH.xLabelsText[step],
+                            text = xLabelsText[step],
                             topLeft = Offset(
-                                (xP - xLabelsTextSizes[step].width / 2f).coerceAtMost(cH.width.toPx() - xLabelsTextSizes[step].width),
+                                (xP - xLabelsTextSizes[step].width / 2f).coerceAtMost(width.toPx() - xLabelsTextSizes[step].width),
                                 16.dp.toPx()
                             )
                         )

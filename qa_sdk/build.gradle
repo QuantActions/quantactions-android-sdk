@@ -42,7 +42,8 @@ android {
 
         buildConfigField("String", "QA_UUID", "\"${project.properties["qa_uuid"]}\"")
         buildConfigField("String", "QA_API_ROUTE", "\"https://qa-apis.azure-api.net/tap/v1/\"")
-//        buildConfigField("String", "QA_API_ROUTE", "\"http://localhost:8090/\"")
+        buildConfigField("String", "QA_SAMPLE_PASSWORD", "\"${project.properties["qa_sample_password"]}\"")
+        buildConfigField("String", "QA_SAMPLE_ID", "\"${project.properties["qa_sample_id"]}\"")
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
@@ -111,7 +112,7 @@ dependencies {
     implementation "androidx.work:work-runtime:2.9.0" // (Java)
     implementation "androidx.work:work-runtime-ktx:2.9.0" // Kotlin + coroutines
     // lifecycle
-    implementation 'androidx.lifecycle:lifecycle-service:2.8.3'
+    implementation 'androidx.lifecycle:lifecycle-service:2.8.4'
 
     // FIREBASE & GOOGLE SERVICES
     implementation platform('com.google.firebase:firebase-bom:33.1.2')
@@ -262,16 +263,8 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            /** Configure path of your package repository on Github
-             ** Replace GITHUB_USERID with your/organisation Github userID
-             ** and REPOSITORY with the repository name on GitHub
-             */
             url = uri("https://maven.pkg.github.com/QuantActions/quantactions-android-sdk")
             credentials {
-                /** Create github.properties in root project folder file with
-                 ** gpr.usr=GITHUB_USER_ID & gpr.key=PERSONAL_ACCESS_TOKEN
-                 ** Set env variable GPR_USER & GPR_API_KEY if not adding a properties file**/
-
                 username = githubProperties['gpr.usr'] ?: System.getenv("GPR_USER")
                 password = githubProperties['gpr.key'] ?: System.getenv("GPR_API_KEY")
             }

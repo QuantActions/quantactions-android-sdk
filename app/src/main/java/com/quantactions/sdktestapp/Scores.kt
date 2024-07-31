@@ -1,3 +1,12 @@
+/*
+ * *******************************************************************************
+ * Copyright (C) QuantActions AG - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Enea Ceolini <enea.ceolini@quantactions.com>, July 2024
+ * *******************************************************************************
+ */
+
 package com.quantactions.sdktestapp
 
 import androidx.compose.ui.graphics.Color
@@ -131,27 +140,6 @@ enum class Score(
     )
 }
 
-fun getSecondaryScore(score: Score): Score {
-    return when(score) {
-        Score.COGNITIVE_FITNESS -> Score.ACTION_SPEED
-        Score.SOCIAL_ENGAGEMENT -> Score.SCREEN_TIME_AGGREGATE
-        Score.SLEEP_SCORE -> Score.SLEEP_SUMMARY
-        else -> {
-            throw IllegalArgumentException("No secondary score for $score")
-        }
-    }
-}
-
-fun getTertiaryScore(score: Score): Score {
-    return when(score) {
-        Score.COGNITIVE_FITNESS -> Score.TYPING_SPEED
-        Score.SOCIAL_ENGAGEMENT -> Score.SOCIAL_TAPS
-        Score.SLEEP_SCORE -> Score.SLEEP_INTERRUPTIONS
-        else -> {
-            throw IllegalArgumentException("No tertiary score for $score")
-        }
-    }
-}
 
 /**
  * Extension fun to get the Metric instance form the its id.
@@ -167,10 +155,6 @@ fun from(id: String): Score {
  * Simple class that holds a color and it's light version for a metric branding.
  * */
 class MetricColor(val color: Color, val lightColor: Color)
-
-interface ScoreDetails {
-    fun getDoubleSeries(rewindDays: Int): List<Double>
-}
 
 interface WatchableScoreOrTrend {
     val id: String

@@ -9,26 +9,15 @@
 
 package com.quantactions.sdktestapp
 
-import android.app.NotificationManager
 import android.os.Bundle
 import android.os.StrictMode
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.animation.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.RadioButton
-import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-
-import androidx.navigation.NavHostController
 
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.firebase.analytics.ktx.analytics
@@ -37,8 +26,7 @@ import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.quantactions.sdk.QA
 import com.quantactions.sdktestapp.charts.Chart
-import com.quantactions.sdktestapp.core_ui.theme.TP
-import com.quantactions.sdktestapp.utils.MainColumn
+import com.quantactions.sdktestapp.utils.Components
 
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -52,12 +40,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var qa: QA
-    lateinit var navController: NavHostController
 
     private val metricsViewModel: MetricsViewModel by viewModels()
-    private lateinit var mNotificationManager: NotificationManager
 
-    @OptIn(ExperimentalAnimationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -80,13 +65,15 @@ class MainActivity : ComponentActivity() {
 
             var selectedChart by remember { mutableStateOf(Chart.WEEK) }
 
-            Column {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+                PoweredByQuantActions()
 
                 ChartRadioButton(selectedChart = selectedChart) {
                     selectedChart = it
                 }
 
-                MainColumn(
+                Components(
                     cognitiveFitness = cognitiveFitnessState,
                     cognitiveFitnessTrend = cognitiveFitnessTrendState,
                     sleepQuality = sleepScoreState,

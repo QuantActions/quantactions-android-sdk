@@ -1,3 +1,12 @@
+/*
+ * *******************************************************************************
+ * Copyright (C) QuantActions AG - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Enea Ceolini <enea.ceolini@quantactions.com>, July 2024
+ * *******************************************************************************
+ */
+
 package com.quantactions.sdktestapp.core_ui.metrics
 
 import androidx.compose.animation.core.Animatable
@@ -9,12 +18,12 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -25,13 +34,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.quantactions.sdktestapp.R
 import com.quantactions.sdktestapp.Score
 import kotlin.math.sqrt
 
@@ -45,10 +50,10 @@ fun ProgressWithGradientRotation(
     indicatorThickness: Dp = 18.dp,
     indicatorRadius: Dp = 78.dp + indicatorThickness / 2,
     indicatorOffset: Dp = 20.dp.times(sqrt(2.0).toFloat()),
-){
+) {
 
     // Allow resume on rotation
-    var currentRotation by remember { mutableStateOf(0f) }
+    var currentRotation by remember { mutableFloatStateOf(0f) }
 
     val rotation = remember { Animatable(currentRotation) }
 
@@ -88,27 +93,26 @@ fun ProgressWithGradientRotation(
             ratio / 100 to colorDark,
         ).toTypedArray()
 
-        if (sweepAngle > 0){
-            // Foreground indicator
-            drawArc(
-                brush = Brush.sweepGradient(
-                    colorStops = colorStops
-                ),
+        // Foreground indicator
+        drawArc(
+            brush = Brush.sweepGradient(
+                colorStops = colorStops
+            ),
 
-                startAngle = 7f,
-                sweepAngle = sweepAngle - 7,
-                useCenter = false,
-                style = Stroke(width = indicatorThickness.toPx(), cap = StrokeCap.Round),
-                size = Size(
-                    width = (indicatorRadius * 2).toPx(),
-                    height = (indicatorRadius * 2).toPx()
-                ),
-                topLeft = Offset(
-                    x = indicatorOffset.toPx(),
-                    y = indicatorOffset.toPx()
-                )
+            startAngle = 7f,
+            sweepAngle = sweepAngle - 7,
+            useCenter = false,
+            style = Stroke(width = indicatorThickness.toPx(), cap = StrokeCap.Round),
+            size = Size(
+                width = (indicatorRadius * 2).toPx(),
+                height = (indicatorRadius * 2).toPx()
+            ),
+            topLeft = Offset(
+                x = indicatorOffset.toPx(),
+                y = indicatorOffset.toPx()
             )
-        }
+        )
+
     }
 }
 
@@ -122,12 +126,11 @@ fun ProgressWithGradient(
     indicatorThickness: Dp = 18.dp,
     indicatorRadius: Dp = 78.dp + indicatorThickness / 2,
     indicatorOffset: Dp = 20.dp.times(sqrt(2.0).toFloat()),
-){
+) {
 
-    val animationDuration = 1000
     // It remembers the data usage value
     var dataUsageRemember by remember {
-        mutableStateOf(-1.0)
+        mutableDoubleStateOf(-1.0)
     }
 
     // This is to animate the foreground indicator
@@ -167,7 +170,7 @@ fun ProgressWithGradient(
             ratio / 100 to colorDark,
         ).toTypedArray()
 
-        if (sweepAngle > 0){
+        if (sweepAngle > 0) {
             // Foreground indicator
             drawArc(
                 brush = Brush.sweepGradient(

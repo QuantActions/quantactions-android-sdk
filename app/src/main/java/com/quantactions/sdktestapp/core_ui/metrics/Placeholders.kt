@@ -1,3 +1,12 @@
+/*
+ * *******************************************************************************
+ * Copyright (C) QuantActions AG - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Enea Ceolini <enea.ceolini@quantactions.com>, July 2024
+ * *******************************************************************************
+ */
+
 package com.quantactions.sdktestapp.core_ui.metrics
 
 import androidx.compose.animation.core.animateFloatAsState
@@ -11,21 +20,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.Text
-import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,8 +50,6 @@ import androidx.compose.ui.unit.sp
 import com.quantactions.sdktestapp.MetricColor
 import com.quantactions.sdktestapp.R
 import com.quantactions.sdktestapp.Score
-import com.quantactions.sdktestapp.core_ui.theme.Brand
-import com.quantactions.sdktestapp.core_ui.theme.BrandLight1
 import com.quantactions.sdktestapp.core_ui.theme.ColdGrey01
 import com.quantactions.sdktestapp.core_ui.theme.ColdGrey02
 import com.quantactions.sdktestapp.core_ui.theme.ColdGrey05
@@ -69,14 +73,14 @@ fun MetricETA(percentCompleteReal: Float = 15f) {
 
     // It remembers the data usage value
     var dataUsageRemember by remember {
-        mutableStateOf(-1f)
+        mutableFloatStateOf(-1f)
     }
     // This is to animate the foreground indicator
     val dataUsageAnimate = animateFloatAsState(
         targetValue = dataUsageRemember,
         animationSpec = tween(
             durationMillis = 1000
-        )
+        ), label = ""
     )
     // This is to start the animation when the activity is opened
     LaunchedEffect(Unit) {
@@ -242,73 +246,5 @@ fun MetricRowPlaceholderV2(
             }
         }
 
-    }
-}
-
-/////////////////////////  SCREENS   /////////////////////////
-
-/**
- * Placeholder Screen shown in the Relations Tab when the metrics are not ready. Has button that
- * redirects to onboarding course.
- * */
-@Composable
-fun LearningPhaseRelationsTab(
-    isCourseStarted: Boolean,
-    isCourseDone: Boolean,
-    goToCourse: () -> Unit,
-) {
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(White)
-    ) {
-
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .background(White)
-                .padding(top = 32.dp, bottom = 12.dp, start = 16.dp, end = 16.dp)
-        ) {
-            Text(
-                stringResource(R.string.placeholder_feature_available_future),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 32.dp),
-                style = TP.regular.body1, color = ColdGrey06
-            )
-            if (!isCourseDone) {
-                Text(
-                    stringResource(R.string.placeholder_find_out_tutorial),
-                    modifier = Modifier.fillMaxWidth(),
-                    style = TP.regular.body1, color = ColdGrey06
-                )
-                Spacer(Modifier.height(16.dp))
-                TextButton(
-                    enabled = true,
-                    colors = ButtonDefaults.buttonColors(
-                        disabledBackgroundColor = BrandLight1,
-                        backgroundColor = Brand,
-                        contentColor = White
-                    ),
-                    onClick = { goToCourse() },
-                    modifier = Modifier
-                        .width(250.dp)
-                        .height(48.dp)
-                        .padding(start = 16.dp, end = 16.dp)
-                        .clip(
-                            RoundedCornerShape(8.dp)
-                        )
-                        .fillMaxWidth()
-                ) {
-                    Text(
-                        if (isCourseStarted) stringResource(R.string.placeholder_resume_the_tutorial)
-                        else stringResource(R.string.placeholder_see_the_tutorial),
-                        style = TP.medium.body1,
-                        color = White
-                    )
-                }
-            }
-        }
     }
 }

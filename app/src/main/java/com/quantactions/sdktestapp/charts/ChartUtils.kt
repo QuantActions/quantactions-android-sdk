@@ -1,45 +1,27 @@
-@file:Suppress("HardCodedStringLiteral")
+/*
+ * *******************************************************************************
+ * Copyright (C) QuantActions AG - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Enea Ceolini <enea.ceolini@quantactions.com>, July 2024
+ * *******************************************************************************
+ */
 
 package com.quantactions.sdktestapp.charts
 
 import android.graphics.PointF
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import com.quantactions.sdktestapp.core_ui.theme.*
 import com.quantactions.sdk.TimeSeries
-import com.quantactions.sdk.data.model.JournalEntry
 import com.quantactions.sdk.data.model.SleepSummary
 import com.quantactions.sdk.dropna
-import com.quantactions.sdktestapp.Score
-import com.quantactions.sdktestapp.core_ui.theme.TP
-import com.quantactions.sdktestapp.utils.StringFormatter
-import com.quantactions.sdktestapp.core_ui.metrics.toSpanStyle
-import java.time.*
-import java.time.format.DateTimeFormatter
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
-import java.time.temporal.IsoFields
-import java.time.temporal.TemporalAdjusters
-import java.util.*
 import kotlin.math.abs
-
-
-fun Long.localize(): ZonedDateTime {
-    return Instant.ofEpochMilli(this * 1000)
-        .atZone(ZoneId.systemDefault())
-}
-
-fun LocalDate.localize(): ZonedDateTime {
-    return ZonedDateTime.of(this, LocalTime.of(0, 0), ZoneId.systemDefault())
-}
-
 
 /**
  * Class the holds the type of charts present in the App.
@@ -330,19 +312,6 @@ fun prepareAndAggregateTrend(
     }
 }
 
-fun prepareAndAggregateTheWave(
-    timeSeries: TimeSeries.TrendTimeSeries,
-    chartType: Chart,
-): Double {
-    val fillAndTake = fillAndTakeValue(chartType)
-    val readyTrendHolder = timeSeries.fillMissingDays(fillAndTake).takeLast(fillAndTake)
-    return when (chartType) {
-        Chart.WEEK -> readyTrendHolder.values.last().statistic2Weeks
-        Chart.MONTH -> readyTrendHolder.values.last().statistic6Weeks
-        Chart.YEAR -> readyTrendHolder.values.last().statistic1Year
-    }
-}
-
 fun prepareAndAggregateSleepLength(
     timeSeries: TimeSeries.SleepSummaryTimeTimeSeries,
     chartType: Chart
@@ -353,25 +322,6 @@ fun prepareAndAggregateSleepLength(
         .average()
 }
 
-fun prepareAndAggregateSleepInterruptions(
-    timeSeries: TimeSeries.SleepSummaryTimeTimeSeries,
-    chartType: Chart
-): Double {
-    val fillAndTake = fillAndTakeValue(chartType)
-    return timeSeries.fillMissingDays(fillAndTake).takeLast(fillAndTake)
-        .dropna().values.map { it.interruptionsNumberOfTaps.size }
-        .average()
-}
-
-fun prepareAndAggregateTotalScreenTime(
-    timeSeries: TimeSeries.ScreenTimeAggregateTimeSeries,
-    chartType: Chart
-): Double {
-    val fillAndTake = fillAndTakeValue(chartType)
-    return timeSeries.fillMissingDays(fillAndTake).takeLast(fillAndTake)
-        .dropna().values.map { it.totalScreenTime }.average()
-}
-
 fun prepareAndAggregateSocialScreenTime(
     timeSeries: TimeSeries.ScreenTimeAggregateTimeSeries,
     chartType: Chart
@@ -379,187 +329,4 @@ fun prepareAndAggregateSocialScreenTime(
     val fillAndTake = fillAndTakeValue(chartType)
     return timeSeries.fillMissingDays(fillAndTake).takeLast(fillAndTake)
         .dropna().values.map { it.socialScreenTime }.average()
-}
-
-class BasicChart<T>(
-    val timeSeries: TimeSeries<T>,
-    val scoreTimeSeries: TimeSeries.DoubleTimeSeries,
-    val score: Score,
-    val selectedPoint: Int,
-    val chartType: Chart,
-    val marginLeft: Dp,
-    val marginRight: Dp,
-    val marginTopPlot: Dp,
-    val screenWidth: Dp,
-    val highlightXLabelMinus1: Boolean = false,
-    val weekString: String
-) {
-
-    val nVerticalLines = chartType.numValues
-    private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("EEE")
-    private val basicDateFormatter: DateTimeFormatter =
-        DateTimeFormatter.ofPattern(StringFormatter.BasicDate.pattern)
-    val width = screenWidth - marginRight - marginLeft
-    val lineStroke = 1.dp
-    val barWidth: Dp
-
-    val valuesToPlot: TimeSeries<T>
-    val scoreValuesToPlot: TimeSeries.DoubleTimeSeries
-    val xLabelsText: List<AnnotatedString>
-    val times: TimeSeries.DoubleTimeSeries
-    val horizontalBias: Dp
-
-    // other
-    var nHorizontalLines = 0
-    var height = 0.dp
-    var stepVerticalLines = 0.dp
-    var stepHorizontalLines = 0.dp
-    // -------------------------------
-
-    fun setHeight(nHorizontalLines: Int, height: Dp){
-        this.nHorizontalLines = nHorizontalLines
-        this.height = height
-        stepVerticalLines = (width - barWidth.times(2) - lineStroke.times(nVerticalLines - 1)).div(nVerticalLines - 1)
-        stepHorizontalLines = (height - lineStroke.times(nHorizontalLines - 1)).div(nHorizontalLines - 1)
-    }
-
-
-    init {
-        when (chartType) {
-            Chart.WEEK -> {
-                valuesToPlot =
-                    timeSeries.fillMissingDays(Chart.WEEK.numValues)
-                        .takeLast(Chart.WEEK.numValues)
-
-
-                scoreValuesToPlot =
-                    scoreTimeSeries.fillMissingDays(Chart.WEEK.numValues)
-                        .takeLast(Chart.WEEK.numValues)
-
-
-                times = TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.WEEK.numValues)
-                    .takeLast(Chart.WEEK.numValues)
-
-                horizontalBias = 8.dp
-                barWidth = 8.dp
-
-                // x labels
-                xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
-                    buildAnnotatedString {
-                        withStyle(
-                            style = SpanStyle(
-                                color = if (i == (selectedPoint - if (highlightXLabelMinus1) 1 else 0)) score.colors.color else {
-                                    if (timestamp.dayOfWeek in listOf(
-                                            DayOfWeek.SATURDAY,
-                                            DayOfWeek.SUNDAY
-                                        )
-                                    ) ColdGrey07 else ColdGrey04
-                                },
-                                fontSize = TP.regular.overline.fontSize,
-                                fontStyle = TP.regular.overline.fontStyle,
-                                fontWeight = TP.regular.overline.fontWeight
-                            )
-                        ) {
-                            append(formatter.format(timestamp).substring(0, 2))
-                        }
-                    }
-                }
-            }
-
-            Chart.MONTH -> {
-                valuesToPlot =
-                    timeSeries.fillMissingDays(Chart.MONTH.numValues * 7)
-                        .extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
-
-
-                scoreValuesToPlot =
-                    scoreTimeSeries.fillMissingDays(Chart.MONTH.numValues * 7)
-                        .extractWeeklyAverages()
-                        .takeLast(Chart.MONTH.numValues)
-
-
-                times = TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.MONTH.numValues * 7)
-                    .extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
-
-
-                barWidth = 20.dp
-                horizontalBias = 20.dp
-                // x labels
-                xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
-                    buildAnnotatedString {
-                        withStyle(
-                            style = SpanStyle(
-                                color = if (i == selectedPoint - if (highlightXLabelMinus1) 1 else 0) score.colors.color else ColdGrey04,
-                                fontSize = TP.regular.overline.fontSize,
-                                fontStyle = TP.regular.overline.fontStyle,
-                                fontWeight = TP.regular.overline.fontWeight
-                            )
-                        ) {
-                            append(
-                                String.format(weekString,
-                                    timestamp.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR))
-                            )
-                        }
-                    }
-                }
-            }
-
-            Chart.YEAR -> {
-                // here I need to massage and extract averages over months
-                valuesToPlot =
-                    timeSeries.fillMissingDays(366).extractMonthlyAverages()
-                        .takeLast(Chart.YEAR.numValues)
-
-                scoreValuesToPlot =
-                    scoreTimeSeries.fillMissingDays(366)
-                        .extractMonthlyAverages()
-                        .takeLast(Chart.YEAR.numValues)
-
-
-//                scoreValuesToPlot =
-//                    scoreTimeSeries.fillMissingDays(366).extractMonthlyAverages()
-//                        .takeLast(Chart.YEAR.numValues)
-                times = TimeSeries.DoubleTimeSeries().fillMissingDays(366).extractMonthlyAverages()
-                    .takeLast(Chart.YEAR.numValues)
-
-                horizontalBias = 8.dp
-                barWidth = 10.dp
-                // x labels
-                xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
-                    buildAnnotatedString {
-                        withStyle(
-                            style = TP.regular.overline.toSpanStyle(if (i == selectedPoint - if (highlightXLabelMinus1) 1 else 0) score.colors.color else ColdGrey04)
-                        ) {
-                            append(
-                                DateTimeFormatter.ofPattern(StringFormatter.ChartXYear.pattern)
-                                    .format(timestamp)
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    fun drawGrid(
-        drawScope: DrawScope,
-        pathHorizontal: Path,
-        pathVertical: Path,
-    ) {
-        with(drawScope) {
-            // GRID
-            drawPath(
-                path = pathHorizontal, color = ColdGrey01,
-                style = Stroke(width = lineStroke.toPx(), cap = StrokeCap.Square)
-            )
-            drawPath(
-                path = pathVertical, color = ColdGrey01,
-                style = Stroke(width = lineStroke.toPx(), cap = StrokeCap.Square)
-            )
-            // end GRID
-        }
-
-    }
-
-
 }

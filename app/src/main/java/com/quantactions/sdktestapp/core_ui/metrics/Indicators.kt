@@ -1,17 +1,31 @@
+/*
+ * *******************************************************************************
+ * Copyright (C) QuantActions AG - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Enea Ceolini <enea.ceolini@quantactions.com>, July 2024
+ * *******************************************************************************
+ */
+
 package com.quantactions.sdktestapp.core_ui.metrics
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Card
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
@@ -26,7 +40,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -35,6 +48,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.quantactions.sdk.TimeSeries
+import com.quantactions.sdk.Trend
+import com.quantactions.sdktestapp.MetricColor
+import com.quantactions.sdktestapp.R
+import com.quantactions.sdktestapp.Score
+import com.quantactions.sdktestapp.ScoreTrend
 import com.quantactions.sdktestapp.charts.Chart
 import com.quantactions.sdktestapp.charts.calculateConnectionPointsForBezierCurve
 import com.quantactions.sdktestapp.charts.calculatePointsForData
@@ -42,15 +61,10 @@ import com.quantactions.sdktestapp.charts.prepareAndAggregateSleepLength
 import com.quantactions.sdktestapp.charts.prepareAndAggregateSocialScreenTime
 import com.quantactions.sdktestapp.charts.prepareAndAggregateTimeSeries
 import com.quantactions.sdktestapp.charts.prepareAndAggregateTrend
-import com.quantactions.sdktestapp.core_ui.theme.*
-
-import com.quantactions.sdk.TimeSeries
-import com.quantactions.sdk.Trend
-import com.quantactions.sdktestapp.MetricColor
-import com.quantactions.sdktestapp.R
-import com.quantactions.sdktestapp.Score
-import com.quantactions.sdktestapp.ScoreTrend
 import com.quantactions.sdktestapp.core_ui.DotsFlashing
+import com.quantactions.sdktestapp.core_ui.theme.Brand
+import com.quantactions.sdktestapp.core_ui.theme.ColdGrey05
+import com.quantactions.sdktestapp.core_ui.theme.ColdGrey10
 import com.quantactions.sdktestapp.core_ui.theme.TP
 import com.quantactions.sdktestapp.utils.ScoreState
 import java.time.temporal.ChronoUnit
@@ -59,29 +73,8 @@ import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import kotlin.random.Random
 
-
 /**
- * Function to calculate Bezier interpolation points in the canvas for each of the points ion the
- * line plot.
- * @param points in canvas coordinates of the line plot to be rendered
- * */
-
-
-/**
- * Chart with the last 7 days of data wprivate fun calculateConnectionPointsForBezierCurve(points: List<PointF>): Pair<List<PointF>, List<PointF>> {
-val conPoint1 = mutableListOf<PointF>()
-val conPoint2 = mutableListOf<PointF>()
-try {
-for (i in 1 until points.size) {
-conPoint1.add(PointF((points[i].x + points[i - 1].x) / 2, points[i - 1].y))
-conPoint2.add(PointF((points[i].x + points[i - 1].x) / 2, points[i].y))
-//            conPoint1.add(PointF((points[i].x + 0.01f), points[i - 1].y))
-//            conPoint2.add(PointF((points[i].x - 0.01f), points[i].y))
-}
-} catch (_: Exception) {
-}
-return Pair(conPoint1, conPoint2)
-}ithin the circular indicator in the summary view of the
+ * Chart with the last 7 days of data within the circular indicator in the summary view of the
  * metrics
  * @param data list of values of the metric
  * @param colors instance of [MetricColor] for the line
@@ -309,7 +302,7 @@ fun MetricCircularIndicator(
  * Bigger Circular indicator for the detail metric page with text info on the value and the change
  * from last period
  * @param scoreValueToShow Double value to show in the center of the indicator
- * @param metricColor instance of [com.quantactions.sdktestapp.MetricColor]
+ * @param metricColor instance of MetricColor
  * */
 @Composable
 fun DetailMetricCircularIndicator(
@@ -464,108 +457,6 @@ fun UpArrow(color: Color = Score.SLEEP_SCORE.colors.color) {
     }
 }
 
-/**
- * Red Arrow to show when the score has decreased
- * */
-@Composable
-fun DownArrow(color: Color = Score.SLEEP_SCORE.colors.color) {
-    Box(
-        modifier = Modifier
-            .size(16.dp)
-            .clip(shape = CircleShape)
-            .background(
-                color
-            )
-    ) {
-        Canvas(
-            modifier = Modifier
-                .size(16.dp)
-        ) {
-
-            val path = Path().apply {
-                moveTo(5.dp.toPx(), 5.dp.toPx())
-                lineTo(11.dp.toPx(), 11.dp.toPx())
-            }
-            drawPath(
-                path = path,
-                color = Color.White,
-                style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
-            )
-
-            val path2 = Path().apply {
-                moveTo(11.dp.toPx(), 5.dp.toPx())
-                lineTo(11.dp.toPx(), 10.dp.toPx())
-            }
-            drawPath(
-                path = path2,
-                color = Color.White,
-                style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
-            )
-
-            val path3 = Path().apply {
-                moveTo(11.dp.toPx(), 11.dp.toPx())
-                lineTo(6.dp.toPx(), 11.dp.toPx())
-            }
-            drawPath(
-                path = path3,
-                color = Color.White,
-                style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
-            )
-        }
-    }
-}
-
-/**
- * Grey Arrow to show when the score has not changed
- * */
-@Composable
-fun FlatArrow(color: Color = Score.SLEEP_SCORE.colors.color) {
-    Box(
-        modifier = Modifier
-            .size(16.dp)
-            .clip(shape = CircleShape)
-            .background(
-                color
-            )
-    ) {
-        Canvas(
-            modifier = Modifier
-                .size(16.dp)
-        ) {
-
-            val path = Path().apply {
-                moveTo(5.dp.toPx(), 8.dp.toPx())
-                lineTo(11.dp.toPx(), 8.dp.toPx())
-            }
-            drawPath(
-                path = path,
-                color = Color.White,
-                style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
-            )
-
-            val path2 = Path().apply {
-                moveTo(11.dp.toPx(), 8.dp.toPx())
-                lineTo(8.dp.toPx(), 5.dp.toPx())
-            }
-            drawPath(
-                path = path2,
-                color = Color.White,
-                style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
-            )
-
-            val path3 = Path().apply {
-                moveTo(11.dp.toPx(), 8.dp.toPx())
-                lineTo(8.dp.toPx(), 11.dp.toPx())
-            }
-            drawPath(
-                path = path3,
-                color = Color.White,
-                style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
-            )
-        }
-    }
-}
-
 @Composable
 @Preview
 fun PreviewMetricRowDetails() {
@@ -626,20 +517,6 @@ fun millisecondsToHourMinutes(preAmount: Long, includeMinus: Boolean = true): St
 
     val hours = (amount / 3600 / 1000).toInt()
     val minutes = ((amount - hours * 3600 * 1000) / 60 / 1000).toInt()
-    return if (hours == 0) {
-        prefix + stringResource(R.string.sleep_length_minutes, minutes)
-    } else {
-        prefix + stringResource(R.string.sleep_length, hours, minutes)
-    }
-}
-
-@Composable
-fun doubleHoursToHourMinutes(preAmount: Double, includeMinus: Boolean = false): String {
-    val prefix = if (preAmount > 0 || !includeMinus) "" else "- "
-    val amount = abs(preAmount)
-
-    val hours = amount.toInt()
-    val minutes = ((amount - hours) * 60).roundToInt()
     return if (hours == 0) {
         prefix + stringResource(R.string.sleep_length_minutes, minutes)
     } else {
@@ -818,28 +695,6 @@ fun MetricRow(
                         style = TP.regular.body2
                     )
                 }
-            }
-
-            Row(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 9.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .size(6.dp)
-                        .background(if (isScore) ColdGrey09 else ColdGrey04)
-                )
-                Box(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .size(6.dp)
-                        .background(if (isScore) ColdGrey04 else ColdGrey09)
-                )
-
             }
         }
     }
