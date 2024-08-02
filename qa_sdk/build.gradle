@@ -256,7 +256,7 @@ publishing {
             version "${versionName}"
             artifact("$buildDir/outputs/aar/qa_sdk-release.aar")
             pom.withXml {
-                def dependenciesNode = asNode(null).appendNode('dependencies')
+                def dependenciesNode = asNode().appendNode('dependencies')
                 configurations.implementation.allDependencies.each { dependency ->
                     if (dependency.group != null && dependency.name != null && dependency.version != null) {
                         def dependencyNode = dependenciesNode.appendNode('dependency')
