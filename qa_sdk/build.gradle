@@ -110,7 +110,7 @@ dependencies {
     api "androidx.work:work-runtime:2.9.0" // (Java)
     api "androidx.work:work-runtime-ktx:2.9.0" // Kotlin + coroutines
     // lifecycle
-    api 'androidx.lifecycle:lifecycle-service:2.8.3'
+    api 'androidx.lifecycle:lifecycle-service:2.8.4'
 
     // FIREBASE & GOOGLE SERVICES
     api platform('com.google.firebase:firebase-bom:33.1.2')
@@ -251,12 +251,12 @@ githubProperties.load(new FileInputStream(rootProject.file("github.properties"))
 publishing {
     publications {
         bar(MavenPublication) {
-            groupId 'com.quantactions' // Replace with group ID
+            groupId 'com.quantactions'
             artifactId 'quantactions-android-sdk'
             version "${versionName}"
             artifact("$buildDir/outputs/aar/qa_sdk-release.aar")
             pom.withXml {
-                def dependenciesNode = asNode().appendNode('dependencies')
+                def dependenciesNode = asNode(null).appendNode('dependencies')
                 configurations.implementation.allDependencies.each { dependency ->
                     if (dependency.group != null && dependency.name != null && dependency.version != null) {
                         def dependencyNode = dependenciesNode.appendNode('dependency')
@@ -273,16 +273,8 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            /** Configure path of your package repository on Github
-             ** Replace GITHUB_USERID with your/organisation Github userID
-             ** and REPOSITORY with the repository name on GitHub
-             */
             url = uri("https://maven.pkg.github.com/QuantActions/quantactions-android-sdk")
             credentials {
-                /** Create github.properties in root project folder file with
-                 ** gpr.usr=GITHUB_USER_ID & gpr.key=PERSONAL_ACCESS_TOKEN
-                 ** Set env variable GPR_USER & GPR_API_KEY if not adding a properties file**/
-
                 username = githubProperties['gpr.usr'] ?: System.getenv("GPR_USER")
                 password = githubProperties['gpr.key'] ?: System.getenv("GPR_API_KEY")
             }

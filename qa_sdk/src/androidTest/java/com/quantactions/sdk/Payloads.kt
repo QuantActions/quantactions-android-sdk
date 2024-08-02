@@ -12,9 +12,7 @@
 package com.quantactions.sdk
 
 import com.quantactions.sdk.data.model.AppToPush
-import com.quantactions.sdk.data.repository.DeviceHealthParsed
 import com.quantactions.sdk.data.repository.DeviceHealthParsedToPush
-import com.quantactions.sdk.data.repository.TapDataParsed
 import com.quantactions.sdk.data.repository.TapDataParsedToPush
 
 class Payloads(

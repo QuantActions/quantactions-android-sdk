@@ -185,8 +185,8 @@ class QA private constructor(
 
         @Keep
         companion object {
-            private val map = Gender.values().associateBy(Gender::id)
-            private val mapStrings = Gender.values().associateBy(Gender::code)
+            private val map = entries.associateBy(Gender::id)
+            private val mapStrings = entries.associateBy(Gender::code)
 
             @Keep
             fun fromInt(type: Int?) = map[type]

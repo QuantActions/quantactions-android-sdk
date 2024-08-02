@@ -44,7 +44,7 @@ import java.util.*
  */
 internal class Actuator(service: ReadingsService) {
     private var layerView: CustomTouchView? = null
-    private val context: Context
+    private val context: Context = service
     private var logs: Vector<EntryLog> = Vector()
     private var startTime: Long = 0
     private val mvpDao: MVPDao
@@ -219,7 +219,7 @@ internal class Actuator(service: ReadingsService) {
         }
 
     @SuppressLint("LogNotTimber")
-    private suspend fun addTapsDB(effectiveTAPs: Int, speed: Float) {
+    private fun addTapsDB(effectiveTAPs: Int, speed: Float) {
         // Adding count of taps per day every
         // get day from last time step
         val calendar = Calendar.getInstance()
@@ -274,7 +274,7 @@ internal class Actuator(service: ReadingsService) {
         } else 0f
     }
 
-    private suspend fun putAppInDB(appName: String): Int {
+    private fun putAppInDB(appName: String): Int {
         // I save in the database the name of all the Apps used. In this way I can save in the file
         // only the code of the app and add the name corresponding to the code to the HEADER of the Data sent
         // This is just a way to compress the recordings data.
@@ -337,7 +337,6 @@ internal class Actuator(service: ReadingsService) {
     }
 
     init {
-        context = service
         val intent = Intent(Intent.ACTION_MAIN)
         intent.addCategory(Intent.CATEGORY_HOME)
         logs = Vector()

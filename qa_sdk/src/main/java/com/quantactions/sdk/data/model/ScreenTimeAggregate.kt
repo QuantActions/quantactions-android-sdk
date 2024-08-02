@@ -11,9 +11,6 @@ package com.quantactions.sdk.data.model
 
 import androidx.annotation.Keep
 import kotlinx.serialization.Serializable
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZonedDateTime
 
 /**
  * This data class holds information about total and social screen time.

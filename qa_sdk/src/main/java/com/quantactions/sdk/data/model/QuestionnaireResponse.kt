@@ -14,8 +14,6 @@ import com.squareup.moshi.JsonClass
 /**
  * @hide
  *
- * @property coreEnquiryId the enquiry id
- * @property coreDeviceId the device id
  * @property response a JSON object with the response
  */
 @JsonClass(generateAdapter = true)

@@ -173,45 +173,6 @@ class ReadingsService : Service() {
     }
 
     /**
-     * Creates the notification body **important** icon is necessary otherwise the systems puts its
-     * own notification and does not show our text.
-     *
-     * @param context   Android application context
-     * @param channelID Name on the notification channel in which publish the notification
-     * @return Notification channel
-     */
-//    private fun createNotification(
-//        context: Context,
-//        channelID: String,
-//        showResume: Boolean,
-//    ): Notification {
-//
-//        val pauseIntent = Intent(context, QABroadcastReceiver::class.java)
-//        pauseIntent.action = "pauseCollection"
-//
-//        val pausePendingIntent = PendingIntent.getBroadcast(this, 0, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-//
-//        val resumeIntent = Intent(context, QABroadcastReceiver::class.java)
-//        resumeIntent.action = "resumeCollection"
-//
-//        val resumePendingIntent = PendingIntent.getBroadcast(this, 0, resumeIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-//
-//        val mBuilder = NotificationCompat.Builder(context, channelID)
-//        mBuilder.setStyle(NotificationCompat.DecoratedCustomViewStyle())
-//        mBuilder.setSmallIcon(R.drawable.ic_equalizer_black_24dp)
-//        mBuilder.color = context.resources.getColor(R.color.brand_background_icon_color)
-//        mBuilder.setWhen(0)
-//        mBuilder.setOngoing(true)
-//        mBuilder.setContentText("Taps last 24h: $lastTaps\nSpeed last 24h: ${"%.2f".format(lastSpeed * 60)} taps/m")
-//        if (showResume) {
-//            mBuilder.addAction(R.drawable.ic_debug_foreground, "Resume", resumePendingIntent)
-//        } else {
-//            mBuilder.addAction(R.drawable.ic_debug_foreground, "Pause", pausePendingIntent)
-//        }
-//        return mBuilder.build()
-//    }
-
-    /**
      * This is triggered when service starts but also when the screen goes on and off.
      *
      * @param intent  That started the service

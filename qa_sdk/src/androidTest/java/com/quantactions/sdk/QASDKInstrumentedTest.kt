@@ -273,7 +273,6 @@ class SDKFunctionalityTest {
         TestCase.assertEquals(entries.size, 0)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     @Throws(InterruptedException::class, SDKNotInitialisedException::class)
     fun testSignUpForStudyAndWithdraw() = runTest {

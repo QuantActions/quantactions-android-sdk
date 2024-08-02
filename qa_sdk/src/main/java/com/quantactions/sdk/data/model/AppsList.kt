@@ -11,7 +11,6 @@ package com.quantactions.sdk.data.model
 
 import androidx.annotation.Keep
 import com.squareup.moshi.JsonClass
-import kotlinx.serialization.Serializable
 
 /**
  * @suppress

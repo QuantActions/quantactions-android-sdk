@@ -15,7 +15,6 @@ import kotlinx.serialization.Serializable
 /***
  * @hide
  *
- * @property coreDeviceId
  * @property date
  * @property hourlyTaps
  * @property hourlyTapsAverage
@@ -34,7 +33,7 @@ data class DeviceStats(
     var hourlyTapsSpeedAverage: Float,       // average # taps per hour
     var sdkVersion: String,
     var tapsCount: Int,             // # taps in the day
-//    var id: String
+
 )
 
 /**

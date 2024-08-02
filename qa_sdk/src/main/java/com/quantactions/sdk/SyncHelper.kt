@@ -27,7 +27,7 @@ import timber.log.Timber
 import java.io.*
 import java.util.*
 
-internal class SyncHelper constructor(context: Context) {
+internal class SyncHelper(context: Context) {
 
     private val workManager = WorkManager.getInstance(context)
     private var pendingSignUp: String? = null

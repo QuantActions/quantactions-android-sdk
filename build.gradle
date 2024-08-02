@@ -7,7 +7,6 @@
  * *******************************************************************************
  */
 
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
 
     repositories {
@@ -16,10 +15,9 @@ buildscript {
             url "https://plugins.gradle.org/m2/"
         }
         google()
-        maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.5.0'
+        classpath 'com.android.tools.build:gradle:8.5.1'
         classpath 'com.google.gms:google-services:4.4.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:1.9.20"
@@ -27,14 +25,9 @@ buildscript {
         classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.2'
         classpath "org.jetbrains.kotlin:kotlin-serialization:2.0.0"
 
-        // Two necessary plugins
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
-
     }
 
     ext {
-        // DONE:18 Add a custom footer message and path to the newly added css file
         customFooterMessage = "Made with ❤️ at QuantActions"
         customLogoFile = projectDir.toString() + "/logo-style.css"
     }
@@ -48,6 +41,7 @@ plugins {
 apply plugin: "org.jetbrains.dokka"
 
 allprojects {
+
     repositories {
         mavenCentral()
         google()
@@ -57,13 +51,7 @@ allprojects {
     }
 }
 
-//tasks.named("dokkaHtmlMultiModule") {
-//    outputDirectory.set(file("../../QA-Android-SDK-docs/htmldocs"))
-//}
-
 subprojects {
-//    apply from: file("../publish.gradle")
-    // DONE:7 Add dokka plugin to each module
     apply plugin: "org.jetbrains.dokka"
 
     tasks.named("dokkaHtml") {
@@ -78,36 +66,7 @@ subprojects {
         )
     }
 
-    // DONE:8 Override dokkaHtml task and add custom output directory
-//    tasks.named("dokkaHtml") {
-//        // DONE:19 Add pluginsMapConfigurations for dokkaHtml, dokkaHtmlPartial
-
-////        outputDirectory.set(file("$rootProject.name-$project.name-dokka"))
-//        outputDirectory.set(file("../../QA-Android-SDK-docs/htmldocs"))
-//        // DONE:17 Add custom naming format for modules
-//        moduleName.set("$rootProject.name-$project.name")
-////        moduleName.set("Android SDK")
-//        // DONE:13 Set suppressInheritedMembers to true in both the tasks
-//        suppressInheritedMembers.set(true)
-//        dokkaSourceSets {
-//            named("main") {
-//                // DONE:14 Set includeNonPublic to true in both the tasks
-//                includeNonPublic.set(true)
-//                // DONE:16 Use custom markdown files for modules/packages
-////                includes.from("module.md")
-//                externalDocumentationLink {
-//                    url.set(new URL("https://square.github.io/picasso/2.x/picasso/"))
-//                }
-//                externalDocumentationLink {
-//                    url.set(new URL("https://bumptech.github.io/glide/javadocs/4120/"))
-//                }
-//            }
-//        }
-//    }
-
-    // DONE:10 Override dokkaHtmlPartial task and add external documentation in it and dokkaHtml both
     tasks.named("dokkaHtmlPartial") {
-//        // DONE:19 Add pluginsMapConfigurations for dokkaHtml, dokkaHtmlPartial
         pluginsMapConfiguration.set(
                 [
                         "org.jetbrains.dokka.base.DokkaBase": """{
@@ -117,34 +76,12 @@ subprojects {
                 ]
         )
     }
-//        // DONE:17 Add custom naming format for modules
-//        moduleName.set("$rootProject.name-$project.name")
-////        moduleName.set("Android SDK")
-//        // DONE:13 Set suppressInheritedMembers to true in both the tasks
-//        suppressInheritedMembers.set(true)
-//        dokkaSourceSets {
-//            named("main") {
-//                // DONE:14 Set includeNonPublic to true in both the tasks
-//                includeNonPublic.set(true)
-//                // DONE:16 Use custom markdown files for modules/packages
-//                includes.from("module.md")
-//                externalDocumentationLink {
-//                    url.set(new URL("https://square.github.io/picasso/2.x/picasso/"))
-//                }
-//                externalDocumentationLink {
-//                    url.set(new URL("https://bumptech.github.io/glide/javadocs/4120/"))
-//                }
-//            }
-//        }
-//    }
 
     dependencies {
         dokkaHtmlPlugin('org.jetbrains.dokka:android-documentation-plugin:1.7.20')
     }
 }
 
-
-//
 afterEvaluate {
     tasks.named("dokkaHtmlMultiModule") {
         pluginsMapConfiguration.set(

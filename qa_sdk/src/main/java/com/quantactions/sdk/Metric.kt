@@ -51,7 +51,7 @@ sealed class Metric<P : TimestampedEntity, T>(
      * See [com.quantactions.sdk.data.model.SleepSummary] for more information.
      */
     @Keep
-    object SLEEP_SUMMARY : Metric<SleepSummaryEntity, SleepSummary>(
+    data object SLEEP_SUMMARY : Metric<SleepSummaryEntity, SleepSummary>(
         "sleep_summary",
         "001-002-006-004",
         7,
@@ -174,7 +174,7 @@ sealed class Metric<P : TimestampedEntity, T>(
      * Screen time is a measure of the time you spend on your smartphone.
      * */
     @Keep
-    object SCREEN_TIME_AGGREGATE : Metric<StatisticStringEntity, ScreenTimeAggregate>(
+    data object SCREEN_TIME_AGGREGATE : Metric<StatisticStringEntity, ScreenTimeAggregate>(
         "screen_time_aggregate",
         "003-001-001-005",
         2,
