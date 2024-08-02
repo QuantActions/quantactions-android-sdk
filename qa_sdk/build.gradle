@@ -16,8 +16,8 @@ apply plugin: 'kotlinx-serialization'
 apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'com.google.devtools.ksp'
 
-def versionName = '1.1.0-beta07'
-def versionCode = '27'
+def versionName = '1.1.0-rc01'
+def versionCode = '28'
 
 android {
     compileSdk 34
