@@ -9,7 +9,6 @@
 
 package com.quantactions.sdk.data.model
 
-import android.os.Build
 import com.squareup.moshi.JsonClass
 
 /**

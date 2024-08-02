@@ -131,9 +131,9 @@ open class QAFirebaseMessagingService : FirebaseMessagingService() {
                 }
             } catch (e: Exception) {
                 try {
-                    FirebaseCrashlytics.getInstance().recordException(e);
+                    FirebaseCrashlytics.getInstance().recordException(e)
                 } catch (ex: Exception) {
-                    Timber.e("App does not integrate Firebase, cannot send crash!");
+                    Timber.e("App does not integrate Firebase, cannot send crash!")
                 }
                 e.printStackTrace()
             }

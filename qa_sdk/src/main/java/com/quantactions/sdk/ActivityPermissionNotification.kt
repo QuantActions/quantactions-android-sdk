@@ -41,11 +41,11 @@ open class ActivityPermissionNotificationImpl : ActivityPermissionNotification {
         val intent = Intent(Intent.ACTION_MAIN)
         val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
         if (launchIntent == null) {
-            Timber.tag("CREATE NOT").e("Launch intent is null");
+            Timber.tag("CREATE NOT").e("Launch intent is null")
         } else {
             val mainActivity = launchIntent.component?.className
             if (mainActivity == null) {
-                Timber.tag("CREATE NOT").e("Main activity is null");
+                Timber.tag("CREATE NOT").e("Main activity is null")
             } else {
                 Timber.tag("CREATE NOT")
                     .d("Open activity with package name " + context.packageName + " / class name " + mainActivity)

@@ -15,7 +15,6 @@ import kotlinx.serialization.Serializable
 /**
  * @hide
  *
- * @property note
  */
 @JsonClass(generateAdapter = true)
 @Serializable

@@ -11,7 +11,6 @@ package com.quantactions.sdk.workers
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.quantactions.sdk.data.api.ApiService
 import com.quantactions.sdk.data.repository.MVPRepository
 import com.quantactions.sdk.exceptions.QASDKException
 import kotlinx.coroutines.Dispatchers

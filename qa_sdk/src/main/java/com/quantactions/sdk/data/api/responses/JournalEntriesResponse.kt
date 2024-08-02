@@ -13,13 +13,10 @@ import com.quantactions.sdk.data.api.SkipSerialization
 import com.squareup.moshi.JsonClass
 
 /**
+ * @hide
  * This data class represent the body response for the API call [com.quantactions.sdk.data.api.ApiService.getJournalEntries]
  * @property id UUID for the entry
- * @property note simple text describing the entry
- * @property device_id UUID of the device
  * @property created UNIX timestamp of the creation date
- * @property modified UNIX timestamp of the last modification date
- * @property events list of events that are part of this journal entry
  * @suppress
  */
 @JsonClass(generateAdapter = true)
