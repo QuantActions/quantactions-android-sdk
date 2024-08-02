@@ -601,7 +601,7 @@ internal class QAPrivate private constructor(
         // If password is not null it means I was born with the new API, so no need to make the migration
         if (!preferences.oldToNewAPIMigrationDone && preferences.password == null) {
             preferences.oldToNewAPIMigrationDone = true
-            preferences.password = "thisIsMyPassword777#"
+            preferences.password = BuildConfig.QA_SAMPLE_PASSWORD
             // this can be done because the deviceID is the same as the IAM identity
             preferences.identityId = preferences.deviceID
 

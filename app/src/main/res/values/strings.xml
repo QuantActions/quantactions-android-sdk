@@ -8,5 +8,625 @@
   -->
 
 <resources>
-    <string name="app_name">SDKTestApp</string>
+    <string name="app_name">QA SDK samples</string>
+    <string name="how_to_contact_us">How to contact us</string>
+    <string name="how_to_contact_info">If you have any questions about BrainAware, our data privacy and security policy, or you would like to exercise one of your data protection rights, please do not hesitate to visit our website or contact us.</string>
+
+    <string-array name="sex">
+        <item>—</item>
+        <item>Male</item>
+        <item>Female</item>
+        <item>Other</item>
+    </string-array>
+    <string-array name="notifications_rhythm">
+        <item>Daily</item>
+        <item>Weekly</item>
+        <item>Bi-weekly</item>
+        <item>Monthly</item>
+    </string-array>
+    <string-array name="notifications_day">
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+        <item>Sunday</item>
+    </string-array>
+    <string-array name="notifications_time">
+        <item>12:00 am</item>
+        <item>01:00 am</item>
+        <item>02:00 am</item>
+        <item>03:00 am</item>
+        <item>04:00 am</item>
+        <item>05:00 am</item>
+        <item>06:00 am</item>
+        <item>07:00 am</item>
+        <item>08:00 am</item>
+        <item>09:00 am</item>
+        <item>10:00 am</item>
+        <item>11:00 am</item>
+        <item>12:00 pm</item>
+        <item>01:00 pm</item>
+        <item>02:00 pm</item>
+        <item>03:00 pm</item>
+        <item>04:00 pm</item>
+        <item>05:00 pm</item>
+        <item>06:00 pm</item>
+        <item>07:00 pm</item>
+        <item>08:00 pm</item>
+        <item>09:00 pm</item>
+        <item>10:00 pm</item>
+        <item>11:00 pm</item>
+    </string-array>
+    <string-array name="notifications_date">
+        <item>1st</item>
+        <item>2nd</item>
+        <item>3rd</item>
+        <item>4th</item>
+        <item>5th</item>
+        <item>6th</item>
+        <item>7th</item>
+        <item>8th</item>
+        <item>9th</item>
+        <item>10th</item>
+        <item>11th</item>
+        <item>12th</item>
+        <item>13th</item>
+        <item>14th</item>
+        <item>15th</item>
+        <item>16th</item>
+        <item>17th</item>
+        <item>18th</item>
+        <item>19th</item>
+        <item>20th</item>
+        <item>21st</item>
+        <item>22nd</item>
+        <item>23rd</item>
+        <item>24th</item>
+        <item>25th</item>
+        <item>26th</item>
+        <item>27th</item>
+        <item>28th</item>
+        <item>29th</item>
+        <item>30th</item>
+        <item>31st</item>
+    </string-array>
+
+    <string name="app_about_description">Understand and manage your mental fitness based on your smartphone usage.</string>
+    <string name="app_about_description_2">Use our app to get daily scores on key mental fitness indicators related to stress.</string>
+    <string name="label_contact">Contact</string>
+    <string name="app_bar_title_dashboard">Dashboard</string>
+    <string name="app_bar_title_tutorial">Tutorial</string>
+    <string name="app_bar_title_tutorial_lesson_1">Lesson 1 - Introduction</string>
+    <string name="app_bar_title_tutorial_lesson_11">Lesson 11 - Your Scores</string>
+    <string name="app_bar_title_tutorial_lesson_12">Lesson 12 - Relations</string>
+    <string name="app_bar_title_tutorial_lesson_13">Lesson 13 - Journal</string>
+    <string name="app_bar_title_settings">Settings</string>
+    <string name="are_you_sure">Are you sure?</string>
+    <string name="birth_year">Birth year</string>
+    <string name="button_continue">Continue</string>
+    <string name="cancel">Cancel</string>
+    <string name="change_24h">24h change</string>
+    <string name="choose">Choose</string>
+    <string name="couple_a_device">Pair a device</string>
+    <string name="couple_a_device_description">If you regularly use more than one phone (e.g., a business and a personal one), you can pair additional devices with your participation ID here so that the usage of all your devices contributes to your personalized metrics.\nThis function is only available with a stable Internet connection.</string>
+    <string name="coupling_inactive">Pairing inactive</string>
+    <string name="lifestyle_changes_q">Lifestyle changes?</string>
+    <string name="date">Date</string>
+    <string name="delete_and_stop">Delete data and end data collection in the app</string>
+    <string name="delete_journal_entry_description">You are about to delete this journal entry, this operation cannot be undone.</string>
+    <string name="delete_journal_entry_title">Delete journal entry?</string>
+    <string name="edit_a_note">Edit a note</string>
+    <string name="lifestyle_changes">Lifestyle changes</string>
+    <string name="final_page_onboarding_text1">Next, the app will take a few days to learn your tapping and typing patterns.</string>
+    <string name="final_page_onboarding_text2">You will get a notification as soon as your first scores are ready.</string>
+    <string name="final_page_onboarding_title">You have successfully completed the onboarding.</string>
+    <string name="finish_onboarding">Finish onboarding</string>
+    <string name="firebase_event_create_a_note" translatable="false">create_a_note</string>
+    <string name="firebase_is_calendar_view" translatable="false">is_calendar_view</string>
+    <string name="gender">Gender</string>
+    <string name="good_to_know">GOOD TO KNOW:</string>
+    <string name="graph_legend_general_population">Most common scores for healthy people</string>
+    <string name="graph_legend_your_score">Your score</string>
+    <string name="how_can_i_record_notes">How can I record my Notes?</string>
+    <string name="how_can_i_record_notes_description">Journal is the tab of the Dashboard which lets you record lifestyle changes and notes on any given day.</string>
+    <string name="how_did_you_change_it">How did you change it?</string>
+    <string name="i_understand_delete">Delete</string>
+    <string name="initial_mini_onboarding_page_1">Track, understand, and manage your mental fitness based only on the timing patterns of your smartphone usage.</string>
+    <string name="initial_mini_onboarding_page_2">See your progress after a lifestyle change or discover how different aspects of your mental fitness influence each other.</string>
+    <string name="initial_mini_onboarding_page_3">Identify which of your activities benefit you most or when it’s time to recharge your batteries.</string>
+    <string name="initial_mini_onboarding_page_4">Use unique brain health metrics to make informed decisions to improve your mental fitness and wellbeing.</string>
+    <string name="onboarding">Onboarding</string>
+    <string name="learn_more">Learn more</string>
+    <string name="learn_more_how_is">How is %s measured?</string>
+    <string name="learn_more_improve">How can I improve my %s?</string>
+    <string name="learn_more_what_is">What is %s?</string>
+    <string name="learn_more_why_is_important">Why is %s important?</string>
+    <string name="lesson_11_12">You will be able to see the trends of your scores in personalised graphs.</string>
+    <string name="lesson_13">To keep track of how lifestyle changes impact your mental fitness,\nyou can add short notes in the\napp journal.</string>
+    <string name="lesson_1_text_1">Using your scores and your notes, you will be able to track, understand, and learn how to manage your mental fitness.</string>
+    <string name="lesson_2_4">(Lessons 2–4)</string>
+    <string name="lesson_5_7">(Lessons 5–7)</string>
+    <string name="lesson_8_10">(Lessons 8–10)</string>
+    <string name="lesson_III_placeholder">Lesson %d - %s III</string>
+    <string name="lesson_II_placeholder">Lesson %d - %s II</string>
+    <string name="lesson_I_placeholder">Lesson %d - %s I</string>
+    <string name="lesson_journal_calendar_view">Calendar view</string>
+    <string name="lesson_journal_good_to_know">In all 14 days and 6 weeks graphs of the app, you may see dots under some days which indicates that you have entered notes for those days. You can click on one of these dots and the Note will be displayed in a popup so you don’t have to go to the Journal to see it.</string>
+    <string name="lesson_journal_list_view">List view</string>
+    <string name="lesson_journal_text_1">**Why are Notes useful?**\n\nyou can check what behavioural changes happened before a change in the trend of your scores, so you can discover how different lifestyle changes are related to your scores, so you can discover how different life events are related to your scores. They can help you understand your ups and downs and be a good starting point to form new habits. \nYour Notes do not affect your scores. \n######\n**How can you browse the Journal?**\n\nThere are two views of the Journal. You can switch between them on the toggle button at the bottom of that screen:</string>
+    <string name="lesson_journal_text_2">**How can you create a Note?**\n\nTo create a Note click on the button at the bottom of that screen.</string>
+    <string name="lesson_journal_text_3">It will take you to a new screen where you can enter all the details for the Note:\n
+    \n        - set the day that the Note is for
+    \n        - select the lifestyle changes you want to make or have made and how you have changed them.
+    \n        - enter your detailed notes</string>
+    <string name="lesson_relations_description">Relations is the tab of the Dashboard which lets you see the trend history of your scores for all the indicators at the same time. This way, you will be able to discover how the indicators affect each other and how you can better manage them.</string>
+    <string name="lesson_relations_good_to_know">In the 14 days and 6 weeks view, you can also discover how your lifestyle changes may impact your score. Look for the days prior to a change in your scores, and then click on the grey dots below those days. This will open the associated Note for that time and you can check if there is a relation. You will learn about Notes in Lesson 13.</string>
+    <string name="lesson_relations_text_1">**Which part of my trend history can I see?**\n\nThere are three options for the length of the interval of the history displayed: 14 days, 6 weeks or 12 months.\n\n#####\n\n**How is the trend history displayed?**\n\nThe trend history is displayed in the graph, which is easily understandable with its clearly marked plot, categories, and legend. The legend is interactive so you can choose which indicators you need displayed.</string>
+    <string name="lesson_relations_title">Where can I discover how the indicators affect each other?</string>
+    <string name="lesson_scores_description">The main part of the app is the Dashboard. Its first tab is Indicators, and this is where you see all your daily scores.</string>
+    <!--    <string name="lesson_scores_text_1"></string>-->
+    <string name="lesson_scores_text_2">**How long until I can see my scores?**\nYour initial scores take a few days to compute since the app is getting to know your interaction patterns. The time needed for each indicator is shown by the progress bar.\n\n#####\n\n**What do the score values mean?**\nScores for each indicator are computed on a scale of 0–100. This score also tells you where you stand compared to other people, including those who are not healthy. For instance, if your score is 75, it means that you are doing better than 75% of the population. Scores are divided into three categories: low (0–33), medium (34–66), and high (67–100).\n\nThe multi-day scores, averages and trends help you focus on the long-term development of your mental fitness, which is more relevant than daily fluctuations.\n\n#####\n\n**How do I see my score trends?**\nClicking on any of the indicators on the overview screen will open its details where you can see your scores over different periods of time in comparison with the healthy general population i.e. people in your age and gender group.\n</string>
+    <string name="lesson_scores_text_3">Remember that daily fluctuations in your scores are normal. Your score trend over a period of time is what is important for you to understand your mental fitness. Additionally, your individual development is what matters the most; the graph merely orients your understanding of where your scores lie in a general population.</string>
+    <string name="lesson_scores_title">How can I see my scores?</string>
+    <string name="mini_onboarding_x_of_y">%d of %d</string>
+    <string name="n_days_ago">%d days ago</string>
+    <string name="n_weeks_ago">%d weeks ago</string>
+    <string name="in_n_days">In %d days</string>
+    <string name="in_n_weeks">In %d weeks</string>
+    <string name="next">Next</string>
+    <string name="next_step">Next step:</string>
+    <string name="note">Note</string>
+    <string name="notification_all_scores_are_ready">All Scores Ready!</string>
+    <string name="notification_all_scores_trend">All scores trends</string>
+    <string name="notification_biweekly_update">Biweekly Update</string>
+    <string name="notification_channel_desc">This channel notifies you of when the scores are ready, and when changes happen</string>
+    <string name="notification_channel_id" translatable="false">general_notifications_qa_health</string>
+    <string name="notification_channel_name">Scores Updates</string>
+    <string name="notification_checkout_your_score">Check out your score here!</string>
+    <string name="notification_daily_update">Daily Update</string>
+    <string name="notification_daily_update_text">All today’s scores are ready. You can see them in the app</string>
+    <string name="notification_id" translatable="false">Notification_ID</string>
+    <string name="notification_changed_significantly">Your %s score has changed significantly. Would you like to add a note about any specific event?</string>
+    <string name="notification_monthly_update">Monthly Update</string>
+    <string name="notification_monthly_update_text">Check out your score trends over the past month!</string>
+    <string name="notification_ready_to_see_your_score">Ready to see your %s score?</string>
+    <string name="notification_see_other_scores">See your scores</string>
+    <string name="notification_see_all_scores">See all scores</string>
+    <string name="notification_see_score_relations">See your score relations</string>
+    <string name="notification_weekly_update">Weekly Update</string>
+    <string name="notification_weekly_update_text">Check out your score trends over the past week!</string>
+    <string name="notifications_day">Day of the week</string>
+    <string name="notifications_description">Notifications can be beneficial for you to track your indicators and overall progress. You can customize how regularly you want us to remind you to check your indicators or turn off notifications any time.\n\nApart from periodic scheduled notifications, you can choose to receive notifications when there is a significant change in your indicator. This can help you to quickly check your habits and life events at that time.</string>
+    <string name="notifications_rhythm">Rhythm</string>
+    <string name="notifications_time">Time</string>
+    <string name="onboarding_course_completed">Completed</string>
+    <string name="onboarding_course_incomplete">Incomplete</string>
+    <string name="tutorial">Tutorial</string>
+    <string name="tutorial_completed">Completed</string>
+    <string name="tutorial_incomplete">Incomplete</string>
+    <string name="onboarding_draw_over_text_2">The only data we collect through this permission is the timing patterns of your screen touches. We cannot record where you tap or the content of your screen in any form. The app will not display anything on your screen when you’re not using it.</string>
+    <string name="onboarding_draw_over_title">Permission 1 of 2\n“Display over other apps”</string>
+    <string name="onboarding_i_accept_2">I agree to the collection, processing, and storage of anonymised data related to the names and usage frequency of my apps. This data might be shared with third-parties in aggregated form, ensuring that individual records remain unidentifiable.</string>
+    <string name="onboarding_permission_button">Go to Settings</string>
+    <string name="onboarding_privacy_policy_text">All data gathered through the app is anonymised and completely private.\n\nWe do not track any input or capture any content from your phone—anything you type, read, and view on your phone remains completely private.</string>
+    <string name="onboarding_settings_permissions_text_1">How to give permission:\n1. The button below takes you to phone settings.\n2. If a list appears, choose BrainAware.\n3. On the next page, click on the slider to enable.\n4. Press the back button TWICE to return to this screen.</string>
+    <string name="onboarding_tracking_button">See permissions needed</string>
+    <string name="onboarding_tracking_text_1">In order to provide you with the most accurate outcomes, we need two permissions for this app to run in the background.\n\nOur algorithm only uses the timing patterns of your screen touches, your app usage patterns and the frequency with which you use your device.\n\nWith the permissions requested, we cannot collect any information beyond what is mentioned. And most importantly, we only collect data anonymously. </string>
+    <string name="onboarding_tracking_title">We minimise permissions and maximise outcomes for you.</string>
+    <string name="onboarding_usage_text_2">The only data we can collect through this permission are the names of the apps and how often you use them. We do not record any content from the app or any other details.</string>
+    <string name="onboarding_usage_title">Permission 2 of 2\n“Usage access”</string>
+    <string name="onboarding_we_care_about_privacy">At QuantActions we care about your privacy.</string>
+    <string name="one_week_ago">1 week ago</string>
+    <string name="in_one_week">In 1 week</string>
+    <string name="placeholder_feature_available_future">This feature will be available as soon as your first scores are ready.</string>
+    <string name="warning_score_not_ready_after_eta">We need a bit more time\n\nThe app has not collected enough data to compute your scores. Please keep using your phone as usual, and we’ll notify you once we’re ready. Thank you!</string>
+
+    <plurals name="points_lower">
+        <item quantity="one">%d point lower</item>
+        <item quantity="other">%d points lower</item>
+    </plurals>
+
+    <plurals name="points_higher">
+        <item quantity="one">%d point higher</item>
+        <item quantity="other">%d points higher</item>
+    </plurals>
+
+    <plurals name="placeholder_score_ready_in">
+        <item quantity="one">Score ready in: %d day</item>
+        <item quantity="other">Score ready in: %d days</item>
+    </plurals>
+
+    <plurals name="coupled_devices">
+        <item quantity="one">%d device (this one)</item>
+        <item quantity="other">%d devices</item>
+    </plurals>
+    <string name="sleep_length" translatable="false">%dh %dmin</string>
+    <string name="sleep_length_with_parenthesis" translatable="false">(%dh %dmin)</string>
+    <string name="sleep_length_minutes" translatable="false">%dmin</string>
+    <string name="action_time_ms" translatable="false">%dms</string>
+    <string name="action_time_tap_min" translatable="false">%d taps/min</string>
+    <string name="placeholder_see_the_tutorial">See the tutorial</string>
+    <string name="placeholder_find_out_tutorial">Find out more about the app through the tutorial.</string>
+    <string name="placeholder_resume_the_tutorial">Resume the tutorial</string>
+    <string name="placeholder_we_need_more_time">We need just a little more time to get to know you!</string>
+    <string name="previous">Previous</string>
+    <string name="qrcode" translatable="false">QRCode</string>
+    <string name="receive_notification_accept_text">We will notify you about changes and improvements in your scores.\n\nYou can customise the point in time and the frequency of your notifications in your app settings.</string>
+    <string name="receive_notification_decline_text">You can customise the point in time and the frequency of your notifications in your app settings.</string>
+    <string name="receive_periodic_notifications">Receive periodic notifications</string>
+    <string name="receive_notifications_accept">I would like to receive notifications.</string>
+    <string name="receive_notifications_warning">Notifications for significant changes</string>
+    <string name="save">Save</string>
+    <string name="scan_the_qr_code">Scan the QR code above with the device you want to pair. You will be redirected to the Play Store. Download the app and open it directly from the Play Store. The device will automatically be paired with your identity ID.
+        \n
+        \nIf the app is already installed on your additional device, start the app onboarding on this device. Select \'Pair device\' on the profile page and scan the QR code above. The device will be paired automatically.</string>
+    <string name="score">Score</string>
+    <string name="settings_decouple">If you want to unpair/deactivate a device, perform one of the following options on the phone where you no longer want to use the app:\n\n1. Stop data collection and delete data via main settings screen\n\n 2. Uninstall the app</string>
+    <string name="settings_email" translatable="false">Email: %s</string>
+    <string name="label_feedback">Give Feedback</string>
+    <string name="device_pairing">Device Pairing</string>
+    <string name="label_notifications">Notifications</string>
+    <string name="label_personal_information">Personal Information</string>
+    <string name="settings_row_terms_of_service">Terms of Service</string>
+    <string name="settings_share_data_with_employer">Share data with employer</string>
+    <string name="settings_version" translatable="false">v %s</string>
+    <string name="settings_website">Website: %s</string>
+    <string name="sex_age_info">Why do we ask for this info?\nThis information is used to show your data in relation to a group with similar age and gender.\nWe further analyse this data to learn and measure human behavior with the goal to improve our products for you and adapt them to group-specific needs.\n\nHow do we handle this info?\nYour personal information is voluntary and stays completely private, secure and anonymous.\nThis information will be processed and stored in anonymised form only without any link to your person. This information will not be used for a discriminatory purpose.</string>
+    <string name="share_profile_data">Would you like to share some profile data with us?</string>
+    <string name="snackbar_all_your_metric_are_in">All your scores are in!</string>
+    <string name="snackbar_note_has_been_created">Your new note has been created!</string>
+    <string name="snackbar_note_has_been_edited">Your note has been edited!</string>
+    <string name="snackbar_note_has_been_deleted">Your note has been deleted!</string>
+    <string name="snackbar_you_can_explore_them">You can explore them.</string>
+    <string name="start_onboarding">Start the onboarding</string>
+    <string name="start_using_the_app">Start learning my touch patterns</string>
+    <string name="tab_title_journal">Journal</string>
+    <string name="tab_title_relations">Relations</string>
+    <string name="tab_title_indicators">Indicators</string>
+    <string name="tab_title_14_days">14 days</string>
+    <string name="tab_title_5_weeks">6 weeks</string>
+    <string name="tab_title_12_months">12 months</string>
+    <string name="today">Today</string>
+    <string name="today_score">Today\'s score</string>
+    <string name="type_in_your_note">Type in your note</string>
+    <string name="understood">Understood</string>
+    <string name="welcome_to_qa_app">Welcome to BrainAware</string>
+    <string name="what_is_the_app_about">What is this app all about?</string>
+    <string name="would_you_like_to_receive_notifications">Would you like to receive notifications?</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="tomorrow">Tomorrow</string>
+    <string name="you_are_deleting_the_data">You are about to delete all your data from BrainAware and end the data collection. The app will be closed</string>
+    <string name="onboarding_sex_age_info">This information is voluntary and stays completely private, secure and anonymous.\n\nProviding it allows us to give you insights into your data trends in comparison with a similar age and gender group.\n\nYou can also answer these questions later in your app settings and see details about why we ask for this data and how we use it.</string>
+    <string name="alert_not_enough_data_text_1">Your phone usage has been low for the past few days.</string>
+    <string name="alert_not_enough_data_text_2">Your scores will be computed once you start using this phone regularly again.</string>
+    <string name="use_another_phone">Do you use another phone?</string>
+    <string name="manage_your_devices">You can keep your data. Manage your devices in the Settings.</string>
+    <string name="sample">SAMPLE</string>
+    <string name="legend_graph_tool_tip_ranges">The range shows where the most common scores are for healthy people in the same age and same gender group as you. Your profile information can be updated in</string>
+    <string name="tooltip_owl_14days">The owl count shows how many times your potential sleep time was interrupted that night by using your phone. Phone uses that take place within the same 20 minutes are counted as the same interruption.</string>
+    <string name="tooltip_owl_5weeks">The owl count shows how many times your potential sleep time was interrupted on average per night during that week by using your phone. Phone uses that take place within the same 20 minutes are counted as the same interruption.</string>
+    <string name="tooltip_owl_12month">The owl count shows how many times your potential sleep time was interrupted on average per night during that month by using your phone. Phone uses that take place within the same 20 minutes are counted as the same interruption.</string>
+    <string name="lesson_11_12_continue">\n(Lessons 11 -12)</string>
+    <string name="social_engagement">Social Engagement</string>
+    <string name="sleep_quality">Sleep Quality</string>
+    <string name="cognitive_fitness">Cognitive Fitness</string>
+    <string name="are_you_healthy">I consider myself to be healthy</string>
+    <string name="not_avial">This function is not available for the sample note!</string>
+    <string name="label_disabled">Disabled</string>
+    <string name="notifications_info_date_monthly">In months with fewer days than selected, notifications are sent on the last day of that month.</string>
+    <string name="notifications_day_of_month">Day of the month</string>
+    <string name="notifications_time_extra_info">Notifications will be sent as soon as the scores are ready but not earlier than this time.</string>
+    <string name="label_permissions">Permissions</string>
+    <string name="settings_permissions_enabled">Enabled</string>
+    <string name="alert_permissions_disabled">You have disabled the permission(s) required for the app.\nThe app can no longer compute your scores until you enable the permission(s).</string>
+    <string name="display_over_other_apps">Display over other apps</string>
+    <string name="usage_access">Usage access</string>
+    <string name="permissions_description">In order to provide you with the most accurate outcomes, we need two permissions for this app to run in the background.\n\nOur algorithm only uses the timing patterns of your screen touches, your app usage patterns and the frequency with which you use your device.\n\nWith the permissions requested, we cannot collect any information beyond what is mentioned. And most importantly, we only collect data anonymously.\n\nYou can pause data collection in the Settings.</string>
+    <string name="settings_one_enabled_one_disabled">1 Enabled, 1 Disabled</string>
+    <string name="go_to_settings">To do this, please go to the Settings.</string>
+    <string name="notification_body_all_scores_are_ready">Scores for all of your metrics are now ready!</string>
+    <string name="we_are_almost_ready">Score is almost ready</string>
+    <string name="pause_data_collection">Pause data collection</string>
+    <string name="resume_data_collection">Resume data collection</string>
+    <string name="graph_legend_uncertainty_of_your_score">Uncertainty of your score</string>
+    <string name="label_personal_ids">Personal IDs</string>
+    <string name="send_my_device_id">You are about to send us your device ID by email. By sending us your device ID, we receive a link between your email address and your data. We will only use your device ID to process your request. We will delete this link as soon as your request has been successfully completed.</string>
+    <string name="send_my_device_id_button">Send Device ID by email</string>
+    <string name="score_14_days">14-day score</string>
+    <string name="score_14_avg">14-day average</string>
+    <string name="legend_graph_tool_tip_uncertainty">The coloured area shows the range of the values within which the true score is likely to lie. \nIt indicates how accurate our estimate of the score is, and typically depends on intensity of your phone use. The larger the range for a given score, the more caution is needed in interpretation.</string>
+    <string name="your_14days_average_score">Your 14-day score</string>
+    <string name="your_6weeks_average_score">Your 6-week score</string>
+    <string name="your_12months_average_score">Your 12-month score</string>
+    <string name="your_14days_averages">Your 14-day averages</string>
+    <string name="your_6weeks_averages">Your 6-week averages</string>
+    <string name="your_12months_averages">Your 12-month averages</string>
+    <string name="short_term_trend">Short-term trend</string>
+    <string name="medium_term_trend">Medium-term trend</string>
+    <string name="long_term_trend">Long-term trend</string>
+    <string name="tooltip_14days_score">The 14-day score is an average of all scores from the last 14 days. Remember that daily fluctuations in your scores are normal. Important for understanding your mental fitness is the development of your scores over a period of time.</string>
+    <string name="tooltip_6weeks_score">The 6-week score is an average of all scores from the last 6 weeks. This score helps you to focus on the medium-term development of your health.</string>
+    <string name="tooltip_12months_score">The 12-month score is an average of all scores from the last 12 months. This score helps you to focus on the long-term development of your health.</string>
+
+    <string name="tooltip_14days_trend">To estimate your short-term trend, we compare the average of your metric over the last 7 days with the average of the 7 days before. We focus on changes that happen consistently and put less weight on individual days that are very different from the others.\n\nWe tell you if a change is unusually large compared to what is normal for you. What is normal for you might be different from what is normal for someone else. If you typically have big changes from day to day, a big change from week to week might not be that unusual.</string>
+    <string name="tooltip_6weeks_trend">To estimate your mid-term trend, we compare the average of your metric over the last 2 weeks with the average of the 4 weeks before. We focus on changes that happen consistently and put less weight on individual days that are very different from the others.\n\nWe tell you if a change is unusually large compared to what is normal for you. What is normal for you might be different from what is normal for someone else. If you typically have big changes from week to week, a big change from month to month might not be that unusual.</string>
+    <string name="tooltip_12months_trend">To estimate your long-term trend, we compare the average of your metric over the last month with the average of the 11 months before. We focus on changes that happen consistently and put less weight on individual days that are very different from the others.\n\nWe tell you if a change is unusually large compared to what is normal for you. What is normal for you might be different from what is normal for someone else. If you typically have big changes from month to month, a big change from year to year might not be that unusual.</string>
+
+
+    <string name="data_collection_has_resumed">Data collection has resumed.</string>
+    <string name="battery_optimization_samsung">We recommend performing the following steps in your phone\'s battery settings to ensure the app runs without interruption:\n
+        1. Click on \"Battery\".\n
+        2. Select \"Unrestricted\".
+    </string>
+    <string name="battery_optimization_huawei">We recommend performing the following steps in your phone\'s battery settings to ensure the app runs without interruption:\n
+         1. Find BrainAware in the list of apps.\n
+         2. Toggle to deactivate the system management.\n
+         3. Click \'OK\' to confirm.\n
+         4. The app entry should show now \"Managed manually\".</string>
+    <string name="battery_optimization_oppo_oneplus">We recommend performing the following steps in your phone\'s battery settings to ensure the app runs without interruption:\n
+         1. Click on \"Battery usage\".\n
+         2. Toggle to activate both:\n
+          a) \"Allow background activity\"\n
+          b) \"Allow auto launch\"</string>
+    <string name="battery_optimization_xiamoi">We recommend performing the following steps in your phone\'s battery settings to ensure the app runs without interruption:\n
+         1. First toggle to allow \"Auto launch\".\n
+         2. Click on \"Battery saving\".\n
+         3. In the next screen select \"Unrestricted\".</string>
+    <string name="battery_optimization">Battery optimisation</string>
+    <string name="not_yet_subscribed">A problem occurred while activating your app. To fix it, please click again on the activation link on your phone that you received from us by email. This will open and activate the app.\n\nSuccessful activation is then confirmed either by a message on the dashboard or by the arrival of your scores.</string>
+    <string name="i_dont_have_a_link">I don\'t have an activation link, what  should I do?</string>
+    <string name="our_website">our website</string>
+    <string name="you_have_successfully_registered">You have successfully activated your app.</string>
+    <string name="you_are_pausing">You are about to pause data collection. The app will no longer compute your scores until you resume data collection.</string>
+    <string name="pause">pause</string>
+    <string name="do_not_show_again">Do not show this message again</string>
+    <string name="your_sleep_quality_score">Your sleep quality score.</string>
+    <string name="your_social_engagement_score">Your social engagement score.</string>
+    <string name="your_cognitive_fitness_score">Your cognitive fitness score.</string>
+    <string name="legend_sleep_summary_14days">Average sleep time over the past 14 days</string>
+    <string name="legend_sleep_summary_5weeks">Average sleep time over the past 6 weeks</string>
+    <string name="legend_sleep_summary_12months">Average sleep time over the past 12 months</string>
+    <string name="legend_action_time_14days">Average action time over the past 14 days</string>
+    <string name="legend_action_time_5weeks">Average action time over the past 6 weeks</string>
+    <string name="legend_action_time_12months">Average action time over the past 12 months</string>
+    <string name="legend_screen_time_14days">Average screen time over the past 14 days</string>
+    <string name="legend_screen_time_5weeks">Average screen time over the past 6 weeks</string>
+    <string name="legend_screen_time_12months">Average screen time over the past 12 months</string>
+    <string name="no_data">no data</string>
+    <string name="what_is_it">What is it?</string>
+    <string name="how_is_it_measured">How is it measured?</string>
+    <string name="how_to_improve_it">How to improve?</string>
+    <string name="try_free_and_subscribe">Try free &amp; subscribe</string>
+    <string name="label_subscription">Subscription</string>
+    <string name="adjust_battery_settings">Open battery settings</string>
+    <string name="skip">Skip</string>
+    <string name="battery_optimisation_notification_message">For the best experience, we recommend adjusting your phone\'s battery settings</string>
+    <string name="settings_battery_optimisation_second_text">Click to see instructions</string>
+    <string name="participation_id_copied">Participation ID copied!</string>
+    <string name="your_participation_id">Your Participation ID</string>
+    <string name="copy_id_and_be_aware">Be aware that this is your unique Participation ID and it is linked to your data. Please only share it with those you trust.</string>
+    <string name="product_portal">Product Portal</string>
+    <string name="get_in_touch">Get in touch with us via our Product Portal.</string>
+    <string name="we_want_your_feedback">Your feedback is always welcome!\nDo you have any comments about certain features? Is a desired feature still missing or your favorite bug still in the app?</string>
+    <string name="best_value">Best value</string>
+    <string name="terms_conditions">Terms &amp; Conditions</string>
+    <string name="terms_conditions_short">T&amp;C</string>
+    <string name="get_started">Get started</string>
+    <string name="it_expires_on">It expires on %s</string>
+    <string name="renews">Renews %s</string>
+    <string name="expires">Expires %s</string>
+    <string name="annual">Annual</string>
+    <string name="half_year">Half-year</string>
+    <string name="your_mental_fitness_indicators">Your mental fitness indicators</string>
+    <string name="your_mental_fitness_dynamics">Your mental fitness dynamics</string>
+    <string name="waiting_for_wave_main_text_1">will appear here in the future.</string>
+    <string name="waiting_for_wave_main_text_2">We will illustrate your recent changes in mental fitness based on the past week\'s data\n—whether you are trending up, stable, or down overall.</string>
+    <string name="subscribe">Subscribe</string>
+    <string name="free_plan">Free plan</string>
+    <string name="your_current_plan">Your current plan</string>
+    <string name="renew_your_subscription">Renew your subscription</string>
+    <string name="renew_subscription">Renew subscription</string>
+    <string name="redeem_voucher">Redeem voucher</string>
+    <string name="redeem_voucher_description">Enter your voucher code and click on ‘Redeem Voucher’ to activate your subscription.</string>
+    <string name="voucher_code">Voucher code</string>
+    <string name="sub_state_box_in_trial">Your trial period is coming to an end soon. \n\nIf you\'ve been enjoying our app and want to continue, now is the perfect time to subscribe. Unlock all the amazing features of our app by subscribing today in the Settings.</string>
+    <string name="sub_state_box_expired">Your subscription has expired.\n\nYour subscription has expired. But don\'t worry, you can easily subscribe again and regain access to all the amazing features of our app. Subscribe now in the Settings to enjoy our app to the fullest again.</string>
+    <string name="sub_state_box_no_sub">Unlock the full experience by subscribing now in the Settings.\n\t• Get access to more indicators, helping you better understand your progress\n\t• See trends that make your development visible\n\t• Link your life events to your data for even deeper insights with our Journal\nDon\'t miss out on these amazing features and  start enjoying our app to the fullest.</string>
+    <string name="sub_state_box_expiring">Your subscription expires on [%s].\n\nDon\'t miss out on all the amazing features of our app. Renew your subscription now in the Settings. to continue enjoying our app to the fullest.</string>
+    <string name="tooltip_circular_score">Your score is computed on a scale of 0–100. The score also tells you where you stand compared to other people, including those who are not healthy. For instance, if your score is 75, it means that you are doing better than 75% of the population.\n\nScores are divided into three categories: \n0–33: low\n34–66: medium\n67–100: high</string>
+    <string name="to_cancel_google_sub">To cancel your subscription, click on the link and you will be redirected to the Google Play Store. If you cancel your subscription, a free plan with limited features will automatically start on to_cancel_google_sub.</string>
+    <string name="cancel_your_subscription">cancel your subscription</string>
+    <string name="after_expiration_info_voucher">After expiry of your plan, a free plan with limited features will automatically start on %s.\n\nWe will show you all subscription options here one week before the expiry date.</string>
+    <string name="participation_id">Participation ID: %s</string>
+    <string name="identity" translatable="false">ID: %s</string>
+    <string name="password_col">Password: %s</string>
+    <string name="password_plain">Password</string>
+    <string name="your_data_your_choice">Your Data, Your Choice\nPlease be assured that all data we collect and store is completely anonymous and has no link to your identity.\nYour decision to retain your data with us greatly supports our research for early brain disease detection.\nThank you for your valuable contribution!</string>
+    <string name="data_collection">Data collection</string>
+    <string name="fill_out_delete_form">Fill out account data deletion request form</string>
+    <string name="lifestyle_start">start</string>
+    <string name="lifestyle_stop">stop</string>
+    <string name="lifestyle_more">more</string>
+    <string name="lifestyle_less">less</string>
+    <string name="lifestyle_empty" translatable="false" />
+    <string name="trial">Trial</string>
+    <string name="potential_sleep_time">Potential sleep time</string>
+    <string name="permission_of_2_successfully_enabled">Permission %1$s of 2 successfully enabled!</string>
+    <string name="from_a_total_of">from a total of</string>
+    <string name="awake">awake:</string>
+    <string name="total_screen_time">Total Screen Time</string>
+    <string name="social_screen_time">Social Screen Time</string>
+    <string name="week">week %1$s</string>
+    <string name="to">(%1$s to %2$s)</string>
+    <string name="feeling_really_relaxed_in_the_mornings">Feeling really relaxed in the mornings.</string>
+    <string name="low">Low</string>
+    <string name="medium">Medium</string>
+    <string name="high">High</string>
+    <string name="downtrend">Downtrend</string>
+    <string name="uptrend">Uptrend</string>
+    <string name="sleep_duration">SLEEP DURATION</string>
+    <string name="action_time">ACTION TIME</string>
+    <string name="stable">%sstable%s</string>
+    <string name="faster">%1$s faster</string>
+    <string name="slower">%1$s slower</string>
+    <string name="in_its_usual_range">in its usual range</string>
+    <string name="comparable">comparable</string>
+    <string name="longer">%1$s longer</string>
+    <string name="about_the_same_amount">about the same amount</string>
+    <string name="maybe_you_need_a_break">Maybe you need a break?</string>
+    <string name="has_anything_changed">Has anything changed?</string>
+    <string name="have_a_great_day">Have a great day!</string>
+    <string name="stay_mentally_and_physically_active">Stay mentally and physically active.</string>
+    <string name="be_mindful_of_your_screen_time">Be mindful of your screen time.</string>
+    <string name="stay_connected">Stay connected.</string>
+    <string name="consistent_sleep_is_key_for_health">Consistent sleep is key for health.</string>
+    <string name="take_enough_time_to_relax">Take enough time to relax.</string>
+    <string name="keep_an_eye_on_it">Keep an eye on it.</string>
+    <string name="keep_taking_care_of_yourself">Keep taking care of yourself.</string>
+    <string name="take_enough_time_to_recharge">Take enough time to recharge.</string>
+    <string name="your_short_term_trend_will_be_reported_here_once_enough_data_has_been_collected">Your short-term trend will be reported here once enough data has been collected.</string>
+    <string name="your_medium_term_trend_will_be_reported_here_once_enough_data_has_been_collected">Your medium-term trend will be reported here once enough data has been collected.</string>
+    <string name="your_long_term_trend_will_be_reported_here_once_enough_data_has_been_collected">Your long-term trend will be reported here once enough data has been collected.</string>
+    <string name="typing_speed">Typing speed</string>
+    <string name="taps_in_social_apps">Taps in social apps</string>
+    <string name="interruptions">Interruptions</string>
+    <string name="unchanged">unchanged</string>
+    <string name="more">…more</string>
+    <string name="less"> …less</string>
+    <string name="device_pairing_in_progress_we_will_notify_you_once_this_is_complete">Device pairing in progress. We will notify you once this is complete.</string>
+    <string name="if_the_registration_fails_despite_a_stable_internet_connection_please_contact_support_quantactions_com">If the registration fails despite a stable internet connection, please contact support@quantactions.com.</string>
+    <string name="device_registration_in_progress_we_will_notify_you_once_this_is_complete">Device registration in progress. We will notify you once this is complete.</string>
+    <string name="at_quantactions_we_care_about_your_privacy">At QuantActions we care about your privacy.</string>
+    <string name="i_accept_the_privacy_policy_and_the_terms_and_conditions">I accept the Privacy Policy and the Terms &amp; Conditions</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="billed_per_year">(billed per year)</string>
+    <string name="billed_per_half_year">(billed per half year)</string>
+    <string name="ops_the_network_is_unreachable_please_try_again_later">Ops the network is unreachable...\nplease try again later!</string>
+    <string name="subscription_activated_enjoy_full_access_to_all_premium_features">Subscription activated!\nEnjoy full access to all premium features.</string>
+    <string name="welcome">Welcome!</string>
+    <string name="your_device_has_been_successfully_paired_with">Your device has been successfully paired with</string>
+    <string name="your_device_has_been_successfully_registered_with">Your device has been successfully registered with</string>
+    <string name="great_news_your_device_has_been_successfully_registered_with_name_until">Great news!\nYour device has been successfully registered with %1$s name until %2$s.</string>
+    <string name="until">until %1$s</string>
+    <string name="great_news_your_device_has_been_successfully_paired_with">Great news!\nYour device has been successfully paired with %1$s.</string>
+    <string name="subscribing_to_the_app_or_redeeming_a_voucher_is_temporarily_unavailable_due_to_internet_connection_issues">Subscribing to the app or redeeming a voucher is temporarily unavailable due to internet connection issues.</string>
+    <string name="you_can_access_these_features_within_the_app_and_app_settings_once_your_internet_connection_is_stable">You can access these features within the app and app settings once your internet connection is stable.</string>
+    <string name="due_to_internet_connection_issues_device_pairing_was_not_yet_successful">Due to internet connection issues, device pairing was not yet successful.</string>
+    <string name="due_to_internet_connection_issues_device_registration_was_not_yet_successful">Due to internet connection issues device registration was not yet successful.</string>
+    <string name="we_re_still_trying_and_will_notify_you_as_soon_as_this_is_complete">We\'re still trying and will notify you as soon as this is complete.</string>
+    <string name="code_invalid">Code invalid</string>
+    <string name="code_invalid_retry">Code invalid - retry</string>
+    <string name="start_free_trial">Start free trial</string>
+    <string name="unlock_the_full_experience_metrics">Unlock the full experience: \n\t• **Metrics details** help you better understand\n\t• **Trends** make your development visible\n\t• **Relations** compare your scores\n\t• **Journal** links life events to data</string>
+    <string name="you_will_have_access_to_the_full_experience_metrics">You will have access to the full experience: \n\t• **Metrics details** help you better understand\n\t• **Trends** make your development visible\n\t• **Relations** compare your scores\n\t• **Journal** links life events to data</string>
+    <string name="voucher">Voucher</string>
+    <string name="amazing_things_take_time">Amazing things take time!</string>
+    <string name="fresh_trends_are_brewing">Fresh trends are brewing...</string>
+    <string name="we_ll_be_right_with_you">We’ll be right with you!</string>
+    <string name="patience_is_key">Patience is key!</string>
+    <string name="the_image_we_will_show_is_for_illustrative_purposes_only">The image we will show is for illustrative purposes only and does not reflect your own data. It only shows the direction of your trend.</string>
+    <string name="trending_down_any_recent_life_events">Trending down.\nAny recent life events?</string>
+    <string name="trending_down_any_stressors_in_life">Trending down.\nAny stressors in life?</string>
+    <string name="trending_down_has_anything_changed">Trending down.\nHas anything changed?</string>
+    <string name="trending_down_let_s_analyse_the_situation">Trending down.\nLet’s analyse the situation.</string>
+    <string name="trending_down_let_s_investigate">Trending down.\nLet’s investigate.</string>
+    <string name="stable_trend_keep_taking_care_of_yourself">Stable trend.\nKeep taking care of yourself!</string>
+    <string name="stable_trend_keep_monitoring">Stable trend.\nKeep monitoring.</string>
+    <string name="stable_trend_every_small_step_counts">Stable trend.\nEvery small step counts.</string>
+    <string name="stable_trend_make_time_for_yourself_daily">Stable trend.\nMake time for yourself daily.</string>
+    <string name="stable_trend_baby_steps_towards_success">Stable trend.\nBaby steps towards success.</string>
+    <string name="stable_trend_stay_active">Stable trend.\nStay active.</string>
+    <string name="trending_up_what_s_working">Trending up.\nWhat’s working?</string>
+    <string name="trending_up_any_changes_in_routine">Trending up.\nAny changes in routine?</string>
+    <string name="trending_up_has_anything_changed">Trending up.\nHas anything changed?</string>
+    <string name="trending_up_keep_it_up">Trending up.\nKeep it up!</string>
+    <string name="trending_up_what_s_been_good">Trending up.\nWhat’s been good?</string>
+    <string name="trending_up_you_are_on_the_rise">Trending up.\nYou are on the rise!</string>
+    <string name="your_mental_fitness_dynamics_shows_the_most_recent_changes">Your Mental fitness dynamics shows the most recent changes in your mental fitness indicators, including sleep and cognitive fitness. We look at the last week\'s data to see if you are trending up, stable, or down overall.\nPlease note that the image is for illustrative purposes only. The shape and slope of the wave do not reflect your own data, but rather show the direction of your trend.</string>
+    <string name="could_not_retrieve_info_try_again_later">Could not retrieve info, try again later</string>
+    <string name="your_device_has_been_successfully_paired_with_id">Your device has been successfully paired with %1$s.</string>
+    <string name="your_device_has_been_successfully_registered_with_until">Your device has been successfully registered with %1$s until %2$s.</string>
+    <string name="remember_to_renew_your_subscription_to_keep_using_brainaware">Remember to renew your subscription to keep using BrainAware!</string>
+    <string name="subscription_expiring_soon">Subscription expiring soon</string>
+    <string name="do_you_have_any_feedback_for_us_you_can_contact_us_through_the_email_form_on_our_website_faq_page">Do you have any feedback for us? You can contact us through the email form on our website FAQ page.</string>
+    <string name="feedback">Feedback</string>
+    <string name="go_to_faq_page">Go to FAQ page</string>
+    <string name="scan_qr_code">Scan QR code</string>
+    <string name="scan_qr_from_your_other_device">On your other device:
+        \n1. Open the app settings.
+        \n2. Go to Device Pairing and press \'Pair a device\'.
+        \nOn this device:
+        \n1. Scan the QR code displayed on your other device.</string>
+    <string name="copy_the_info_from_your_other_device">On your other device:
+        1. Open the app settings.
+        2. Go to Device Pairing and press \'Pair a device\'.
+        On this device:
+        1. Copy the info from your other device and enter it below.</string>
+    <string name="or_enter_manually">Enter manually</string>
+    <string name="lesson_13_continue">(Lesson 13)</string>
+    <string name="per_month">%1$s %2$s/month %3$s</string>
+
+
+    <string name="score_seven_days">In the last 7 days, your average %1$s was %2$s than in the 7 days before.</string>
+    <string name="score_seven_days_stable">In the last 7 days, your average %1$s remained stable compared to the 7 days before.</string>
+    <string name="remained_stable">remained stable</string>
+    <string name="score_two_weeks">In the last 2 weeks, your average %1$s was %2$s than in the 4 weeks before.</string>
+    <string name="score_two_weeks_stable">In the last 2 weeks, your average %1$s remained stable compared to the 4 weeks before.</string>
+    <string name="score_one_month">Last month, your average %1$s was %2$s than in the 11 months before.</string>
+    <string name="score_one_month_stable">Last month, your average %1$s remained stable compared to the 11 months before.</string>
+
+    <string name="seven_days_sleep_length_longer">In the last 7 days, you slept on average %1$s longer than in the 7 days before.\n%2$s</string>
+    <string name="seven_days_sleep_length_shorter">In the last 7 days, you slept on average %1$s shorter than in the 7 days before.\n%2$s</string>
+    <string name="seven_days_sleep_length_same_amount">In the last 7 days, you slept on average about the same amount as in the 7 days before.\n%1$s</string>
+    <string name="two_weeks_sleep_length_longer">In the last 2 weeks, you slept on average %1$s longer than in the 4 weeks before.\n%2$s</string>
+    <string name="two_weeks_sleep_length_shorter">In the last 2 weeks, you slept on average %1$s shorter than in the 4 weeks before.\n%2$s</string>
+    <string name="two_weeks_sleep_length_same_amount">In the last 2 weeks, you slept on average about the same amount asin the 4 weeks before.\n%1$s</string>
+    <string name="one_month_sleep_length_shorter">Lately, you\'ve slept on average %1$s shorter than usual.\n%2$s</string>
+    <string name="one_month_sleep_length_longer">Lately, you\'ve slept on average %1$s longer than usual.\n%2$s</string>
+    <string name="one_month_sleep_length_usual_range">Last month, your sleep duration was in its usual range.\n%1$s</string>
+
+    <string name="seven_days_screen_time_longer">In the last 7 days, your average social screen time was %1$s longer than in the 7 days before.\n%2$s</string>
+    <string name="seven_days_screen_time_shorter">In the last 7 days, your average social screen time was %1$s shorter than in the 7 days before.\n%2$s</string>
+    <string name="seven_days_screen_time_same_amount">In the last 7 days, your average social screen time was about the same as in the 7 days before.\n%1$s</string>
+    <string name="two_weeks_screen_time_longer">In the last 2 weeks, your average social screen time was %1$s longer than in the 4 weeks before.\n%2$s</string>
+    <string name="two_weeks_screen_time_shorter">In the last 2 weeks, your average social screen time was %1$s shorter than in the 4 weeks before.\n%2$s</string>
+    <string name="two_weeks_screen_time_same_amount">In the last 2 weeks, your average social screen time was about the same as in the 4 weeks before.\n%1$s</string>
+    <string name="one_month_screen_time_shorter">Lately, your average social screen time has been %1$s shorter than usual.\n%2$s</string>
+    <string name="one_month_screen_time_longer">Lately, your average social screen time has been %1$s longer than usual.\n%2$s</string>
+    <string name="one_month_screen_time_usual_range">Last month, your average social screen time has been in its usual range.\n%1$s</string>
+
+    <string name="seven_days_action_speed_faster">In the last 7 days, your average action time was %1$s faster than in the 7 days before.\n%2$s</string>
+    <string name="seven_days_action_speed_slower">In the last 7 days, your average action time was %1$s slower than in the 7 days before.\n%2$s</string>
+    <string name="seven_days_action_speed_same_amount">In the last 7 days, your average action time was comparable to what it was in the 7 days before.\n%1$s</string>
+    <string name="two_weeks_action_speed_faster">In the last 2 weeks, your average action time was %1$s faster than in the 4 weeks before.\n%2$s</string>
+    <string name="two_weeks_action_speed_slower">In the last 2 weeks, your average action time was %1$s slower than in the 4 weeks before.\n%2$s</string>
+    <string name="two_weeks_action_speed_same_amount">In the last 2 weeks, your average action time was comparable to what it was in the 4 weeks before.\n%1$s</string>
+    <string name="one_month_action_speed_faster">Lately,your average action time has been %1$s faster than usual.\n%2$s</string>
+    <string name="one_month_action_speed_slower">Lately,your average action time has been %1$s slower than usual.\n%2$s</string>
+    <string name="one_month_action_speed_same_amount">Last month, your average action time was in its usual range.\n%1$s</string>
+
+    <string name="about_the_same">about the same</string>
+    <string name="shorter">%1$s shorter</string>
+
+    <string name="work">work</string>
+    <string name="mindfulness">mindfulness</string>
+    <string name="friends">friends</string>
+    <string name="travel">travel</string>
+    <string name="family">family</string>
+    <string name="exercise">exercise</string>
+    <string name="pain">pain</string>
+    <string name="outdoors">outdoors</string>
+    <string name="cigarettes">cigarettes</string>
+    <string name="other">other</string>
+    <string name="alcohol">alcohol</string>
+    <string name="relationship">relationship</string>
+    <string name="pets">pets</string>
+    <string name="sleep">sleep</string>
+    <string name="diet">diet</string>
+    <string name="walk">walk</string>
+    <string name="new_account">New account</string>
+    <string name="pair_device">Pair device</string>
+
 </resources>
