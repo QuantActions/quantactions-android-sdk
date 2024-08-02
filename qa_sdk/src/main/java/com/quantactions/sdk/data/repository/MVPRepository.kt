@@ -27,6 +27,7 @@ import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.hadiyarajesh.flower_core.Resource
 import com.hadiyarajesh.flower_core.flow.dbBoundResourceFlow
 import com.quantactions.sdk.BasicInfo
+import com.quantactions.sdk.BuildConfig
 import com.quantactions.sdk.CanReturnCompiledTimeSeries
 import com.quantactions.sdk.GeneratePassword
 import com.quantactions.sdk.ManagePref2
@@ -356,12 +357,12 @@ class MVPRepository @Inject private constructor(
                 )
 
                 if (sampleParticipationId != null){
-                    runBlocking { tokenApi.login(getBasicAuthHeader("96ab8e7a-465a-4c48-8e10-aedc59ed0b4e", "thisIsMyPassword777#"))  }
+                    runBlocking { tokenApi.login(getBasicAuthHeader(BuildConfig.QA_SAMPLE_ID, BuildConfig.QA_SAMPLE_PASSWORD))  }
                 }
 
                 metricOrTrend.getStat(
                     apiService,
-                    if (sampleParticipationId != null) "96ab8e7a-465a-4c48-8e10-aedc59ed0b4e" else identityId,
+                    if (sampleParticipationId != null) BuildConfig.QA_SAMPLE_ID else identityId,
                     sampleParticipationId ?: iamParticipationId,
                     thisFrom,
                     thisTo
