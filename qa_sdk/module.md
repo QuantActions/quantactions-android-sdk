@@ -9,61 +9,60 @@ The QuantActions SDK for Android enables a developer to add all the QuantActions
 
 The QuantActions SDK for Android can be set up with a few easy steps. We recommend the use of `gradle` as build tool and of Android Studio as IDE for the development.
 
-This is an issue-only public repository for the distribution of the documentation of the SDK, the gathering of issues and feature requests and the distribution of samples.
-
-
 ## 1. Android Studio setup
 
-The SDK is distributed via [JitPack](https://jitpack.io/), for now the SDK is private and can only be accessed prior a request, please write you request (containing your **github username**) to [development@quantactions.com](mailto:development@quantactions.com).
+The SDK is distributed via github maven artifacts, and can be accessed with 2 steps
 
-1. Ensure that you have selected a minimum Android SDK of **21** for your project by checking that the app-level `build.gradle`, also we recommend using JAVA 11, remember to enable desugaring options since the SDK uses advanced Java functionality that are not normally available at lower Android API levels
+1a. In the project-level `settings.properties` add the GitHub maven repository 
 
-    ```groovy
-   android {
-    defaultConfig {
-        minSdkVersion 21
-    }
-   
-    compileOptions {
-        coreLibraryDesugaringEnabled true
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+```groovy
+dependencyResolutionManagement {
+  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+  repositories {
+     ...
+     maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/QuantActions/quantactions-android-sdk")
      }
-     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-     }
-   }
-   
-   dependencies {
-       coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
-   }
-   
-    ```
+  }
+}
+```
 
-2. Follow the [instructions from JitPack](https://jitpack.io/docs/PRIVATE/) for the access to private artifacts. When you have your auth token simply add it you your general `gradle.properties`
+1b. In your app-level `build.gradle`: 
+  - ensure that you have selected a minimum Android SDK of **21** 
+    - use JAVA 17 compiler
+    - enable desugaring
 
-    ```groovy
-    authToken=api_key_from_jitpack
-    ```
-
-    and add the JitPack repo to the project-level `build.gradle` or the `seetings.gradle` depending of your project setup
-
-    ```groovy
-    maven {
-       url "https://jitpack.io"
-       credentials { username authToken }
-    }
-    ```
-
-3. Add the QA SDK dependency to your app-level `build.gradle` file
-
-    ```groovy
-    implementation 'com.github.QuantActions:QA-Android-SDK:1.0.4'
-    ```
-
-   and re-sync the project. Remember to check the latest SDK version in case you are reading an old version of the documentation.
-
-4. Done! You are now ready to start adding QA functionality to your code.
+```groovy
+android {
+  defaultConfig {
+   minSdkVersion 21
+  }
+  
+  compileOptions {
+     coreLibraryDesugaringEnabled true
+     sourceCompatibility JavaVersion.VERSION_17
+     targetCompatibility JavaVersion.VERSION_17
+  }
+  kotlinOptions {
+     jvmTarget = JavaVersion.VERSION_17.toString()
+  }
+}
+  
+dependencies {
+  coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+}
+```
+       
+1c. Add the QuantActions SDK dependency to your app-level `build.gradle` file
+      
+```groovy
+implementation 'com.quantactions:quantactions-android-sdk:1.1.0-beta06'
+```
+      
+and re-sync the project. Remember to check the latest SDK version in case you are reading an old version of the documentation.
+      
+1d. Done! You are now ready to start adding QA functionality to your code.
 
 ----
 
@@ -81,14 +80,14 @@ Before using any functionality, the QA singleton needs to be initialized. To do 
 Once in possession of the `api_key`, the simplest thing to do is to add your `api_key` to the app-level `build.gradle`
 
  ```groovy
- android {
-    compileSdkVersion 33
-
-    defaultConfig {
-        minSdkVersion 21
-        buildConfigField("String", "QA_API_KEY", "\"api_key\"")
-    }
-  }
+android {
+   compileSdkVersion 34
+   
+   defaultConfig {
+      minSdkVersion 21
+      buildConfigField("String", "QA_API_KEY", "\"api_key\"")
+   }
+}
  ```
 
 then you can access it in the code to initialize the SDK.
@@ -151,7 +150,7 @@ qa.updater = MyCustomNotification(qa)
 Note that the SDK notification uses a separate notification channel called `QA Service` and can be easily unselected by the user from the OS notifications settings to avoid having it always present.
 
 ## 4. Sign-up to a cohort
-To track a device it is **necessary** to subscribe the device to a cohort. Each device can be subscribed in two ways. For a cohort with a known number of devices to track, QuantActions provides a set of codes (subscriptionIds) of the form `138e...28eb` that have to be distributed. The way the code is entered into the app is the choice of the developer. In our TapCounter R&D app we use both a copy&paste method and a QR code scanning method, once the code as been acquired the device can then be registered using the SDK
+To track a device it is **necessary** to subscribe the device to a cohort. Each device can be subscribed in two ways. For a cohort with a known number of devices to track, QuantActions provides a set of codes (subscriptionIds) that have to be distributed. The way the code is entered into the app is the choice of the developer. In our TapCounter R&D app we use both a copy&paste method and a QR code scanning method, once the code as been acquired the device can then be registered using the SDK
 
 ```kotlin
 qa.subscribe(subscriptionId=subscriptionId)
@@ -165,13 +164,13 @@ For cohorts where the number of participants is unknown the SDK can be used to r
 qa.subscribe(cohortId=cohortId)
 ```
  
-Note that multiple devices can be subscribed using the same `subscriptionId`, this is the case when a user has multiple devices or changes devices (e.g. old phone is broken). 
-The data from multiple devices sharing the same `subscriptionId` will be merged to generate insights and metric, thus the same `subscriptionId` should not be used for different users.
 When subscribing the device using a general `cohortId`, the device gets automatically assigned a `subscriptionId`, to retrieve this id one case use the following code.
 
 ```kotlin
 val subscriptions = qa.subscriptions()
 ```
+
+Note that each user can be subscribed to multiple cohorts at the same time
 
 ---
 
@@ -211,24 +210,19 @@ Minimal example
 - Get a `authToken` from [Jitpack](https://Jitpack.io)
 
 
-`gradle.properties` (global)
+`settings.gradle` (project level)
 
 ```groovy
-authToken=api_key_from_jitpack
-```
+dependencyResolutionManagement {
+   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
 
-
-`build.gradle` (project level)
-
-```groovy
-allprojects {
-    repositories {
-        google()
-        jcenter()
-        maven { url "https://jitpack.io"
-            credentials { username authToken }
-        }
-    }
+   repositories {
+      ...
+      maven {
+         name = "GitHubPackages"
+         url = uri("https://maven.pkg.github.com/QuantActions/quantactions-android-sdk")
+      }
+   }
 }
 
 ```
@@ -255,6 +249,7 @@ android {
 
 dependencies {
    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+   implementation 'com.quantactions:quantactions-android-sdk:1.1.0-beta06'
 }
 
 ```
@@ -299,11 +294,11 @@ After the integration of the SDK has been done, you can add some checks to make 
 2. You can check that the data collection is running fine by using `qa.isDataCollectionRunning(context)` (returns a bool)
 3. You can check that the device has been registered with the QA backend and/or the registration to a cohort was successful
 ```kotlin
-    viewModelScope.launch {
-        withContext(Dispatchers.Default) {
-            qa.subscriptions()
-        }
-    }
+ viewModelScope.launch {
+     withContext(Dispatchers.Default) {
+         qa.subscriptions()
+     }
+ }
 ```
 
 ## 10. Pausing data collection
