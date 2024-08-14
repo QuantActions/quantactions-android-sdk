@@ -11,8 +11,10 @@
 
 package com.quantactions.sdk
 
+import android.util.Log
 import androidx.annotation.Keep
 import com.hadiyarajesh.flower_core.ApiResponse
+import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.quantactions.sdk.data.api.ApiService
 import com.quantactions.sdk.data.entity.SleepSummaryEntity
 import com.quantactions.sdk.data.entity.StatisticEntity
@@ -40,7 +42,7 @@ sealed class Metric<P : TimestampedEntity, T>(
     val id: String,
     val code: String,
     val eta: Int,
-    internal val range: PopulationRange
+    internal var range: PopulationRange
 ) : CanReturnCompiledTimeSeries<P, T> {
 
     /**
@@ -115,8 +117,8 @@ sealed class Metric<P : TimestampedEntity, T>(
          * */
         @Keep
         override fun getReferencePopulationRange(basicInfo: BasicInfo): Range {
-            val high = range.getHigh(basicInfo.yearOfBirth, basicInfo.gender)
-            val low = range.getLow(basicInfo.yearOfBirth, basicInfo.gender)
+            val high = range.get75thPercentile(basicInfo.yearOfBirth, basicInfo.gender)
+            val low = range.get25thPercentile(basicInfo.yearOfBirth, basicInfo.gender)
             return Range(high, low)
         }
 
@@ -147,6 +149,13 @@ sealed class Metric<P : TimestampedEntity, T>(
         @Keep
         override fun returnEmptyTimeSeries(): TimeSeries<SleepSummary> {
             return TimeSeries.SleepSummaryTimeTimeSeries()
+        }
+
+        override suspend fun cacheHealthyRanges(
+            apiService: ApiService,
+            identityId: String
+        ) {
+            TODO("Not yet implemented")
         }
 //        @Keep
 //        override fun prepareReturnDataStat(
@@ -206,8 +215,8 @@ sealed class Metric<P : TimestampedEntity, T>(
         }
 
         override fun getReferencePopulationRange(basicInfo: BasicInfo): Range {
-            val high = range.getHigh(basicInfo.yearOfBirth, basicInfo.gender)
-            val low = range.getLow(basicInfo.yearOfBirth, basicInfo.gender)
+            val high = range.get75thPercentile(basicInfo.yearOfBirth, basicInfo.gender)
+            val low = range.get25thPercentile(basicInfo.yearOfBirth, basicInfo.gender)
             return Range(high, low)
         }
 
@@ -263,6 +272,13 @@ sealed class Metric<P : TimestampedEntity, T>(
 
         override fun returnEmptyTimeSeries(): TimeSeries<ScreenTimeAggregate> {
             return TimeSeries.ScreenTimeAggregateTimeSeries()
+        }
+
+        override suspend fun cacheHealthyRanges(
+            apiService: ApiService,
+            identityId: String
+        ) {
+            TODO("Not yet implemented")
         }
     }
 
@@ -358,28 +374,7 @@ sealed class Metric<P : TimestampedEntity, T>(
         "cognitive",
         "003-001-001-003",
         4,
-        PopulationRange(
-            Range(25.984f, 61.667f),      // global
-            Range(20.004f, 67.137665f),      // global male
-            Range(30.279333f, 68.52966f),      // global female
-            SexRange(
-                // male
-                Range(77.96333f, 92.734f),  //   young
-                Range(68.66267f, 84.47134f),  //   mid
-                Range(14.8116665f, 40.343f),  //   old
-            ),
-            SexRange(
-                Range(79.484f, 94.636f), //   young
-                Range(69.22134f, 83.34133f),//   mid
-                Range(25.435667f, 49.818333f),//   old
-            ),
-            SexRange(
-                //unknown
-                Range(80.18967f, 94.90567f), //   young
-                Range(23.880333f, 56.170334f),//   mid
-                Range(21.000668f, 46.875f),//   old
-            ),
-        )
+        PopulationRange()
     )
 
 
@@ -420,26 +415,7 @@ sealed class Metric<P : TimestampedEntity, T>(
     @Keep
     object SLEEP_SCORE: DoubleMetricV2 (
         "sleep", "003-001-001-002", 7,
-        PopulationRange(
-            Range(62.596535f, 80.119896f),     // global
-            Range(62.821373f, 79.964714f),      // global male
-            Range(61.720432f, 79.46485f),      // global female
-            SexRange( // male
-                Range(53.74714f, 68.852516f),
-                Range(55.69156f, 69.50374f),
-                Range(67.67323f, 82.0455f),
-            ),
-            SexRange( //female
-                Range(59.122f, 74.47627f),
-                Range(57.65483f, 74.274826f),
-                Range(63.14461f, 80.74949f),
-            ),
-            SexRange( // other
-                Range(56.64746f, 72.360374f),
-                Range(62.796917f, 80.06343f),
-                Range(64.28684f, 81.01073f),
-            ),
-        )
+        PopulationRange()
     ) {
         @Keep
         override fun prepareReturnData(
@@ -471,8 +447,8 @@ sealed class Metric<P : TimestampedEntity, T>(
          * */
         @Keep
         override fun getReferencePopulationRange(basicInfo: BasicInfo): Range {
-            val high = range.getHigh(basicInfo.yearOfBirth, basicInfo.gender)
-            val low = range.getLow(basicInfo.yearOfBirth, basicInfo.gender)
+            val high = range.get75thPercentile(basicInfo.yearOfBirth, basicInfo.gender)
+            val low = range.get25thPercentile(basicInfo.yearOfBirth, basicInfo.gender)
             return Range(high, low)
         }
 
@@ -522,26 +498,7 @@ sealed class Metric<P : TimestampedEntity, T>(
     @Keep
     object SOCIAL_ENGAGEMENT : DoubleMetricV2(
         "social", "003-001-001-004", 2,
-        PopulationRange(
-            Range(28.712467f, 75.75991f),      // global
-            Range(24.270382f, 70.70684f),     // global male
-            Range(32.260998f, 77.97318f),      // global female
-            SexRange(
-                Range(53.03062f, 90.08054f),
-                Range(26.900045f, 72.834076f),
-                Range(21.592102f, 66.04761f),
-            ),
-            SexRange(
-                Range(70.613594f, 94.54849f),
-                Range(45.872925f, 88.213425f),
-                Range(27.825377f, 68.83997f),
-            ),
-            SexRange(
-                Range(66.69589f, 94.09861f),
-                Range(28.315763f, 72.02325f),
-                Range(27.181074f, 69.04921f),
-            )
-        )
+        PopulationRange()
     )
 
     /**
@@ -572,6 +529,28 @@ sealed class Metric<P : TimestampedEntity, T>(
             return TimeSeries.DoubleTimeSeries()
         }
 
+        override suspend fun cacheHealthyRanges(
+            apiService: ApiService,
+            identityId: String
+        ) {
+            val filter = prepareFilterCode(code)
+
+            when (val rangesResponse = apiService.getHealthyRanges(identityId, filter)) {
+                is ApiSuccessResponse -> {
+                    if (rangesResponse.body != null &&
+                        rangesResponse.body!!.isNotEmpty()
+                        )
+                        this.range = rangesResponse.body!![0].ranges
+                        Log.e("RANGES", "Range example for $code")
+                        Log.e("RANGES", "All ${range.get25thPercentile(1991, QA.Gender.MALE)}")
+                        Log.e("RANGES", "All ${range.get25thPercentile()}")
+                        Log.e("RANGES", "All ${range.get75thPercentile(1950, QA.Gender.FEMALE)}")
+                        Log.e("RANGES", "====================")
+                }
+                else -> {}
+            }
+        }
+
         @Keep
         override fun prepareReturnData(
             values: List<StatisticEntity>,
@@ -599,8 +578,8 @@ sealed class Metric<P : TimestampedEntity, T>(
          * */
         @Keep
         override fun getReferencePopulationRange(basicInfo: BasicInfo): Range {
-            val high = range.getHigh(basicInfo.yearOfBirth, basicInfo.gender)
-            val low = range.getLow(basicInfo.yearOfBirth, basicInfo.gender)
+            val high = range.get75thPercentile(basicInfo.yearOfBirth, basicInfo.gender)
+            val low = range.get25thPercentile(basicInfo.yearOfBirth, basicInfo.gender)
             return Range(low, high)
         }
 
@@ -684,6 +663,15 @@ fun prepareFilter(code: String, from: String, to: String): String {
     return filter.stringify()
 }
 
+fun prepareFilterCode(code: String): String {
+
+    val filter = mutableMapOf<String, Any>()
+    filter["where"] = mutableMapOf<String, Any>().apply {
+        put("code", code)
+    }
+    return filter.stringify()
+}
+
 /**
  * @suppress
  */
@@ -697,6 +685,10 @@ interface CanReturnCompiledTimeSeries<P : TimestampedEntity, T> {
 
     @Keep
     fun prepareReturnData(values: List<P>, from: Long, to: Long): TimeSeries<T>
+
+    @Keep
+    suspend fun cacheHealthyRanges(apiService: ApiService,
+                           identityId: String)
 
     @Keep
     fun getReferencePopulationRange(basicInfo: BasicInfo): Range

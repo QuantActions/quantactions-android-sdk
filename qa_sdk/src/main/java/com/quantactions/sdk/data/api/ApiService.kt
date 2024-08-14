@@ -18,7 +18,7 @@ import com.hadiyarajesh.flower_core.ApiResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.hadiyarajesh.flower_retrofit.FlowerCallAdapterFactory
 import com.quantactions.sdk.BuildConfig
-import com.quantactions.sdk.GenericPreferences
+import com.quantactions.sdk.ManagePref2
 import com.quantactions.sdk.data.api.adapters.QuestionnaireAdapter
 import com.quantactions.sdk.data.api.adapters.SleepSummaryAdapter
 import com.quantactions.sdk.data.api.adapters.StatisticAdapter
@@ -80,6 +80,12 @@ import javax.inject.Inject
 
 
 interface ApiService {
+
+    @GET("flows/identities/{identityId}/healthyranges")
+    suspend fun getHealthyRanges(
+        @Path("identityId") identityId: String,
+        @Query("filter") filter: String,
+    ): ApiResponse<List<HealthyRangesResponse>>
 
     /**
      * This endpoint is used to get stats from TapCloud relative to the device in use.

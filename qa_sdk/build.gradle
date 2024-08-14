@@ -44,7 +44,8 @@ android {
         consumerProguardFiles "consumer-rules.pro"
 
         buildConfigField("String", "QA_UUID", "\"${project.properties["qa_uuid"]}\"")
-        buildConfigField("String", "QA_API_ROUTE", "\"https://qa-apis.azure-api.net/tap/v1/\"")
+//        buildConfigField("String", "QA_API_ROUTE", "\"https://qa-apis.azure-api.net/tap/v1/\"")
+        buildConfigField("String", "QA_API_ROUTE", "\"http://localhost:8090/\"")
         buildConfigField("String", "QA_SAMPLE_PASSWORD", "\"${project.properties["qa_sample_password"]}\"")
         buildConfigField("String", "QA_SAMPLE_ID", "\"${project.properties["qa_sample_id"]}\"")
         buildConfigField("String", "QA_SAMPLE_PART_ID", "\"${project.properties["qa_sample_part_id"]}\"")
