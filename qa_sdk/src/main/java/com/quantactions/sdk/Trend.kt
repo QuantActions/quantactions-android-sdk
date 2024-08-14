@@ -19,10 +19,6 @@ import com.quantactions.sdk.data.entity.TrendEntity
 import com.quantactions.sdk.data.model.TrendHolder
 import com.quantactions.sdk.data.repository.MVPDao
 import kotlinx.coroutines.flow.Flow
-import retrofit2.Response
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZonedDateTime
 
 /**
  * Enumeration class that holds all of the info for the metrics
@@ -80,7 +76,11 @@ sealed class Trend<P : TimestampedEntity, T> (
     object SOCIAL_ENGAGEMENT : FilterByTimeZoneTrendObject(
         "social_engagement_trend",
         "003-003-003-005",
-    )
+    ) {
+        override suspend fun cacheHealthyRanges(apiService: ApiService, identityId: String) {
+            TODO("Not yet implemented")
+        }
+    }
 
     @Keep
     object SOCIAL_SCREEN_TIME : FilterByTimeZoneTrendObject(
@@ -153,8 +153,8 @@ open class BasicTrendObject(id: String, code: String) :
      * */
     @Keep
     override fun getReferencePopulationRange(basicInfo: BasicInfo): Range {
-        val high = range.getHigh(basicInfo.yearOfBirth, basicInfo.gender)
-        val low = range.getLow(basicInfo.yearOfBirth, basicInfo.gender)
+        val high = range.get75thPercentile(basicInfo.yearOfBirth, basicInfo.gender)
+        val low = range.get25thPercentile(basicInfo.yearOfBirth, basicInfo.gender)
         return Range(high, low)
     }
 
@@ -185,6 +185,10 @@ open class BasicTrendObject(id: String, code: String) :
     @Keep
     override fun returnEmptyTimeSeries(): TimeSeries<TrendHolder> {
         return TimeSeries.TrendTimeSeries()
+    }
+
+    override suspend fun cacheHealthyRanges(apiService: ApiService, identityId: String) {
+        TODO("Not yet implemented")
     }
 }
 
@@ -243,8 +247,8 @@ open class FilterByTimeZoneTrendObject(id: String, code: String) :
      * */
     @Keep
     override fun getReferencePopulationRange(basicInfo: BasicInfo): Range {
-        val high = range.getHigh(basicInfo.yearOfBirth, basicInfo.gender)
-        val low = range.getLow(basicInfo.yearOfBirth, basicInfo.gender)
+        val high = range.get75thPercentile(basicInfo.yearOfBirth, basicInfo.gender)
+        val low = range.get25thPercentile(basicInfo.yearOfBirth, basicInfo.gender)
         return Range(high, low)
     }
 
@@ -296,5 +300,9 @@ open class FilterByTimeZoneTrendObject(id: String, code: String) :
     @Keep
     override fun returnEmptyTimeSeries(): TimeSeries<TrendHolder> {
         return TimeSeries.TrendTimeSeries()
+    }
+
+    override suspend fun cacheHealthyRanges(apiService: ApiService, identityId: String) {
+        TODO("Not yet implemented")
     }
 }

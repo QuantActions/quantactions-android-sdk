@@ -12,10 +12,6 @@
 package com.quantactions.sdk.data.repository
 
 import android.content.Context
-import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
-import android.os.Build
-import android.util.Base64
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
@@ -62,8 +58,8 @@ import com.quantactions.sdk.data.model.DeviceSpecificationsResponse
 import com.quantactions.sdk.data.model.DeviceStats
 import com.quantactions.sdk.data.model.DeviceStatsResponse
 import com.quantactions.sdk.data.model.JournalEntry
-import com.quantactions.sdk.data.model.JournalEntryEvent
 import com.quantactions.sdk.data.model.JournalEntryBody
+import com.quantactions.sdk.data.model.JournalEntryEvent
 import com.quantactions.sdk.data.model.JournalEventBody
 import com.quantactions.sdk.data.model.JournalEventEnterResponse
 import com.quantactions.sdk.data.model.Note
@@ -83,9 +79,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.json.JSONObject
 import timber.log.Timber
-import java.nio.charset.Charset
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -98,7 +92,6 @@ import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import java.util.regex.Pattern
 import javax.inject.Inject
 import kotlin.math.roundToInt
 
@@ -456,6 +449,11 @@ class MVPRepository @Inject private constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     fun cacheJournalEvents() {
+        scope.launch {
+            Metric.SLEEP_SCORE.cacheHealthyRanges(apiService, identityId)
+            Metric.COGNITIVE_FITNESS.cacheHealthyRanges(apiService, identityId)
+            Metric.SOCIAL_ENGAGEMENT.cacheHealthyRanges(apiService, identityId)
+        }
         scope.launch {
 
             val filter = mutableMapOf<String, Any>()

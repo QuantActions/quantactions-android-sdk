@@ -370,8 +370,8 @@ fun ShadedLineChart(
         val range = score.getReferencePopulationRange(basicInfo)
         val minMax = calculatePointsForDataGeneral(
             listOf(
-                range.low.toDouble(),
-                range.high.toDouble()
+                range.percentile25.toDouble(),
+                range.percentile75.toDouble()
             ),
             width.toPx(),
             height.toPx(),
@@ -526,7 +526,7 @@ fun ShadedLineChart(
 
                         // baseline shading
                         val range = score.getReferencePopulationRange(basicInfo)
-                        if (range.low != 0f || range.high != 0f) {
+                        if (range.percentile25 != 0f || range.percentile75 != 0f) {
                             drawPath(
                                 path = shadedArea, color = ColdGrey04.copy(0.1f),
                             )
