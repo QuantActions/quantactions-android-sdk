@@ -11,7 +11,6 @@
 
 package com.quantactions.sdk
 
-import android.util.Log
 import androidx.annotation.Keep
 import com.hadiyarajesh.flower_core.ApiResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
@@ -547,10 +546,7 @@ sealed class Metric<P : TimestampedEntity, T>(
                     managePref2.saveHealthyRanges(code, rangesResponse.body!![0].ranges)
                 }
                 else -> {
-                    Log.e("Ranges", "Error fetching ranges")
                     this.range = managePref2.getHealthyRanges(code)
-                    Log.e("Ranges", "Cached ranges: ${range.get25thPercentile()}")
-
                 }
             }
         }
