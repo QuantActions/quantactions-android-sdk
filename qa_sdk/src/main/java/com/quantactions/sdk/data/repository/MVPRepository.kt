@@ -450,9 +450,9 @@ class MVPRepository @Inject private constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     fun cacheJournalEvents() {
         scope.launch {
-            Metric.SLEEP_SCORE.cacheHealthyRanges(apiService, identityId)
-            Metric.COGNITIVE_FITNESS.cacheHealthyRanges(apiService, identityId)
-            Metric.SOCIAL_ENGAGEMENT.cacheHealthyRanges(apiService, identityId)
+            Metric.SLEEP_SCORE.cacheHealthyRanges(apiService, preferences, identityId)
+            Metric.COGNITIVE_FITNESS.cacheHealthyRanges(apiService, preferences, identityId)
+            Metric.SOCIAL_ENGAGEMENT.cacheHealthyRanges(apiService, preferences, identityId)
         }
         scope.launch {
 

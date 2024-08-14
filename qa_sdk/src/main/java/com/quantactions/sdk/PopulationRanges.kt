@@ -12,6 +12,7 @@ package com.quantactions.sdk
 import androidx.annotation.Keep
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import kotlinx.serialization.Serializable
 import java.time.LocalDate
 
 
@@ -21,6 +22,7 @@ import java.time.LocalDate
  * */
 @Keep
 @JsonClass(generateAdapter = true)
+@Serializable
 class Range(
     @Json(name="25th")
     val percentile25: Float,
@@ -37,6 +39,7 @@ class Range(
  * */
 @Keep
 @JsonClass(generateAdapter = true)
+@Serializable
 data class AgeStratifiedRange(
     val all: Range = Range(0f, 0f),
     @Json(name="<30")
@@ -78,6 +81,7 @@ data class AgeStratifiedRange(
  * */
 @Keep
 @JsonClass(generateAdapter = true)
+@Serializable
 class PopulationRange(
     /** Across the whole population */
     val global: AgeStratifiedRange = AgeStratifiedRange(),

@@ -153,6 +153,7 @@ sealed class Metric<P : TimestampedEntity, T>(
 
         override suspend fun cacheHealthyRanges(
             apiService: ApiService,
+            managePref2: ManagePref2,
             identityId: String
         ) {
             TODO("Not yet implemented")
@@ -276,6 +277,7 @@ sealed class Metric<P : TimestampedEntity, T>(
 
         override suspend fun cacheHealthyRanges(
             apiService: ApiService,
+            managePref2: ManagePref2,
             identityId: String
         ) {
             TODO("Not yet implemented")
@@ -522,6 +524,7 @@ sealed class Metric<P : TimestampedEntity, T>(
 
         override suspend fun cacheHealthyRanges(
             apiService: ApiService,
+            managePref2: ManagePref2,
             identityId: String
         ) {
             val filter = prepareFilterCode(code)
@@ -532,13 +535,14 @@ sealed class Metric<P : TimestampedEntity, T>(
                         rangesResponse.body!!.isNotEmpty()
                         )
                         this.range = rangesResponse.body!![0].ranges
-                        Log.e("RANGES", "Range example for $code")
-                        Log.e("RANGES", "All ${range.get25thPercentile(1991, QA.Gender.MALE)}")
-                        Log.e("RANGES", "All ${range.get25thPercentile()}")
-                        Log.e("RANGES", "All ${range.get75thPercentile(1950, QA.Gender.FEMALE)}")
-                        Log.e("RANGES", "====================")
+                    managePref2.saveHealthyRanges(code, rangesResponse.body!![0].ranges)
                 }
-                else -> {}
+                else -> {
+                    Log.e("Ranges", "Error fetching ranges")
+                    this.range = managePref2.getHealthyRanges(code)
+                    Log.e("Ranges", "Cached ranges: ${range.get25thPercentile()}")
+
+                }
             }
         }
 
@@ -679,6 +683,7 @@ interface CanReturnCompiledTimeSeries<P : TimestampedEntity, T> {
 
     @Keep
     suspend fun cacheHealthyRanges(apiService: ApiService,
+                                   managePref2: ManagePref2,
                            identityId: String)
 
     @Keep
