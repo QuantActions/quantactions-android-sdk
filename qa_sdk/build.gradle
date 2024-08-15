@@ -3,7 +3,7 @@
  * Copyright (C) QuantActions AG - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * Written by Enea Ceolini <enea.ceolini@quantactions.com>, July 2024
+ * Written by Enea Ceolini <enea.ceolini@quantactions.com>, August 2024
  * *******************************************************************************
  */
 //file:noinspection HardCodedStringLiteral
@@ -16,8 +16,8 @@ apply plugin: 'kotlinx-serialization'
 apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'com.google.devtools.ksp'
 
-def versionName = '1.1.0-rc01'
-def versionCode = '28'
+def versionName = '1.1.0-rc02'
+def versionCode = '29'
 
 android {
     compileSdk 34

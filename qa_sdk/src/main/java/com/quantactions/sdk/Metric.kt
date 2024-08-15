@@ -3,7 +3,7 @@
  * Copyright (C) QuantActions AG - All Rights Reserved
  * Unauthorized copying of this file, via any medium is strictly prohibited
  * Proprietary and confidential
- * Written by Enea Ceolini <enea.ceolini@quantactions.com>, July 2024
+ * Written by Enea Ceolini <enea.ceolini@quantactions.com>, August 2024
  * *******************************************************************************
  */
 
@@ -23,8 +23,6 @@ import com.quantactions.sdk.data.model.SleepSummary
 import com.quantactions.sdk.data.repository.MVPDao
 import com.quantactions.sdk.data.stringify
 import kotlinx.coroutines.flow.Flow
-import retrofit2.Response
-import timber.log.Timber
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -269,12 +267,21 @@ sealed class Metric<P : TimestampedEntity, T>(
     }
 
     /**
-     * @suppress
+     * Behavioral Age is a comprehensive measure of your cognitive health, showing how "young" or
+     * "old" your behavior appears based on your digital activity. Unlike chronological age,
+     * which just counts the years you've lived, Behavioral Age considers how your behavior and
+     * cognition change over time.
+     *
+     * It’s normal to have days where you feel mentally younger or older, but when you face
+     * diseases or significant life events—like losing a loved one or dealing with neurological
+     * conditions such as stroke or epilepsy—your Behavioral Age can accelerate, widening the
+     * gap between your chronological age and your Behavioral Age. This measure offers a
+     * comprehensive view of your mental fitness and tracks changes in your cognitive function.
      */
     @Keep
     object BEHAVIOURAL_AGE : DoubleMetricV2(
         "age",
-        "003-001-001-005",
+        "003-001-001-007",
         21,
         PopulationRange(),
     )
