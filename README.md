@@ -352,6 +352,7 @@ for more information on how this metric is organized.
 - [ACTION_SPEED](com.quantactions.sdk.Metric.ACTION_SPEED)
 - [TYPING_SPEED](com.quantactions.sdk.Metric.TYPING_SPEED)
 - [SOCIAL_TAPS](com.quantactions.sdk.Metric.SOCIAL_TAPS)
+- [BEHAVIOURAL_AGE](com.quantactions.sdk.Metric.BEHAVIOURAL_AGE)
 
 
 ### 12.2. Trends

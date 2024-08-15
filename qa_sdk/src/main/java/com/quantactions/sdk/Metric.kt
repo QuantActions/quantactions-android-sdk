@@ -267,7 +267,16 @@ sealed class Metric<P : TimestampedEntity, T>(
     }
 
     /**
-     * @suppress
+     * Behavioral Age is a comprehensive measure of your cognitive health, showing how "young" or
+     * "old" your behavior appears based on your digital activity. Unlike chronological age,
+     * which just counts the years you've lived, Behavioral Age considers how your behavior and
+     * cognition change over time.
+     *
+     * It’s normal to have days where you feel mentally younger or older, but when you face
+     * diseases or significant life events—like losing a loved one or dealing with neurological
+     * conditions such as stroke or epilepsy—your Behavioral Age can accelerate, widening the
+     * gap between your chronological age and your Behavioral Age. This measure offers a
+     * comprehensive view of your mental fitness and tracks changes in your cognitive function.
      */
     @Keep
     object BEHAVIOURAL_AGE : DoubleMetricV2(

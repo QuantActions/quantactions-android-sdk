@@ -339,6 +339,7 @@ The current version is shipped with the following metrics:
 - [COGNITIVE_FITNESS](com.quantactions.sdk.Metric.COGNITIVE_FITNESS)
 - [SOCIAL_ENGAGEMENT](com.quantactions.sdk.Metric.SOCIAL_ENGAGEMENT)
 
+
 Each of these metric has a value in the range 0-100 and is shipped with confidence intervals (high and low)
 and a general confidence about the metric. 
 
@@ -352,7 +353,7 @@ for more information on how this metric is organized.
 - [ACTION_SPEED](com.quantactions.sdk.Metric.ACTION_SPEED)
 - [TYPING_SPEED](com.quantactions.sdk.Metric.TYPING_SPEED)
 - [SOCIAL_TAPS](com.quantactions.sdk.Metric.SOCIAL_TAPS)
-
+- [BEHAVIOURAL_AGE](com.quantactions.sdk.Metric.BEHAVIOURAL_AGE)
 
 ### 12.2. Trends
 

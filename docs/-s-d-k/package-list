@@ -91,6 +91,7 @@ $dokka.location:com.quantactions.sdk/DetectedActivityReceiver/DetectedActivityRe
 $dokka.location:com.quantactions.sdk/DetectedActivityReceiver/coroutineContext/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-detected-activity-receiver/coroutine-context.html
 $dokka.location:com.quantactions.sdk/DetectedActivityReceiver/onReceive/#android.content.Context?#android.content.Intent/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-detected-activity-receiver/on-receive.html
 $dokka.location:com.quantactions.sdk/Metric.ACTION_SPEED///PointingToDeclaration/-s-d-k/com.quantactions.sdk/-metric/-a-c-t-i-o-n_-s-p-e-e-d/index.html
+$dokka.location:com.quantactions.sdk/Metric.BEHAVIOURAL_AGE///PointingToDeclaration/-s-d-k/com.quantactions.sdk/-metric/-b-e-h-a-v-i-o-u-r-a-l_-a-g-e/index.html
 $dokka.location:com.quantactions.sdk/Metric.COGNITIVE_FITNESS///PointingToDeclaration/-s-d-k/com.quantactions.sdk/-metric/-c-o-g-n-i-t-i-v-e_-f-i-t-n-e-s-s/index.html
 $dokka.location:com.quantactions.sdk/Metric.DoubleMetricV2///PointingToDeclaration/-s-d-k/com.quantactions.sdk/-metric/-double-metric-v2/index.html
 $dokka.location:com.quantactions.sdk/Metric.DoubleMetricV2/DoubleMetricV2/#kotlin.String#kotlin.String#kotlin.Int#com.quantactions.sdk.PopulationRange/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-metric/-double-metric-v2/-double-metric-v2.html
