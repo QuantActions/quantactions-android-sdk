@@ -13,20 +13,24 @@ The QuantActions SDK for Android can be set up with a few easy steps. We recomme
 
 The SDK is distributed via github maven artifacts, and can be accessed with 2 steps
 
-1a. In the project-level `settings.properties` add the GitHub maven repository
+1a. In the project-level `settings.gradle` add the GitHub maven repository, and the credentials to access it,
+the repo and the package are public but you still need a github account to access them, it is best to use a personal access token for this.
 
 ```groovy
 dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
   repositories {
-     ...
-     maven {
-        name = "GitHubPackages"
-        url = uri("https://maven.pkg.github.com/QuantActions/quantactions-android-sdk")
-     }
+    ...
+    maven {
+      name = "GitHubPackages"
+      url = uri("https://maven.pkg.github.com/QuantActions/quantactions-android-sdk")
+      credentials {
+        username = "..."
+        password = "..."
+      }
+    }
   }
 }
-```
 
 1b. In your app-level `build.gradle`:
 - ensure that you have selected a minimum Android SDK of **21**
@@ -57,7 +61,7 @@ dependencies {
 1c. Add the QuantActions SDK dependency to your app-level `build.gradle` file
 
 ```groovy
-implementation 'com.quantactions:quantactions-android-sdk:1.1.0-beta06'
+implementation 'com.quantactions:quantactions-android-sdk:1.1.0-rc02'
 ```
 
 and re-sync the project. Remember to check the latest SDK version in case you are reading an old version of the documentation.
