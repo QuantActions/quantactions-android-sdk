@@ -31,6 +31,7 @@ dependencyResolutionManagement {
     }
   }
 }
+```
 
 1b. In your app-level `build.gradle`:
 - ensure that you have selected a minimum Android SDK of **21**
