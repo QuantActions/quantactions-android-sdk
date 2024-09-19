@@ -41,7 +41,7 @@ The Software is provided "as is". The scope of the Software is described by the 
 ## 5. **Obligations of the Customer**
 (i) The Customer agrees that they shall not act as or become a third-party software or application developers who further develop features and functionality for distribution and licensing to End-Customer/s and whose business is the development of different apps on behalf of their clients ("Third-Party Developers"). The Customer acknowledges and agrees to this restriction and undertakes not to use the Software for any activities that would qualify them as a Third-Party Developer.
 
-(ii) With regard to QuantActions’ services the Customer is not allowed to (a) store, share or further process Data from Users except in anonymized or aggregated form; and (b) share Data from Users without explicit permission by the User from whom the Data originated.
+(ii) QuantActions stores data in anonymized form to protect User privacy, which means individual data cannot be identified for restoration purposes if access is lost. For this reason, the Customer may store only the data necessary to retrieve User’s historical data from QuantActions servers, as specified in the SDK documentation. For all other data, the Customer is not allowed to (a) store, share or further process Data from Users except in anonymized or aggregated form; and (b) share Data from Users without explicit permission by the User from whom the Data originated.
 
 (iii) The Customer shall comply with all applicable data protection regulations.
 
@@ -66,6 +66,8 @@ All copyrights or other intellectual property rights to and in connection with t
 (iii) In all other cases, liability is - to the extent permitted by law - limited to the fee paid by the Customer in the last 6 months before the damage occurred.
 
 (iv) The Customer shall indemnify QuantActions for all damages caused by a breach of these License Terms or the Agreement. The Customer shall also indemnify QuantActions for actions taken by the End-Customer or Users in breach of these License Terms.
+
+(v)	The Customer acknowledges that QuantActions is not responsible for restoring historical User data if access to such data is lost, including but not limited to situations such as device damage or loss. Because data is anonymized on QuantActions’ side, it is the Customer’s responsibility to manage any necessary data recovery processes, as QuantActions cannot retrieve or restore individual User data in such situations.
 ## 9. **Confidentiality**
 The Parties shall treat Confidential Information as their own trade secrets; do not disclose the Confidential Information to any third party without the prior written consent of the other Party and prevent third parties from gaining access to the Confidential Information; and disclose the Confidential Information only to those employees or authorized representatives who need it to achieve a specific purpose. The Parties shall take suitable precautions to ensure that their employees or agents do not exploit, disclose or record the Confidential Information themselves without authorization and that they prevent third parties from accessing it. In case that the Parties have signed a separate non-disclosure agreement, the latter shall prevail over the provisions in this clause.
 ## 10. **Audit**
@@ -96,4 +98,4 @@ The exclusive place of jurisdiction is Zurich.
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
-License Terms, 31.07.2024
+License Terms, 18.09.2024
