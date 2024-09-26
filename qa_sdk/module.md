@@ -13,7 +13,8 @@ The QuantActions SDK for Android can be set up with a few easy steps. We recomme
 
 The SDK is distributed via github maven artifacts, and can be accessed with 2 steps
 
-1a. In the project-level `settings.properties` add the GitHub maven repository 
+1a. In the project-level `settings.gradle` add the GitHub maven repository, and the credentials to access it,
+the repo and the package are public but you still need a github account to access them, it is best to use a personal access token for this.
 
 ```groovy
 dependencyResolutionManagement {
@@ -23,6 +24,10 @@ dependencyResolutionManagement {
      maven {
         name = "GitHubPackages"
         url = uri("https://maven.pkg.github.com/QuantActions/quantactions-android-sdk")
+         credentials {
+             username = "..."
+             password = "..."
+         }
      }
   }
 }
@@ -57,7 +62,7 @@ dependencies {
 1c. Add the QuantActions SDK dependency to your app-level `build.gradle` file
       
 ```groovy
-implementation 'com.quantactions:quantactions-android-sdk:1.1.0-beta06'
+implementation 'com.quantactions:quantactions-android-sdk:1.1.0-rc04'
 ```
       
 and re-sync the project. Remember to check the latest SDK version in case you are reading an old version of the documentation.
@@ -94,11 +99,16 @@ then you can access it in the code to initialize the SDK.
 
 ```kotlin
 qa.init(context,
-        apiKey=BuildConfig.QA_API_KEY, 
-        age=1985, 
-        gender=QA.Gender.UNKNOWN, 
-        selfDeclaredHealthy=true)
+        apiKey=BuildConfig.QA_API_KEY,
+        basicInfo=BasicInfo(
+                yearOfBirth=1985,
+                gender=QA.Gender.UNKNOWN,
+                selfDeclaredHealthy=true
+                )
+        )
 ```
+
+
 
 ------------------------
 
@@ -192,6 +202,11 @@ qa.init(context,
     password=password
 )
 ```
+
+IMPORTANT NOTE: Since QuantActions does not have any connection with the user identity, data recovery in case of loss or damage of the device is not possible. 
+For this reason we suggest storing the QuantActions' `identityId` and `password` together with the user's account info. 
+In case of loss of damage of the device, the QuantActions SDK can be initialized on the new device with the user's
+`identityId` and `password` which will restore the data and guarantee no interruptions of metrics between old and new device.
 
 ------------------
 
