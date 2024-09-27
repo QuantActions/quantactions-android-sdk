@@ -21,17 +21,11 @@ class MockPref private constructor(context: Context) : GenericPreferences {
 
     private var sharedPref = context.getSharedPreferences("mock_preferences", Context.MODE_PRIVATE)
 
-    override var gender: QA.Gender
-        get() = QA.Gender.UNKNOWN
-        set(_) { }
+    override var gender: QA.Gender = QA.Gender.UNKNOWN
 
-    override var yearOfBirth: Int
-        get() = 1985
-        set(_) { }
+    override var yearOfBirth: Int = 1985
 
-    override var selfDeclaredHealthy: Boolean
-        get() = true
-        set(_) { }
+    override var selfDeclaredHealthy: Boolean = true
 
     var apiKey: String
         get() = sharedPref.getString(API_KEY, "")!!
@@ -41,13 +35,9 @@ class MockPref private constructor(context: Context) : GenericPreferences {
             editor.apply()
         }
 
-    override var identityId: String
-        get() = BuildConfig.QA_SAMPLE_ID
-        set(_) { }
+    override var identityId: String = BuildConfig.QA_SAMPLE_ID
 
-    override var password: String?
-        get() = BuildConfig.QA_SAMPLE_PASSWORD
-        set(_) { }
+    override var password: String? = BuildConfig.QA_SAMPLE_PASSWORD
 
     override val accessToken: String?
         get() = sharedPref.getString(ACCESS_TOKEN, null)
@@ -55,13 +45,9 @@ class MockPref private constructor(context: Context) : GenericPreferences {
     override val refreshToken: String?
         get() = sharedPref.getString(REFRESH_TOKEN, null)
 
-    override var areCredentialsRegistered: Boolean
-        get() = true
-        set(_) {}
+    override var areCredentialsRegistered: Boolean = true
 
-    override var isOauthActivated: Boolean
-        get() = true
-        set(_) {}
+    override var isOauthActivated: Boolean = true
 
     override fun saveAccessTokens(accessToken: String?, refreshToken: String?) {
         val editor = sharedPref.edit()

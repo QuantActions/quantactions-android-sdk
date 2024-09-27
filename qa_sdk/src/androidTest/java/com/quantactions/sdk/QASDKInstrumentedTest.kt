@@ -54,9 +54,13 @@ class SDKFunctionalityTest {
     private var password = getArguments().getString("testPassword") ?: ""
     private var participationId = getArguments().getString("testParticipationId") ?: ""
     private var studyId = getArguments().getString("testStudyId") ?: ""
+    private var mockPassword = getArguments().getString("QA_SAMPLE_PASSWORD") ?: ""
+    private var mockIdentityId = getArguments().getString("QA_SAMPLE_ID") ?: ""
+    private var mockParticipationId = getArguments().getString("QA_SAMPLE_PART_ID") ?: ""
+
     private var fbToken = "thisIsATestFirebaseToken"
 
-    @OptIn(DelicateCoroutinesApi::class)
+    @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
     private val mainThreadSurrogate = newSingleThreadContext("UI thread")
 
     private lateinit var repository: MVPRepository
@@ -71,7 +75,6 @@ class SDKFunctionalityTest {
         Dispatchers.setMain(mainThreadSurrogate)
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
         preferences = ManagePref2.getInstance(appContext)
-        mockPreferences = MockPref.getInstance(appContext)
         preferences.isOauthActivated = false
         preferences.isDeviceRegistered = true
         preferences.areCredentialsRegistered = true
@@ -84,7 +87,12 @@ class SDKFunctionalityTest {
         runBlocking {
             repository.checkRegisteredStatus()
         }
+        // Mock repository
+        mockPreferences = MockPref.getInstance(appContext)
+        mockPreferences.identityId = mockIdentityId
+        mockPreferences.password = mockPassword
         mockRepository = MockRepository.getInstance(appContext, apiKey)
+        mockRepository.iamParticipationId = mockParticipationId
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

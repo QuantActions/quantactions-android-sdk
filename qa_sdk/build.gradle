@@ -38,6 +38,9 @@ android {
         testInstrumentationRunnerArguments.put("testPassword", project.properties["test.password"])
         testInstrumentationRunnerArguments.put("testParticipationId", project.properties["test.participationId"])
         testInstrumentationRunnerArguments.put("testStudyId", project.properties["test.studyId"])
+        testInstrumentationRunnerArguments.put("QA_SAMPLE_PASSWORD", project.properties["qa_sample_password"])
+        testInstrumentationRunnerArguments.put("QA_SAMPLE_ID", project.properties["qa_sample_id"])
+        testInstrumentationRunnerArguments.put("QA_SAMPLE_PART_ID", project.properties["qa_sample_part_id"])
         consumerProguardFiles "consumer-rules.pro"
 
         buildConfigField("String", "QA_UUID", "\"${project.properties["qa_uuid"]}\"")

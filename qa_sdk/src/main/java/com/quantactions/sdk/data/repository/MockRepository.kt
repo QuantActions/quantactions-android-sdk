@@ -75,7 +75,7 @@ class MockRepository @Inject private constructor(
     private lateinit var apiService: ApiService
     internal val mvpDao = getDatabase(context).mvpDao()
 
-    private var iamParticipationId: String = BuildConfig.QA_SAMPLE_PART_ID
+    var iamParticipationId: String = BuildConfig.QA_SAMPLE_PART_ID
     private lateinit var tokenApi: TokenApi
 
     init {
