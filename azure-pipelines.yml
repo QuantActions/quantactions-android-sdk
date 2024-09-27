@@ -54,7 +54,7 @@ steps:
   displayName: 'Firebase Instr. tests (SDK)'
   inputs:
     targetType: 'inline'
-    script: gcloud firebase test android run --type instrumentation --app $APP_APK --test $TEST_APK --device model=Pixel3,version=30,locale=en,orientation=portrait --results-dir=test_sdk_results --environment-variables apiKey=$TEST_API_KEY,testIdentityId=$TEST_IDENTITY_ID,testDeviceId=$TEST_DEVICE_ID,testPassword=$TEST_PASSWORD,testParticipationId=$TEST_PARTICIPATION_ID,testStudyId=$TEST_STUDY_ID;
+    script: gcloud firebase test android run --type instrumentation --app $APP_APK --test $TEST_APK --device model=Pixel3,version=30,locale=en,orientation=portrait --results-dir=test_sdk_results --environment-variables apiKey=$TEST_API_KEY,testIdentityId=$TEST_IDENTITY_ID,testDeviceId=$TEST_DEVICE_ID,testPassword=$TEST_PASSWORD,testParticipationId=$TEST_PARTICIPATION_ID,testStudyId=$TEST_STUDY_ID,QA_SAMPLE_PASSWORD=$QA_SAMPLE_PASSWORD,QA_SAMPLE_ID=$QA_SAMPLE_ID,QA_SAMPLE_PART_ID=$QA_SAMPLE_PART_ID;
   env:
     TEST_APK: $(TEST_SDK_APK)
     APP_APK: $(TEST_APP_APK)
@@ -64,6 +64,9 @@ steps:
     TEST_PASSWORD: $(TEST_PASSWORD)
     TEST_PARTICIPATION_ID: $(TEST_PARTICIPATION_ID)
     TEST_STUDY_ID: $(TEST_STUDY_ID)
+    QA_SAMPLE_PASSWORD: $(QA_SAMPLE_PASSWORD)
+    QA_SAMPLE_ID: $(QA_SAMPLE_ID)
+    QA_SAMPLE_PART_ID: $(QA_SAMPLE_PART_ID)
 
 - task: Bash@3
   displayName: 'Retrieve test results'
