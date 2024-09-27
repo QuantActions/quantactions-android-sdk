@@ -15,11 +15,13 @@ import android.app.Application
 import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-
-import com.quantactions.sdk.*
+import com.quantactions.sdk.BasicInfo
+import com.quantactions.sdk.Metric
+import com.quantactions.sdk.QA
+import com.quantactions.sdk.TimeSeries
+import com.quantactions.sdk.Trend
 import com.quantactions.sdk.data.entity.TimestampedEntity
 import com.quantactions.sdktestapp.utils.ScoreState
-
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -136,6 +138,19 @@ open class MetricsViewModel @Inject constructor(
     )
 
     private val preparation by lazy {
+        // Initialize the SDK
+        // Uncomment if you want to test
+//        viewModelScope.launch {
+//            withContext(Dispatchers.IO) {
+//                qa.init(
+//                    getApplication<Application>().applicationContext,
+//                    apiKey,
+//                    BasicInfo(1991, QA.Gender.MALE)
+//                )
+//                qa.syncData(getApplication<Application>().applicationContext)
+//            }
+//        }
+
         metricsAndTrendsList.forEach { getStat(it) }
         true
     }

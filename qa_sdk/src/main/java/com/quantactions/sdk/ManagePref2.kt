@@ -27,7 +27,7 @@ import java.util.Locale
 /**
  * @hide
  */
-class ManagePref2 private constructor(context: Context) {
+class ManagePref2 private constructor(context: Context) : GenericPreferences {
 
     private var sharedPref = PreferenceManager.getDefaultSharedPreferences(context)
     private val databaseHelper = DatabaseHelper.getInstance(context)
@@ -74,7 +74,7 @@ class ManagePref2 private constructor(context: Context) {
             editor.apply()
         }
 
-    var gender: QA.Gender
+    override var gender: QA.Gender
         get() = QA.Gender.fromInt(sharedPref.getInt(GENDER, 0)) ?: QA.Gender.UNKNOWN
         set(newVal) {
             val editor = sharedPref.edit()
@@ -82,7 +82,7 @@ class ManagePref2 private constructor(context: Context) {
             editor.apply()
         }
 
-    var yearOfBirth: Int
+    override var yearOfBirth: Int
         get() = sharedPref.getInt(YEAR_OF_BIRTH, 0)
         set(newVal) {
             val editor = sharedPref.edit()
@@ -90,7 +90,7 @@ class ManagePref2 private constructor(context: Context) {
             editor.apply()
         }
 
-    var selfDeclaredHealthy: Boolean
+    override var selfDeclaredHealthy: Boolean
         get() = sharedPref.getBoolean(SELF_DECLARED_HEALTHY, false)
         set(newVal) {
             val editor = sharedPref.edit()
@@ -114,7 +114,7 @@ class ManagePref2 private constructor(context: Context) {
             editor.apply()
         }
 
-    var identityId: String
+    override var identityId: String
         get() = sharedPref.getString(IAM_IDENTITY_ID, "")!!
         set(newVal) {
             val editor = sharedPref.edit()
@@ -138,7 +138,7 @@ class ManagePref2 private constructor(context: Context) {
             editor.apply()
         }
 
-    var areCredentialsRegistered: Boolean
+    override var areCredentialsRegistered: Boolean
         get() = sharedPref.getBoolean(CREDENTIALS_STATUS, false)
         set(newVal) {
             val editor = sharedPref.edit()
@@ -146,7 +146,7 @@ class ManagePref2 private constructor(context: Context) {
             editor.apply()
         }
 
-    var isOauthActivated: Boolean
+    override var isOauthActivated: Boolean
         get() = sharedPref.getBoolean(OAUTH_STATUS, false)
         set(newVal) {
             val editor = sharedPref.edit()
@@ -154,7 +154,7 @@ class ManagePref2 private constructor(context: Context) {
             editor.apply()
         }
 
-    var password: String?
+    override var password: String?
         get() = sharedPref.getString(PASSWORD, null)
         set(newVal) {
             val editor = sharedPref.edit()
@@ -162,13 +162,13 @@ class ManagePref2 private constructor(context: Context) {
             editor.apply()
         }
 
-    val accessToken: String?
+    override val accessToken: String?
         get() = sharedPref.getString(ACCESS_TOKEN, null)
 
-    val refreshToken: String?
+    override val refreshToken: String?
         get() = sharedPref.getString(REFRESH_TOKEN, null)
 
-    fun saveAccessTokens(accessToken: String? = null, refreshToken: String? = null) {
+    override fun saveAccessTokens(accessToken: String?, refreshToken: String?) {
         val editor = sharedPref.edit()
         accessToken?.let{ editor.putString(ACCESS_TOKEN, accessToken) }
         refreshToken?.let{ editor.putString(REFRESH_TOKEN, refreshToken) }

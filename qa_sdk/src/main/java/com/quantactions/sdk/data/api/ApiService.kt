@@ -18,15 +18,32 @@ import com.hadiyarajesh.flower_core.ApiResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.hadiyarajesh.flower_retrofit.FlowerCallAdapterFactory
 import com.quantactions.sdk.BuildConfig
-import com.quantactions.sdk.ManagePref2
-import com.quantactions.sdk.data.api.adapters.*
+import com.quantactions.sdk.GenericPreferences
+import com.quantactions.sdk.data.api.adapters.QuestionnaireAdapter
+import com.quantactions.sdk.data.api.adapters.SleepSummaryAdapter
+import com.quantactions.sdk.data.api.adapters.StatisticAdapter
+import com.quantactions.sdk.data.api.adapters.StatisticStringAdapter
+import com.quantactions.sdk.data.api.adapters.TrendAdapter
 import com.quantactions.sdk.data.api.responses.*
 import com.quantactions.sdk.data.entity.JournalEventEntity
 import com.quantactions.sdk.data.entity.SleepSummaryEntity
 import com.quantactions.sdk.data.entity.StatisticEntity
 import com.quantactions.sdk.data.entity.StatisticStringEntity
 import com.quantactions.sdk.data.entity.TrendEntity
-import com.quantactions.sdk.data.model.*
+import com.quantactions.sdk.data.model.AppToPush
+import com.quantactions.sdk.data.model.DevicePatch
+import com.quantactions.sdk.data.model.DeviceRegistration
+import com.quantactions.sdk.data.model.DeviceResponse
+import com.quantactions.sdk.data.model.DeviceSpecifications
+import com.quantactions.sdk.data.model.DeviceSpecificationsResponse
+import com.quantactions.sdk.data.model.DeviceStats
+import com.quantactions.sdk.data.model.DeviceStatsResponse
+import com.quantactions.sdk.data.model.JournalEntryBody
+import com.quantactions.sdk.data.model.JournalEvent
+import com.quantactions.sdk.data.model.JournalEventBody
+import com.quantactions.sdk.data.model.JournalEventEnterResponse
+import com.quantactions.sdk.data.model.Note
+import com.quantactions.sdk.data.model.QuestionnaireResponse
 import com.quantactions.sdk.data.repository.ActivityBody
 import com.quantactions.sdk.data.repository.HealthDataBody
 import com.quantactions.sdk.data.repository.TapDataBody
@@ -37,13 +54,24 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
-import okhttp3.*
+import okhttp3.Authenticator
+import okhttp3.Cookie
+import okhttp3.CookieJar
+import okhttp3.HttpUrl
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Route
 import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
-import retrofit2.http.*
+import retrofit2.http.Body
+import retrofit2.http.DELETE
+import retrofit2.http.GET
+import retrofit2.http.PATCH
+import retrofit2.http.POST
+import retrofit2.http.Path
+import retrofit2.http.Query
 import timber.log.Timber
 import java.io.IOException
 import java.nio.charset.Charset
@@ -480,7 +508,7 @@ interface ApiService {
         }
     }
 
-    class UvCookieJar(private val preferences: ManagePref2, val context: String) : CookieJar {
+    class UvCookieJar(private val preferences: GenericPreferences, val context: String) : CookieJar {
 
         private val cookies = mutableListOf<Cookie>()
 
@@ -534,7 +562,7 @@ interface ApiService {
 
 class TokenAuthenticator @Inject constructor(
     private val tokenApi: TokenApi,
-    private val preferences: ManagePref2
+    private val preferences: GenericPreferences
 ) : Authenticator {
 
     override fun authenticate(route: Route?, response: okhttp3.Response): Request {
@@ -647,7 +675,7 @@ class TokenAuthenticator @Inject constructor(
     }
 }
 
-fun getBasicAuthHeader(preferences: ManagePref2): Map<String, String> {
+fun getBasicAuthHeader(preferences: GenericPreferences): Map<String, String> {
     val encryptedBasic =
         "${preferences.identityId}:${preferences.password}"
     val base64Basic = Base64.encodeToString(
@@ -656,18 +684,6 @@ fun getBasicAuthHeader(preferences: ManagePref2): Map<String, String> {
     )
     return mapOf("x-authorization" to "basic $base64Basic")
 }
-
-fun getBasicAuthHeader(identityId: String, password: String): Map<String, String> {
-    val encryptedBasic =
-        "${identityId}:${password}"
-    val base64Basic = Base64.encodeToString(
-        encryptedBasic.toByteArray(Charset.forName("UTF-8")),
-        Base64.NO_WRAP
-    )
-    return mapOf("x-authorization" to "basic $base64Basic")
-}
-
-
 
 fun createNonPersistentCookie(name: String, value: String): Cookie {
     return Cookie.Builder()

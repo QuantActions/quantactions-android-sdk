@@ -12,10 +12,6 @@
 package com.quantactions.sdk.data.repository
 
 import android.content.Context
-import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
-import android.os.Build
-import android.util.Base64
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
@@ -27,7 +23,6 @@ import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.hadiyarajesh.flower_core.Resource
 import com.hadiyarajesh.flower_core.flow.dbBoundResourceFlow
 import com.quantactions.sdk.BasicInfo
-import com.quantactions.sdk.BuildConfig
 import com.quantactions.sdk.CanReturnCompiledTimeSeries
 import com.quantactions.sdk.GeneratePassword
 import com.quantactions.sdk.ManagePref2
@@ -62,8 +57,8 @@ import com.quantactions.sdk.data.model.DeviceSpecificationsResponse
 import com.quantactions.sdk.data.model.DeviceStats
 import com.quantactions.sdk.data.model.DeviceStatsResponse
 import com.quantactions.sdk.data.model.JournalEntry
-import com.quantactions.sdk.data.model.JournalEntryEvent
 import com.quantactions.sdk.data.model.JournalEntryBody
+import com.quantactions.sdk.data.model.JournalEntryEvent
 import com.quantactions.sdk.data.model.JournalEventBody
 import com.quantactions.sdk.data.model.JournalEventEnterResponse
 import com.quantactions.sdk.data.model.Note
@@ -82,10 +77,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import org.json.JSONObject
 import timber.log.Timber
-import java.nio.charset.Charset
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -98,7 +90,6 @@ import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import java.util.regex.Pattern
 import javax.inject.Inject
 import kotlin.math.roundToInt
 
@@ -176,7 +167,7 @@ class MVPRepository @Inject private constructor(
     private var canDraw = preferences.canDraw(context)
     private var canUsage = preferences.canUsage(context)
 
-    private var iamParticipationId: String = "" // ""138e8ff6b05d6b3c48339e2fd40f2fa8854328eb"
+    private var iamParticipationId: String = ""
     private lateinit var tokenApi: TokenApi
 
     private val Boolean.intValue
@@ -325,14 +316,8 @@ class MVPRepository @Inject private constructor(
         metricOrTrend: CanReturnCompiledTimeSeries<P, T>,
         from: Long = Instant.now().minus(60, ChronoUnit.DAYS).toEpochMilli(),
         to: Long = Instant.now().toEpochMilli(),
-        sampleParticipationId: String? = null,
         refresh: Boolean = false
     ): Flow<TimeSeries<T>> {
-
-        if (sampleParticipationId == null) {
-            Timber.w("I am waiting for the partId with latch")
-            latch.await()
-        }
 
         Timber.w("Latch has been released: $iamParticipationId")
 
@@ -341,7 +326,7 @@ class MVPRepository @Inject private constructor(
                 metricOrTrend.getMetric(mvpDao)
             },
             shouldMakeNetworkRequest = {
-                (refresh && iamParticipationId != "") || ((iamParticipationId != "" || sampleParticipationId != null) && (
+                (refresh && iamParticipationId != "") || ((iamParticipationId != "") && (
                         it.isNullOrEmpty() || it[0].timestamp < (Instant.now()
                             .toEpochMilli() / 1000 - 3 * 3600)))
 
@@ -356,14 +341,10 @@ class MVPRepository @Inject private constructor(
                     DateTimeFormatter.ofPattern("yyyy-MM", Locale.ENGLISH)
                 )
 
-                if (sampleParticipationId != null){
-                    runBlocking { tokenApi.login(getBasicAuthHeader(BuildConfig.QA_SAMPLE_ID, BuildConfig.QA_SAMPLE_PASSWORD))  }
-                }
-
                 metricOrTrend.getStat(
                     apiService,
-                    if (sampleParticipationId != null) BuildConfig.QA_SAMPLE_ID else identityId,
-                    sampleParticipationId ?: iamParticipationId,
+                    identityId,
+                    iamParticipationId,
                     thisFrom,
                     thisTo
                 )

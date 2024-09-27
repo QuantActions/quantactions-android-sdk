@@ -15,21 +15,20 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
-import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
-
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.crashlytics.ktx.crashlytics
-
 import com.google.firebase.ktx.Firebase
-import com.quantactions.sdk.QA
 import com.quantactions.sdktestapp.charts.Chart
 import com.quantactions.sdktestapp.utils.Components
-
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 
 /**
@@ -37,9 +36,6 @@ import javax.inject.Inject
  * */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    @Inject
-    lateinit var qa: QA
 
     private val metricsViewModel: MetricsViewModel by viewModels()
 
