@@ -138,17 +138,18 @@ open class MetricsViewModel @Inject constructor(
     )
 
     private val preparation by lazy {
-
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                qa.init(
-                    getApplication<Application>().applicationContext,
-                    apiKey,
-                    BasicInfo(1991, QA.Gender.MALE)
-                )
-                qa.syncData(getApplication<Application>().applicationContext)
-            }
-        }
+        // Initialize the SDK
+        // Uncomment if you want to test
+//        viewModelScope.launch {
+//            withContext(Dispatchers.IO) {
+//                qa.init(
+//                    getApplication<Application>().applicationContext,
+//                    apiKey,
+//                    BasicInfo(1991, QA.Gender.MALE)
+//                )
+//                qa.syncData(getApplication<Application>().applicationContext)
+//            }
+//        }
 
         metricsAndTrendsList.forEach { getStat(it) }
         true
