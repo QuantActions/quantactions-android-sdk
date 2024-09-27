@@ -15,22 +15,12 @@ steps:
   displayName: 'Prepare Secrets'
   inputs:
     targetType: 'inline'
-    script: echo $SIGNING_KEY | base64 -d > ./tc/release.jks; 
-          echo "RELEASE_STORE_FILE=release.jks" >> local.properties;
-          echo "RELEASE_STORE_PASSWORD=$KEY_STORE_PASSWORD" >> local.properties;
-          echo "RELEASE_KEY_ALIAS=$ALIAS" >> local.properties;
-          echo "RELEASE_KEY_PASSWORD=$KEY_PASSWORD" >> local.properties;
-          echo "bintray.user=$BINTRAY_USER" >> local.properties; 
-          echo "bintray.apikey=$BINTRAY_API_KEY" >> local.properties;
-      
+    script: echo "gpr.usr=$GH_USR" >> github.properties;
+          echo "gpr.key=$GH_KEY" >> github.properties;
           gcloud auth activate-service-account pushnotificationtap@appspot.gserviceaccount.com --key-file=/home/azureagent/pushnotificationtap-612444806675.json --project=pushnotificationtap;
   env:
-    SIGNING_KEY: $(SIGNING_KEY)
-    KEY_STORE_PASSWORD: $(KEY_STORE_PASSWORD)
-    ALIAS: $(ALIAS)
-    KEY_PASSWORD: $(KEY_PASSWORD)
-    BINTRAY_USER: $(BINTRAY_USER)
-    BINTRAY_API_KEY: $(BINTRAY_API_KEY)
+    GH_USR: $(GH_USR)
+    GH_KEY: $(GH_KEY)
 
 - task: Gradle@2
   inputs:
