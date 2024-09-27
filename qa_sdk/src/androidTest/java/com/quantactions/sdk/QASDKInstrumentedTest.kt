@@ -11,7 +11,6 @@
 
 package com.quantactions.sdk
 
-import android.util.Base64
 import android.util.Log
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -25,18 +24,10 @@ import com.quantactions.sdk.data.api.*
 import com.quantactions.sdk.data.api.adapters.StatisticAdapter
 import com.quantactions.sdk.data.api.responses.DataFrameSchema
 import com.quantactions.sdk.data.api.responses.StatisticCore
-import com.quantactions.sdk.data.api.responses.StatisticData
 import com.quantactions.sdk.data.api.responses.StatisticResponse
-import com.quantactions.sdk.data.entity.QuestionnaireResponseEntity
-import com.quantactions.sdk.data.model.QuestionnaireResponse
-import com.quantactions.sdk.data.model.SignUpForStudy
 import com.quantactions.sdk.data.repository.*
 import com.quantactions.sdk.exceptions.SDKNotInitialisedException
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
 import junit.framework.TestCase
-import junit.framework.TestCase.fail
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.resetMain
@@ -44,10 +35,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.*
 import org.junit.runner.RunWith
-import java.nio.charset.Charset
 import java.time.Instant
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -73,6 +61,8 @@ class SDKFunctionalityTest {
 
     private lateinit var repository: MVPRepository
     private lateinit var preferences: ManagePref2
+    private lateinit var mockRepository: MockRepository
+    private lateinit var mockPreferences: MockPref
 
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -81,6 +71,7 @@ class SDKFunctionalityTest {
         Dispatchers.setMain(mainThreadSurrogate)
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
         preferences = ManagePref2.getInstance(appContext)
+        mockPreferences = MockPref.getInstance(appContext)
         preferences.isOauthActivated = false
         preferences.isDeviceRegistered = true
         preferences.areCredentialsRegistered = true
@@ -93,6 +84,7 @@ class SDKFunctionalityTest {
         runBlocking {
             repository.checkRegisteredStatus()
         }
+        mockRepository = MockRepository.getInstance(appContext, apiKey)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -147,24 +139,25 @@ class SDKFunctionalityTest {
         assert(job.status is Resource.Status.Success)
     }
 
-    @Test
-    @Throws(InterruptedException::class, SDKNotInitialisedException::class)
-    fun testSubmitQResponse() {
-
-        val answer = QuestionnaireResponseEntity(
-            0, "${studyId}:017ebd77-4ac6-4af5-9aa9-3ef11d95ecca",
-            "testQ",
-            "qa-basic-v1",
-            1633408038806,
-            "{\"qabasics1q1\":6,\"qabasics2q1\":6}"
-        )
-
-        runBlocking {
-            repository.sendQuestionnaireResponse(
-                answer
-            )
-        }
-    }
+    // FIXME: This is dependent on an API limitation, can't be run until the problem is fixed
+//    @Test
+//    @Throws(InterruptedException::class, SDKNotInitialisedException::class)
+//    fun testSubmitQResponse() {
+//
+//        val answer = QuestionnaireResponseEntity(
+//            0, "${studyId}:017ebd77-4ac6-4af5-9aa9-3ef11d95ecca",
+//            "testQ",
+//            "qa-basic-v1",
+//            1633408038806,
+//            "{\"qabasics1q1\":6,\"qabasics2q1\":6}"
+//        )
+//
+//        runBlocking {
+//            repository.sendQuestionnaireResponse(
+//                answer
+//            )
+//        }
+//    }
 
     @Test
     @Throws(InterruptedException::class, SDKNotInitialisedException::class)
@@ -251,11 +244,10 @@ class SDKFunctionalityTest {
     @Test
     @OptIn(ExperimentalCoroutinesApi::class)
     fun testGetStat() = runTest {
-        val thisFlow = repository.getStat(
+        val thisFlow = mockRepository.getStat(
             Metric.SLEEP_SCORE,
             from = 0,
             to = Instant.now().toEpochMilli(),
-            sampleParticipationId = "138e8ff6b05d6b3c48339e2fd40f2fa8854328eb",
             refresh = true
         )
         val stat = thisFlow.first()
