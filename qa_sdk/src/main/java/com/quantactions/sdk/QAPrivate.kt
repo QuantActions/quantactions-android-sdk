@@ -454,15 +454,15 @@ internal class QAPrivate private constructor(
         from: Long = Instant.now().minus(60, ChronoUnit.DAYS).toEpochMilli(),
         to: Long = Instant.now().toEpochMilli(),
     ): Flow<TimeSeries<T>> {
-        val fakeRepository = MVPRepository.getInstance(
+        val mockRepository = MockRepository.getInstance(
             context,
             apiKey
         )
-        return fakeRepository.getStat(
+
+        return mockRepository.getStat(
             score,
             from,
             to,
-            sampleParticipationId = "138e8ff6b05d6b3c48339e2fd40f2fa8854328eb",
             refresh = true
         )
     }
