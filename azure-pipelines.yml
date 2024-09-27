@@ -36,7 +36,7 @@ steps:
       -Ptest.studyId=$(TEST_STUDY_ID)
     publishJUnitResults: true
     testResultsFiles: '**/TEST-*.xml'
-    tasks: 'test assembleDebug assembleDebugAndroidTest :app:currentVersion assembleRelease'
+    tasks: 'test assembleDebug assembleDebugAndroidTest assembleRelease'
   env:
     TEST_API_KEY: $(TEST_API_KEY)
     TEST_IDENTITY_ID: $(TEST_IDENTITY_ID)
@@ -65,21 +65,11 @@ steps:
     TEST_PARTICIPATION_ID: $(TEST_PARTICIPATION_ID)
     TEST_STUDY_ID: $(TEST_STUDY_ID)
 
-#- task: Bash@3
-#  displayName: 'Firebase UI tests (TC)'
-#  inputs:
-#    targetType: 'inline'
-#    script: gcloud firebase test android run --type instrumentation --app $APP_APK --test $TEST_APK --test-targets="class com.quantactions.tapcounter.FullTest" --device model=flame,version=29,locale=en,orientation=portrait --results-dir=test_tc_results/
-#  env:
-#    TEST_APK: $(TEST_TC_APK)
-#    APP_APK: $(APP_APK)
-
 - task: Bash@3
   displayName: 'Retrieve test results'
   inputs:
     targetType: inline
     script: gsutil cp gs://test-lab-x186ifk5q10q4-k8d32juhknhic/test_sdk_results/Pixel3-30-en-portrait/test_result_1.xml ./test_result_sdk_1.xml;
-#            gsutil cp gs://test-lab-x186ifk5q10q4-k8d32juhknhic/test_tc_results/flame-29-en-portrait/test_result_1.xml ./test_result_tc_1.xml;
 
 - task: PublishTestResults@2
   inputs:
