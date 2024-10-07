@@ -438,6 +438,11 @@ class MVPRepository @Inject private constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     fun cacheJournalEvents() {
         scope.launch {
+            Metric.SLEEP_SCORE.cacheHealthyRanges(apiService, preferences, identityId)
+            Metric.COGNITIVE_FITNESS.cacheHealthyRanges(apiService, preferences, identityId)
+            Metric.SOCIAL_ENGAGEMENT.cacheHealthyRanges(apiService, preferences, identityId)
+        }
+        scope.launch {
 
             val filter = mutableMapOf<String, Any>()
             filter["limit"] = "20"

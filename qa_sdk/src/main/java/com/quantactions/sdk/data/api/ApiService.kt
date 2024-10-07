@@ -81,6 +81,12 @@ import javax.inject.Inject
 
 interface ApiService {
 
+    @GET("flows/identities/{identityId}/healthyranges")
+    suspend fun getHealthyRanges(
+        @Path("identityId") identityId: String,
+        @Query("filter") filter: String,
+    ): ApiResponse<List<HealthyRangesResponse>>
+
     /**
      * This endpoint is used to get stats from TapCloud relative to the device in use.
      * Use this function to get any stat that is numeric i.e. a score value per day/hour.
