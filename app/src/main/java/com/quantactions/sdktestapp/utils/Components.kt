@@ -49,6 +49,7 @@ fun Components(
     screenTimeAggregate: ScoreState,
     actionSpeed: ScoreState,
     currentChart: Chart,
+    basicInfo: BasicInfo
 ) {
 
     val thisCognitiveFitness: TimeSeries.DoubleTimeSeries =
@@ -138,7 +139,7 @@ fun Components(
             Score.COGNITIVE_FITNESS,
             currentChart,
             true,
-            BasicInfo(),
+            basicInfo,
             100f,
             false,
         )

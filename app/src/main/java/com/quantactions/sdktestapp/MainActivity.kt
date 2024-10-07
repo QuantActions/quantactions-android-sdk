@@ -74,7 +74,8 @@ class MainActivity : ComponentActivity() {
                     socialEngagement = socialEngagementScoreState,
                     screenTimeAggregate = screenTimeState,
                     actionSpeed = actionSpeed,
-                    currentChart = selectedChart
+                    currentChart = selectedChart,
+                    basicInfo = metricsViewModel.getBasicInfo()
                 )
             }
         }
