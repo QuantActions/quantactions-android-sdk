@@ -155,7 +155,7 @@ sealed class Metric<P : TimestampedEntity, T>(
             managePref2: ManagePref2,
             identityId: String
         ) {
-            TODO("Not yet implemented")
+            TODO("Not yet defined for this metric")
         }
 //        @Keep
 //        override fun prepareReturnDataStat(
@@ -279,7 +279,7 @@ sealed class Metric<P : TimestampedEntity, T>(
             managePref2: ManagePref2,
             identityId: String
         ) {
-            TODO("Not yet implemented")
+            TODO("Not yet defined for this metric")
         }
     }
 

@@ -80,7 +80,7 @@ sealed class Trend<P : TimestampedEntity, T> (
         override suspend fun cacheHealthyRanges(apiService: ApiService,
                                                 managePref2: ManagePref2,
                                                 identityId: String) {
-            TODO("Not yet implemented")
+            TODO("Not yet defined for this trend")
         }
     }
 
@@ -192,7 +192,7 @@ open class BasicTrendObject(id: String, code: String) :
     override suspend fun cacheHealthyRanges(apiService: ApiService,
                                             managePref2: ManagePref2,
                                             identityId: String) {
-        TODO("Not yet implemented")
+        TODO("Not yet defined for this trend")
     }
 }
 
@@ -309,6 +309,6 @@ open class FilterByTimeZoneTrendObject(id: String, code: String) :
     override suspend fun cacheHealthyRanges(apiService: ApiService,
                                             managePref2: ManagePref2,
                                             identityId: String) {
-        TODO("Not yet implemented")
+        TODO("Not yet defined for this trend")
     }
 }

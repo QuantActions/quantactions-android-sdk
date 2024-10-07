@@ -19,19 +19,7 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.quantactions.sdk.BuildConfig
-import com.quantactions.sdk.data.entity.ActivityTransitionEntity
-import com.quantactions.sdk.data.entity.CodeOfApp
-import com.quantactions.sdk.data.entity.Cohort
-import com.quantactions.sdk.data.entity.HourlyTapsEntity
-import com.quantactions.sdk.data.entity.JournalEntryEntity
-import com.quantactions.sdk.data.entity.JournalEntryJoinsJournalEventEntity
-import com.quantactions.sdk.data.entity.JournalEventEntity
-import com.quantactions.sdk.data.entity.Questionnaire
-import com.quantactions.sdk.data.entity.QuestionnaireResponseEntity
-import com.quantactions.sdk.data.entity.SleepSummaryEntity
-import com.quantactions.sdk.data.entity.StatisticEntity
-import com.quantactions.sdk.data.entity.StatisticStringEntity
-import com.quantactions.sdk.data.entity.TrendEntity
+import com.quantactions.sdk.data.entity.*
 import net.sqlcipher.database.SQLiteDatabase.getBytes
 import net.sqlcipher.database.SupportFactory
 
