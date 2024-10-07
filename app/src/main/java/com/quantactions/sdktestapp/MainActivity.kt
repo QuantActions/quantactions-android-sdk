@@ -23,9 +23,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.crashlytics.ktx.crashlytics
-import com.google.firebase.ktx.Firebase
 import com.quantactions.sdktestapp.charts.Chart
 import com.quantactions.sdktestapp.utils.Components
 import dagger.hilt.android.AndroidEntryPoint
@@ -84,8 +81,6 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun prepareDebugEnvironment(strictMode: Boolean = false) {
-        Firebase.analytics.setAnalyticsCollectionEnabled(false)
-        Firebase.crashlytics.setCrashlyticsCollectionEnabled(false)
         if (strictMode) {
             try {
                 Class.forName("dalvik.system.CloseGuard")
