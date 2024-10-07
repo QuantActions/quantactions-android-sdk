@@ -20,6 +20,7 @@ import android.provider.Settings
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import kotlinx.serialization.json.Json
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -363,7 +364,7 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED
         } else {
-            false
+            true
         }
     }
 
@@ -387,6 +388,21 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
         } catch (e: PackageManager.NameNotFoundException) {
             FirebaseCrashlytics.getInstance().recordException(e)
             false
+        }
+    }
+
+    fun saveHealthyRanges(code: String, ranges: PopulationRange) {
+        val editor = sharedPref.edit()
+        editor.putString("${HEALTHY_RANGES}_$code", Json.encodeToString(PopulationRange.serializer(), ranges))
+        editor.apply()
+    }
+
+    fun getHealthyRanges(code: String): PopulationRange {
+        val ranges = sharedPref.getString("${HEALTHY_RANGES}_$code", null)
+        return if (null != ranges) {
+            Json.decodeFromString(PopulationRange.serializer(), ranges)
+        } else {
+            PopulationRange()
         }
     }
 
@@ -425,5 +441,6 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
         const val PASSWORD                       = "password"
         const val DEVICE_SPECS                   = "device_specs"
         const val OLD_TO_NEW_API_MIGRATION_DONE  = "old_to_new_api_migration_done"
+        const val HEALTHY_RANGES                 = "healthy_ranges"
     }
 }

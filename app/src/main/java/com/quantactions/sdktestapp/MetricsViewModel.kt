@@ -163,6 +163,10 @@ open class MetricsViewModel @Inject constructor(
         _showConfidence.value = newValue
     }
 
+    fun getBasicInfo(): BasicInfo {
+        return qa.basicInfo
+    }
+
     fun toggleMetricVisibility(scoreOrTrend: WatchableScoreOrTrend) {
         val currentVal = mapOfScoresStates[scoreOrTrend]!!.value
         val newValue: ScoreState.ScoreAvailable

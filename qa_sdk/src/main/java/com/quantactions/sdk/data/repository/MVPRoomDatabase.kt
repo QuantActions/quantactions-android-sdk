@@ -979,10 +979,10 @@ val MIGRATION_7_10 = object : Migration(7, 10) {
 
         database.execSQL(
             "CREATE TABLE activity_transition_table (" +
-                    "'id' INT NOT NULL, " +
+                    "'id' INTEGER NOT NULL, " +
                     "'timestamp' INTEGER NOT NULL, " +
-                    "'action' STRING NOT NULL, " +
-                    "'transition' INT NOT NULL, " +
+                    "'action' TEXT NOT NULL, " +
+                    "'transition' INTEGER NOT NULL, " +
                     "'sync' INTEGER NOT NULL, " +
                     "PRIMARY KEY('id')" +
                     ")"
