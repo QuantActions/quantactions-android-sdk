@@ -1414,6 +1414,7 @@ class MVPRepository @Inject private constructor(
         val deviceInfo = DevicePatch(
             enableAppIdAccess = canUsage,
             enableDrawOverAccess = canDraw,
+            enableLocationAccess = canActivity,
             firebaseTokenId = firebaseToken,
             packageUsingSdk = packageName
         )

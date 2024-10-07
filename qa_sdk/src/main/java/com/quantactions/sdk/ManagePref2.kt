@@ -363,7 +363,7 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED
         } else {
-            false
+            true
         }
     }
 

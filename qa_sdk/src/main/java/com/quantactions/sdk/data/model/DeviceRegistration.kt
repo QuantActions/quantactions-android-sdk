@@ -12,7 +12,7 @@ package com.quantactions.sdk.data.model
 import android.os.Build
 import com.quantactions.sdk.BuildConfig
 import com.squareup.moshi.JsonClass
-import java.util.*
+import java.util.Locale
 
 /**
  * @hide
@@ -43,7 +43,8 @@ data class DeviceResponse(
     val deviceSpecificationId: String? = null,
     val enableAppIdAccess: Boolean,
     val enableDrawOverAccess: Boolean,
-    val enableLocationAccess: Boolean = false,
+    // FIXME: We'll keep the name for now to avoid breaking changes, but is should be activityRecognition
+    val enableLocationAccess: Boolean,
     val enablePushNotification: Boolean = true,
     val firebaseTokenId: String? = null,
     val id: String,
