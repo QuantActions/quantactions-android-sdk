@@ -15,9 +15,6 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.coroutineScope
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.crashlytics.ktx.crashlytics
-import com.google.firebase.ktx.Firebase
 import androidx.lifecycle.lifecycleScope
 import com.quantactions.sdk.BasicInfo
 import com.quantactions.sdk.QA
@@ -80,8 +77,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun prepareDebugEnvironment(strictMode: Boolean = false) {
         Timber.plant(Timber.DebugTree())
-        Firebase.analytics.setAnalyticsCollectionEnabled(false)
-        Firebase.crashlytics.setCrashlyticsCollectionEnabled(false)
         if (strictMode) {
             try {
                 Class.forName("dalvik.system.CloseGuard")
