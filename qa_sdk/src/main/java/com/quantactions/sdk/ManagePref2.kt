@@ -60,7 +60,7 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
         }
 
     var oldToNewDBMigrationDone: Boolean
-        get() = sharedPref.getBoolean(OLD_TO_NEW_DB_MIGRATION_DONE, false)
+        get() = sharedPref.getBoolean(OLD_TO_NEW_DB_MIGRATION_DONE, true)
         set(newVal) {
             val editor = sharedPref.edit()
             editor.putBoolean(OLD_TO_NEW_DB_MIGRATION_DONE, newVal)
@@ -68,7 +68,7 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
         }
 
     var oldToNewAPIMigrationDone: Boolean
-        get() = sharedPref.getBoolean(OLD_TO_NEW_API_MIGRATION_DONE, false)
+        get() = sharedPref.getBoolean(OLD_TO_NEW_API_MIGRATION_DONE, true)
         set(newVal) {
             val editor = sharedPref.edit()
             editor.putBoolean(OLD_TO_NEW_API_MIGRATION_DONE, newVal)
