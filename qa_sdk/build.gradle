@@ -17,6 +17,9 @@ apply plugin: 'kotlinx-serialization'
 apply plugin: 'org.jetbrains.kotlin.android'
 //apply plugin: 'com.google.devtools.ksp'
 
+def versionName = '1.0.71'
+def versionCode = '18'
+
 android {
     compileSdk 33
 
@@ -53,14 +56,14 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            buildConfigField("long", "VERSION_CODE", "18")
-            buildConfigField("String","VERSION_NAME","\"1.0.7\"")
+            buildConfigField("long", "VERSION_CODE", "${versionCode}")
+            buildConfigField("String","VERSION_NAME","\"${versionName}\"")
         }
         debug {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            buildConfigField("long", "VERSION_CODE", "18")
-            buildConfigField("String","VERSION_NAME","\"1.0.7\"")
+            buildConfigField("long", "VERSION_CODE", "${versionCode}")
+            buildConfigField("String","VERSION_NAME","\"${versionName}\"")
         }
     }
     packagingOptions {
@@ -248,34 +251,34 @@ tasks.register('javadoc', Javadoc) {
 def githubProperties = new Properties()
 githubProperties.load(new FileInputStream(rootProject.file("github.properties"))) //Set env variable GPR_USER & GPR_API_KEY if not adding a properties file
 
-def getVersionName = { ->
-    return "1.0.7" // Replace with version Name
-}
 
 publishing {
-    // ./gradlew :qa_sdk:publish
     publications {
         bar(MavenPublication) {
-            groupId 'com.quantactions' // Replace with group ID
+            groupId 'com.quantactions'
             artifactId 'quantactions-android-sdk'
-            version getVersionName()
+            version "${versionName}"
             artifact("$buildDir/outputs/aar/qa_sdk-release.aar")
+            pom.withXml {
+                def dependenciesNode = asNode().appendNode('dependencies')
+                configurations.implementation.allDependencies.each { dependency ->
+                    if (dependency.group != null && dependency.name != null && dependency.version != null) {
+                        def dependencyNode = dependenciesNode.appendNode('dependency')
+                        dependencyNode.appendNode('groupId', dependency.group)
+                        dependencyNode.appendNode('artifactId', dependency.name)
+                        dependencyNode.appendNode('version', dependency.version)
+                        dependencyNode.appendNode('scope', 'compile')
+                    }
+                }
+            }
         }
     }
 
     repositories {
         maven {
             name = "GitHubPackages"
-            /** Configure path of your package repository on Github
-             ** Replace GITHUB_USERID with your/organisation Github userID
-             ** and REPOSITORY with the repository name on GitHub
-             */
             url = uri("https://maven.pkg.github.com/QuantActions/quantactions-android-sdk")
             credentials {
-                /** Create github.properties in root project folder file with
-                 ** gpr.usr=GITHUB_USER_ID & gpr.key=PERSONAL_ACCESS_TOKEN
-                 ** Set env variable GPR_USER & GPR_API_KEY if not adding a properties file**/
-
                 username = githubProperties['gpr.usr'] ?: System.getenv("GPR_USER")
                 password = githubProperties['gpr.key'] ?: System.getenv("GPR_API_KEY")
             }

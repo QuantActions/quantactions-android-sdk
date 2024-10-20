@@ -26,11 +26,6 @@ buildscript {
         classpath "org.jetbrains.dokka:android-documentation-plugin:1.7.20"
         classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'
         classpath "org.jetbrains.kotlin:kotlin-serialization:1.9.22"
-
-        // Two necessary plugins
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
-
     }
 
     ext {
