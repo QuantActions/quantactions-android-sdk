@@ -26,7 +26,12 @@ import android.os.SystemClock
 import android.provider.Settings
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import androidx.work.*
+import androidx.work.BackoffPolicy
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.OneTimeWorkRequest
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkManager
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.quantactions.sdk.data.repository.DeviceHealthParsed
 import com.quantactions.sdk.data.repository.MVPDao
@@ -96,12 +101,6 @@ class QABroadcastReceiver : BroadcastReceiver() {
                         .addTag("startLater")
                         .build()
                     WorkManager.getInstance(context).enqueue(delayRequest)
-
-                    val databaseHelper = DatabaseHelper.getInstance(context)
-
-                    qaPrivate.executeOldToNewDBMigration(databaseHelper, scope)
-
-                    qaPrivate.executeOldToNewAPIMigration(scope)
 
                     val constraints = Constraints.Builder()
                         .build()
