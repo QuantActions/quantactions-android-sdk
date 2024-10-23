@@ -14,15 +14,8 @@ import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.os.Parcel
-import android.os.Parcelable
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 interface ActivityPermissionNotification {
@@ -63,7 +56,6 @@ open class ActivityPermissionNotificationImpl : ActivityPermissionNotification {
             R.color.brand_background_icon_color
         )
         mBuilder.setWhen(0)
-        mBuilder.setOngoing(true)
         mBuilder.setContentTitle(context.getString(R.string.action_required_app_needs_a_permission))
         mBuilder.setContentText(context.getString(R.string.tap_to_open_and_grant_permission))
         mBuilder.setAutoCancel(true)
