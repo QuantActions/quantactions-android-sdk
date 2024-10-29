@@ -17,7 +17,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
 import android.os.Build
-import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.work.*
 import com.google.firebase.crashlytics.ktx.crashlytics
@@ -245,6 +244,9 @@ internal class QAPrivate private constructor(
                     throw QASDKException("Device registration failed, this should, never happen")                }
             }
         }
+
+        // I could not do this before cause I needed a login, could be called also somewhere else
+        repository.cacheJournalEvents()
     }
 
     @Throws(QASDKException::class)
@@ -559,7 +561,7 @@ internal class QAPrivate private constructor(
                 if (result == PackageManager.PERMISSION_GRANTED) {
                     ContextCompat.startForegroundService(context, intent)
                 } else {
-                    Log.d("RESTARTER", "PERMISSION IS NOT ENABLED WE NEED TO ASK")
+                    Timber.tag("RESTARTER").d( "PERMISSION IS NOT ENABLED WE NEED TO ASK")
                     // Send notification to user to enable the permission
                     val notification = activityPermissionNotification.createNotification(
                         context,
