@@ -146,8 +146,6 @@ class MVPRepository @Inject private constructor(
         return deviceID != ""
     }
 
-//    private var participationId: String = "enea-test-id"
-
     private fun getABasicInfo(): BasicInfo {
         return BasicInfo(
             preferences.yearOfBirth,
@@ -168,6 +166,7 @@ class MVPRepository @Inject private constructor(
     private var canUsage = preferences.canUsage(context)
 
     private var iamParticipationId: String = ""
+    private var cachedApiKey: String = ""
     private lateinit var tokenApi: TokenApi
 
     private val Boolean.intValue
@@ -247,7 +246,9 @@ class MVPRepository @Inject private constructor(
     private var wasPartIdRequested = false
 
     fun reInit(apiKey: String) {
-
+        // Caching api key allows to avoid continuous re-initializations
+        if (cachedApiKey == apiKey) return
+        cachedApiKey = apiKey
         val cookieJar = ApiService.UvCookieJar(preferences, "TokenApi")
         tokenApi = TokenApi.buildTokenApi(apiKey, cookieJar)
         val tokenAuthenticator = TokenAuthenticator(tokenApi, preferences)
@@ -265,7 +266,7 @@ class MVPRepository @Inject private constructor(
                 latch.countDown()
             }
 
-            cacheJournalEvents()
+            if (!wereJournalEventsCached) cacheJournalEvents()
 
         } else {
             latch.countDown()
@@ -1105,8 +1106,8 @@ class MVPRepository @Inject private constructor(
 
 
     suspend fun getParticipations(studyId: String? = null): List<Subscription> {
-
-        // re-login for good measure
+        // re-login for good measure, this is done to refresh the cookie that might not have the
+        // latest study right after signup
         tokenApi.login(getBasicAuthHeader(preferences))
 
         if (deviceID == "") {
