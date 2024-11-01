@@ -125,13 +125,13 @@ sealed class Metric<P : TimestampedEntity, T>(
             return mvpDao.getMetricSleepSummary()
         }
 
-        override fun getStat(
+        override suspend fun getStat(
             apiService: ApiService,
             identityId: String,
             participationId: String,
             from: String,
             to: String,
-        ): Flow<ApiResponse<List<SleepSummaryEntity>>> {
+        ): ApiResponse<List<SleepSummaryEntity>> {
             val filter = prepareFilter(code, from, to)
             return apiService.getStatSleepSummaryEntity(identityId, participationId, filter, code.container())
         }
@@ -224,13 +224,13 @@ sealed class Metric<P : TimestampedEntity, T>(
             return mvpDao.getMetricStatisticStringFilteredByTimeZone()
         }
 
-        override fun getStat(
+        override suspend fun getStat(
             apiService: ApiService,
             identityId: String,
             participationId: String,
             from: String,
             to: String,
-        ): Flow<ApiResponse<List<StatisticStringEntity>>> {
+        ): ApiResponse<List<StatisticStringEntity>> {
             val filter = prepareFilter(code, from, to)
             return apiService.getStatStatisticStringEntity(identityId, participationId, filter, code.container())
         }
@@ -457,13 +457,13 @@ sealed class Metric<P : TimestampedEntity, T>(
             return mvpDao.getMetricStatistic(code)
         }
 
-        override fun getStat(
+        override suspend fun getStat(
             apiService: ApiService,
             identityId: String,
             participationId: String,
             from: String,
             to: String,
-        ): Flow<ApiResponse<List<StatisticEntity>>> {
+        ): ApiResponse<List<StatisticEntity>> {
             val filter = prepareFilter(code, from, to)
             return apiService.getStatStatisticEntity(identityId, participationId, filter, code.container())
         }
@@ -587,13 +587,13 @@ sealed class Metric<P : TimestampedEntity, T>(
             return mvpDao.getMetricStatisticFilteredByTimeZone(code)
         }
 
-        override fun getStat(
+        override suspend fun getStat(
             apiService: ApiService,
             identityId: String,
             participationId: String,
             from: String,
             to: String,
-        ): Flow<ApiResponse<List<StatisticEntity>>> {
+        ): ApiResponse<List<StatisticEntity>> {
 
             val filter = prepareFilter(code, from, to)
 
@@ -698,12 +698,12 @@ interface CanReturnCompiledTimeSeries<P : TimestampedEntity, T> {
     @Keep
     fun insertOrUpdateMetric(mvpDao: MVPDao, statistics: List<P>)
     @Keep
-    fun getStat(
+    suspend fun getStat(
         apiService: ApiService,
         identityId: String,
         participationId: String,
         from: String,
         to: String
-    ): Flow<ApiResponse<List<P>>>
+    ): ApiResponse<List<P>>
 
 }
