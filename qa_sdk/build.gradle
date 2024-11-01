@@ -250,6 +250,10 @@ tasks.register('javadoc', Javadoc) {
 }
 
 // publish the library to github packages
+def githubProperties = new Properties()
+githubProperties.load(new FileInputStream(rootProject.file("github.properties"))) //Set env variable GPR_USER & GPR_API_KEY if not adding a properties file
+
+
 publishing {
     publications {
         bar(MavenPublication) {
@@ -277,8 +281,8 @@ publishing {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/QuantActions/quantactions-android-sdk")
             credentials {
-                username = gprusr
-                password = gprkey
+                username = githubProperties['gpr.usr'] ?: System.getenv("GPR_USER")
+                password = githubProperties['gpr.key'] ?: System.getenv("GPR_API_KEY")
             }
         }
     }
