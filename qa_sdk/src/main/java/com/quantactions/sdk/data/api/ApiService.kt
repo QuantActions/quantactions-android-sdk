@@ -96,36 +96,36 @@ interface ApiService {
      * @return A flow wrapping a list of [com.quantactions.sdk.data.entity.StatisticEntity]
      */
     @GET("flows/identities/{identityId}/participations/{participationId}/analyses")
-    fun getStatStatisticEntity(
+    suspend fun getStatStatisticEntity(
         @Path("identityId") identityId: String,
         @Path("participationId") participationId: String,
         @Query("filter") filter: String,
         @Query("containerId") containerId: String
-    ): Flow<ApiResponse<List<StatisticEntity>>>
+    ): ApiResponse<List<StatisticEntity>>
 
     @GET("flows/identities/{identityId}/participations/{participationId}/analyses")
-    fun getStatStatisticStringEntity(
+    suspend fun getStatStatisticStringEntity(
         @Path("identityId") identityId: String,
         @Path("participationId") participationId: String,
         @Query("filter") filter: String,
         @Query("containerId") containerId: String
-    ): Flow<ApiResponse<List<StatisticStringEntity>>>
+    ): ApiResponse<List<StatisticStringEntity>>
 
     @GET("flows/identities/{identityId}/participations/{participationId}/analyses")
-    fun getStatSleepSummaryEntity(
+    suspend fun getStatSleepSummaryEntity(
         @Path("identityId") identityId: String,
         @Path("participationId") participationId: String,
         @Query("filter") filter: String,
         @Query("containerId") containerId: String
-    ): Flow<ApiResponse<List<SleepSummaryEntity>>>
+    ): ApiResponse<List<SleepSummaryEntity>>
 
     @GET("flows/identities/{identityId}/participations/{participationId}/analyses")
-    fun getTrendEntity(
+    suspend fun getTrendEntity(
         @Path("identityId") identityId: String,
         @Path("participationId") participationId: String,
         @Query("filter") filter: String,
         @Query("containerId") containerId: String
-    ): Flow<ApiResponse<List<TrendEntity>>>
+    ): ApiResponse<List<TrendEntity>>
 
     /**
      * Registers the device with the backend.

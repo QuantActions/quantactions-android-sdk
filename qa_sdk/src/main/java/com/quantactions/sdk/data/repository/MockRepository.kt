@@ -13,7 +13,7 @@ package com.quantactions.sdk.data.repository
 
 import android.content.Context
 import com.hadiyarajesh.flower_core.Resource
-import com.hadiyarajesh.flower_core.flow.dbBoundResourceFlow
+import com.hadiyarajesh.flower_core.dbBoundResource
 import com.quantactions.sdk.BuildConfig
 import com.quantactions.sdk.CanReturnCompiledTimeSeries
 import com.quantactions.sdk.MockPref
@@ -109,7 +109,7 @@ class MockRepository @Inject private constructor(
 
         runBlocking { checkLoginStatus() }
 
-        val resources = dbBoundResourceFlow(
+        val resources = dbBoundResource(
             fetchFromLocal = {
                 metricOrTrend.getMetric(mvpDao)
             },

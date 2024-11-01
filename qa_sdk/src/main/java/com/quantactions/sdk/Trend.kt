@@ -164,13 +164,13 @@ open class BasicTrendObject(id: String, code: String) :
         return mvpDao.getTrend(code)
     }
 
-    override fun getStat(
+    override suspend fun getStat(
         apiService: ApiService,
         identityId: String,
         participationId: String,
         from: String,
         to: String
-    ): Flow<ApiResponse<List<TrendEntity>>> {
+    ): ApiResponse<List<TrendEntity>> {
         val filter = prepareFilter(code, from, to)
         return apiService.getTrendEntity(identityId, participationId, filter, code.container())
     }
@@ -260,13 +260,13 @@ open class FilterByTimeZoneTrendObject(id: String, code: String) :
         return mvpDao.getTrendFilteredByTimeZone(code)
     }
 
-    override fun getStat(
+    override suspend fun getStat(
         apiService: ApiService,
         identityId: String,
         participationId: String,
         from: String,
         to: String
-    ): Flow<ApiResponse<List<TrendEntity>>> {
+    ): ApiResponse<List<TrendEntity>> {
         val filter = prepareFilter(code, from, to)
         return apiService.getTrendEntity(identityId, participationId, filter, code.container())
     }
