@@ -31,7 +31,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runBlocking
 import java.time.Instant
-import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -48,7 +47,6 @@ class MockRepository @Inject private constructor(
     companion object {
         @Volatile
         private var INSTANCE: MockRepository? = null
-        private val a = LocalDate.now()
 
         fun getInstance(context: Context, apiKey: String? = null): MockRepository {
             val preferences = MockPref.getInstance(context)
