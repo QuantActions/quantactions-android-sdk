@@ -13,7 +13,7 @@ package com.quantactions.sdk.data.repository
 
 import android.content.Context
 import com.hadiyarajesh.flower_core.Resource
-import com.hadiyarajesh.flower_core.flow.dbBoundResourceFlow
+import com.hadiyarajesh.flower_core.dbBoundResource
 import com.quantactions.sdk.BuildConfig
 import com.quantactions.sdk.CanReturnCompiledTimeSeries
 import com.quantactions.sdk.MockPref
@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runBlocking
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -47,6 +48,7 @@ class MockRepository @Inject private constructor(
     companion object {
         @Volatile
         private var INSTANCE: MockRepository? = null
+        private val a = LocalDate.now()
 
         fun getInstance(context: Context, apiKey: String? = null): MockRepository {
             val preferences = MockPref.getInstance(context)
@@ -109,7 +111,7 @@ class MockRepository @Inject private constructor(
 
         runBlocking { checkLoginStatus() }
 
-        val resources = dbBoundResourceFlow(
+        val resources = dbBoundResource(
             fetchFromLocal = {
                 metricOrTrend.getMetric(mvpDao)
             },

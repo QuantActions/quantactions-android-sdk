@@ -21,6 +21,7 @@ import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.hadiyarajesh.flower_core.Resource
+import com.hadiyarajesh.flower_core.dbBoundResource
 import com.hadiyarajesh.flower_core.flow.dbBoundResourceFlow
 import com.quantactions.sdk.BasicInfo
 import com.quantactions.sdk.CanReturnCompiledTimeSeries
@@ -322,7 +323,7 @@ class MVPRepository @Inject private constructor(
 
         Timber.w("Latch has been released: $iamParticipationId")
 
-        val resources = dbBoundResourceFlow(
+        val resources = dbBoundResource(
             fetchFromLocal = {
                 metricOrTrend.getMetric(mvpDao)
             },
