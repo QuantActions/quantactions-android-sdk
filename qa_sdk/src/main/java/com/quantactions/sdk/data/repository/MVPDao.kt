@@ -40,23 +40,14 @@ interface MVPDao {
     @Query("SELECT * from stat_table WHERE stat = :statName and timestamp >= :from and timestamp <= :to ORDER BY timestamp")
     fun getMetricStatistic(statName: String, from: Long, to: Long): Flow<List<StatisticEntity>>
 
-//    @Query("SELECT * from stat_table WHERE strftime('%H', datetime(timestamp, 'unixepoch'))='00' and stat = :statName and timestamp >= :from and timestamp <= :to ORDER BY timestamp DESC")
-//    fun getMetricStatisticFilteredByTimeZone(statName: String, from: Long, to: Long): Flow<List<StatisticEntity>>
-
     @Query("SELECT * from trend_table WHERE trend = :trendCode and timestamp >= :from and timestamp <= :to ORDER BY timestamp")
     fun getTrend(trendCode: String, from: Long, to: Long): Flow<List<TrendEntity>>
-
-//    @Query("SELECT * from trend_table WHERE strftime('%H', datetime(timestamp, 'unixepoch'))='00' and trend = :trendCode and timestamp >= :from and timestamp <= :to ORDER BY timestamp DESC")
-//    fun getTrendFilteredByTimeZone(trendCode: String, from: Long, to: Long): Flow<List<TrendEntity>>
 
     @Query("SELECT * from sleep_summary_table where timestamp >= :from and timestamp <= :to ORDER BY timestamp")
     fun getMetricSleepSummary(from: Long, to: Long): Flow<List<SleepSummaryEntity>>
 
     @Query("SELECT * from stat_string_table WHERE timestamp >= :from and timestamp <= :to ORDER BY timestamp")
     fun getMetricStatisticString(from: Long, to: Long): Flow<List<StatisticStringEntity>>
-
-//    @Query("SELECT * from stat_string_table WHERE strftime('%H', datetime(timestamp, 'unixepoch'))='00' and timestamp >= :from and timestamp <= :to ORDER BY timestamp DESC")
-//    fun getMetricStatisticStringFilteredByTimeZone(from: Long, to: Long): Flow<List<StatisticStringEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertOrUpdateMetric(stat: List<StatisticEntity>)
