@@ -120,10 +120,7 @@ open class BasicTrendObject(id: String, code: String) :
         from: Long,
         to: Long
     ): TimeSeries<TrendHolder> {
-        val filtered =
-            values.filter { statistic -> (statistic.timestamp >= from) and (statistic.timestamp <= to) }
-        val sortedList = filtered.sortedBy { statistic -> statistic.timestamp }
-        val trends = sortedList.map {
+        val trends = values.map {
             TrendHolder(
                 it.diff2W ?: Double.NaN,
                 it.stat2W ?: Double.NaN,
@@ -139,10 +136,10 @@ open class BasicTrendObject(id: String, code: String) :
 
         return TimeSeries.TrendTimeSeries(
             trends,
-            sortedList.map { statistic -> statistic.timestamp.localize() },
-            sortedList.map { TrendHolder() },
-            sortedList.map { TrendHolder() },
-            sortedList.map { Double.NaN },
+            values.map { statistic -> statistic.timestamp.localize() },
+            values.map { TrendHolder() },
+            values.map { TrendHolder() },
+            values.map { Double.NaN },
         )
     }
 
@@ -160,8 +157,8 @@ open class BasicTrendObject(id: String, code: String) :
         return Range(high, low)
     }
 
-    override fun getMetric(mvpDao: MVPDao): Flow<List<TrendEntity>> {
-        return mvpDao.getTrend(code)
+    override fun getMetric(mvpDao: MVPDao, from: Long, to: Long): Flow<List<TrendEntity>> {
+        return mvpDao.getTrend(code, from, to)
     }
 
     override suspend fun getStat(
@@ -212,10 +209,7 @@ open class FilterByTimeZoneTrendObject(id: String, code: String) :
         from: Long,
         to: Long
     ): TimeSeries<TrendHolder> {
-        val filtered =
-            values.filter { statistic -> (statistic.timestamp >= from) and (statistic.timestamp <= to) }
-        val sortedList = filtered.sortedBy { statistic -> statistic.timestamp }
-        val trends = sortedList.map {
+        val trends = values.map {
             TrendHolder(
                 it.diff2W ?: Double.NaN,
                 it.stat2W ?: Double.NaN,
@@ -231,12 +225,12 @@ open class FilterByTimeZoneTrendObject(id: String, code: String) :
 
         val ret = TimeSeries.TrendTimeSeries(
             trends,
-            sortedList.map { statistic ->
+            values.map { statistic ->
                 statistic.timestamp.localize()
             },
-            sortedList.map { TrendHolder() },
-            sortedList.map { TrendHolder() },
-            sortedList.map { Double.NaN },
+            values.map { TrendHolder() },
+            values.map { TrendHolder() },
+            values.map { Double.NaN },
         )
 
         return ret
@@ -256,8 +250,8 @@ open class FilterByTimeZoneTrendObject(id: String, code: String) :
         return Range(high, low)
     }
 
-    override fun getMetric(mvpDao: MVPDao): Flow<List<TrendEntity>> {
-        return mvpDao.getTrendFilteredByTimeZone(code)
+    override fun getMetric(mvpDao: MVPDao, from: Long, to: Long): Flow<List<TrendEntity>> {
+        return mvpDao.getTrend(code, from, to)
     }
 
     override suspend fun getStat(

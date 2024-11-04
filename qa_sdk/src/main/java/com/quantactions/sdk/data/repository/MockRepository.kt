@@ -111,7 +111,7 @@ class MockRepository @Inject private constructor(
 
         val resources = dbBoundResource(
             fetchFromLocal = {
-                metricOrTrend.getMetric(mvpDao)
+                metricOrTrend.getMetric(mvpDao, from / 1000, to / 1000)
             },
             shouldMakeNetworkRequest = { true },
             makeNetworkRequest = {
