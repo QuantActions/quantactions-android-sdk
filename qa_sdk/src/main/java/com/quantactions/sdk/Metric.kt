@@ -63,9 +63,6 @@ sealed class Metric<P : TimestampedEntity, T>(
             from: Long,
             to: Long
         ): TimeSeries<SleepSummary> {
-//            val filtered =
-//                values.filter { statistic -> (statistic.timestamp >= from) and (statistic.timestamp <= to) }
-//            val sortedList = filtered.sortedBy { statistic -> statistic.timestamp }
             val sleepSummaries = values.map {
                 SleepSummary(
                     ZonedDateTime.ofInstant(
@@ -193,10 +190,6 @@ sealed class Metric<P : TimestampedEntity, T>(
             from: Long,
             to: Long
         ): TimeSeries<ScreenTimeAggregate> {
-//            val filtered =
-//                values.filter { statistic -> (statistic.timestamp >= from) and (statistic.timestamp <= to) }
-//            val sortedList = filtered.sortedBy { statistic -> statistic.timestamp }
-
             return TimeSeries.ScreenTimeAggregateTimeSeries(
                 values.map { statistic -> splitOrNaN(statistic.value) },
                 values.map { statistic -> statistic.timestamp.localize() },
@@ -424,10 +417,6 @@ sealed class Metric<P : TimestampedEntity, T>(
             from: Long,
             to: Long,
         ): TimeSeries<Double> {
-//            val filtered =
-//                values.filter { statistic -> (statistic.timestamp >= from) and (statistic.timestamp <= to) }
-//            val sortedList = filtered.sortedBy { statistic -> statistic.timestamp }
-
             return filterScoreBasedOnTimeZone(
                 TimeSeries.DoubleTimeSeries(
                     values.map { statistic -> statistic.value },
@@ -557,9 +546,6 @@ sealed class Metric<P : TimestampedEntity, T>(
             from: Long,
             to: Long,
         ): TimeSeries<Double> {
-//            val filtered =
-//                values.filter { statistic -> (statistic.timestamp >= from) and (statistic.timestamp <= to) }
-//            val sortedList = filtered.sortedBy { statistic -> statistic.timestamp }
             return TimeSeries.DoubleTimeSeries(
                 values.map { statistic -> statistic.value },
                 values.map { statistic -> statistic.timestamp.localize() },

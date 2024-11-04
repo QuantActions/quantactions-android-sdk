@@ -120,9 +120,6 @@ open class BasicTrendObject(id: String, code: String) :
         from: Long,
         to: Long
     ): TimeSeries<TrendHolder> {
-//        val filtered =
-//            values.filter { statistic -> (statistic.timestamp >= from) and (statistic.timestamp <= to) }
-//        val sortedList = filtered.sortedBy { statistic -> statistic.timestamp }
         val trends = values.map {
             TrendHolder(
                 it.diff2W ?: Double.NaN,
@@ -212,9 +209,6 @@ open class FilterByTimeZoneTrendObject(id: String, code: String) :
         from: Long,
         to: Long
     ): TimeSeries<TrendHolder> {
-//        val filtered =
-//            values.filter { statistic -> (statistic.timestamp >= from) and (statistic.timestamp <= to) }
-//        val sortedList = filtered.sortedBy { statistic -> statistic.timestamp }
         val trends = values.map {
             TrendHolder(
                 it.diff2W ?: Double.NaN,
