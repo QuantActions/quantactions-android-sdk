@@ -160,8 +160,8 @@ open class BasicTrendObject(id: String, code: String) :
         return Range(high, low)
     }
 
-    override fun getMetric(mvpDao: MVPDao): Flow<List<TrendEntity>> {
-        return mvpDao.getTrend(code)
+    override fun getMetric(mvpDao: MVPDao, from: Long, to: Long): Flow<List<TrendEntity>> {
+        return mvpDao.getTrend(code, from, to)
     }
 
     override suspend fun getStat(
@@ -256,8 +256,8 @@ open class FilterByTimeZoneTrendObject(id: String, code: String) :
         return Range(high, low)
     }
 
-    override fun getMetric(mvpDao: MVPDao): Flow<List<TrendEntity>> {
-        return mvpDao.getTrendFilteredByTimeZone(code)
+    override fun getMetric(mvpDao: MVPDao, from: Long, to: Long): Flow<List<TrendEntity>> {
+        return mvpDao.getTrendFilteredByTimeZone(code, from, to)
     }
 
     override suspend fun getStat(

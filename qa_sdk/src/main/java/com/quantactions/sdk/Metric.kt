@@ -121,8 +121,8 @@ sealed class Metric<P : TimestampedEntity, T>(
             return Range(high, low)
         }
 
-        override fun getMetric(mvpDao: MVPDao): Flow<List<SleepSummaryEntity>> {
-            return mvpDao.getMetricSleepSummary()
+        override fun getMetric(mvpDao: MVPDao, from: Long, to: Long): Flow<List<SleepSummaryEntity>> {
+            return mvpDao.getMetricSleepSummary(from, to)
         }
 
         override suspend fun getStat(
@@ -220,8 +220,8 @@ sealed class Metric<P : TimestampedEntity, T>(
             return Range(high, low)
         }
 
-        override fun getMetric(mvpDao: MVPDao): Flow<List<StatisticStringEntity>> {
-            return mvpDao.getMetricStatisticStringFilteredByTimeZone()
+        override fun getMetric(mvpDao: MVPDao, from: Long, to: Long): Flow<List<StatisticStringEntity>> {
+            return mvpDao.getMetricStatisticStringFilteredByTimeZone(from, to)
         }
 
         override suspend fun getStat(
@@ -453,8 +453,8 @@ sealed class Metric<P : TimestampedEntity, T>(
             return Range(high, low)
         }
 
-        override fun getMetric(mvpDao: MVPDao): Flow<List<StatisticEntity>> {
-            return mvpDao.getMetricStatistic(code)
+        override fun getMetric(mvpDao: MVPDao, from: Long, to: Long): Flow<List<StatisticEntity>> {
+            return mvpDao.getMetricStatistic(code, from, to)
         }
 
         override suspend fun getStat(
@@ -583,8 +583,8 @@ sealed class Metric<P : TimestampedEntity, T>(
             return Range(low, high)
         }
 
-        override fun getMetric(mvpDao: MVPDao): Flow<List<StatisticEntity>> {
-            return mvpDao.getMetricStatisticFilteredByTimeZone(code)
+        override fun getMetric(mvpDao: MVPDao, from: Long, to: Long): Flow<List<StatisticEntity>> {
+            return mvpDao.getMetricStatisticFilteredByTimeZone(code, from, to)
         }
 
         override suspend fun getStat(
@@ -694,7 +694,7 @@ interface CanReturnCompiledTimeSeries<P : TimestampedEntity, T> {
     @Keep
     fun getReferencePopulationRange(basicInfo: BasicInfo): Range
     @Keep
-    fun getMetric(mvpDao: MVPDao): Flow<List<P>>
+    fun getMetric(mvpDao: MVPDao, from: Long, to: Long): Flow<List<P>>
     @Keep
     fun insertOrUpdateMetric(mvpDao: MVPDao, statistics: List<P>)
     @Keep
