@@ -63,10 +63,7 @@ sealed class Metric<P : TimestampedEntity, T>(
             from: Long,
             to: Long
         ): TimeSeries<SleepSummary> {
-            val filtered =
-                values.filter { statistic -> (statistic.timestamp >= from) and (statistic.timestamp <= to) }
-            val sortedList = filtered.sortedBy { statistic -> statistic.timestamp }
-            val sleepSummaries = sortedList.map {
+            val sleepSummaries = values.map {
                 SleepSummary(
                     ZonedDateTime.ofInstant(
                         Instant.ofEpochMilli(it.sleepStart),
@@ -94,16 +91,16 @@ sealed class Metric<P : TimestampedEntity, T>(
 
             return TimeSeries.SleepSummaryTimeTimeSeries(
                 sleepSummaries,
-                sortedList.map { statistic ->
+                values.map { statistic ->
                     ZonedDateTime.ofInstant(
                         Instant.ofEpochSecond(
                             statistic.timestamp
                         ), ZoneId.of(statistic.timeZoneId)
                     )
                 },
-                sortedList.map { SleepSummary() },
-                sortedList.map { SleepSummary() },
-                sortedList.map { Double.NaN },
+                values.map { SleepSummary() },
+                values.map { SleepSummary() },
+                values.map { Double.NaN },
             )
         }
 
@@ -121,8 +118,8 @@ sealed class Metric<P : TimestampedEntity, T>(
             return Range(high, low)
         }
 
-        override fun getMetric(mvpDao: MVPDao): Flow<List<SleepSummaryEntity>> {
-            return mvpDao.getMetricSleepSummary()
+        override fun getMetric(mvpDao: MVPDao, from: Long, to: Long): Flow<List<SleepSummaryEntity>> {
+            return mvpDao.getMetricSleepSummary(from, to)
         }
 
         override suspend fun getStat(
@@ -193,16 +190,12 @@ sealed class Metric<P : TimestampedEntity, T>(
             from: Long,
             to: Long
         ): TimeSeries<ScreenTimeAggregate> {
-            val filtered =
-                values.filter { statistic -> (statistic.timestamp >= from) and (statistic.timestamp <= to) }
-            val sortedList = filtered.sortedBy { statistic -> statistic.timestamp }
-
             return TimeSeries.ScreenTimeAggregateTimeSeries(
-                sortedList.map { statistic -> splitOrNaN(statistic.value) },
-                sortedList.map { statistic -> statistic.timestamp.localize() },
-                sortedList.map { ScreenTimeAggregate() },
-                sortedList.map { ScreenTimeAggregate() },
-                sortedList.map { Double.NaN },
+                values.map { statistic -> splitOrNaN(statistic.value) },
+                values.map { statistic -> statistic.timestamp.localize() },
+                values.map { ScreenTimeAggregate() },
+                values.map { ScreenTimeAggregate() },
+                values.map { Double.NaN },
             )
         }
 
@@ -220,8 +213,8 @@ sealed class Metric<P : TimestampedEntity, T>(
             return Range(high, low)
         }
 
-        override fun getMetric(mvpDao: MVPDao): Flow<List<StatisticStringEntity>> {
-            return mvpDao.getMetricStatisticStringFilteredByTimeZone()
+        override fun getMetric(mvpDao: MVPDao, from: Long, to: Long): Flow<List<StatisticStringEntity>> {
+            return mvpDao.getMetricStatisticString(from, to)
         }
 
         override suspend fun getStat(
@@ -424,17 +417,13 @@ sealed class Metric<P : TimestampedEntity, T>(
             from: Long,
             to: Long,
         ): TimeSeries<Double> {
-            val filtered =
-                values.filter { statistic -> (statistic.timestamp >= from) and (statistic.timestamp <= to) }
-
-            val sortedList = filtered.sortedBy { statistic -> statistic.timestamp }
             return filterScoreBasedOnTimeZone(
                 TimeSeries.DoubleTimeSeries(
-                    sortedList.map { statistic -> statistic.value },
-                    sortedList.map { statistic -> statistic.timestamp.localize(ZoneId.of(statistic.timeZone)) },
-                    sortedList.map { statistic -> statistic.confidenceIntervalLow ?: Double.NaN },
-                    sortedList.map { statistic -> statistic.confidenceIntervalHigh ?: Double.NaN },
-                    sortedList.map { statistic -> statistic.confidence ?: Double.NaN },
+                    values.map { statistic -> statistic.value },
+                    values.map { statistic -> statistic.timestamp.localize(ZoneId.of(statistic.timeZone)) },
+                    values.map { statistic -> statistic.confidenceIntervalLow ?: Double.NaN },
+                    values.map { statistic -> statistic.confidenceIntervalHigh ?: Double.NaN },
+                    values.map { statistic -> statistic.confidence ?: Double.NaN },
                 )
             )
         }
@@ -453,8 +442,8 @@ sealed class Metric<P : TimestampedEntity, T>(
             return Range(high, low)
         }
 
-        override fun getMetric(mvpDao: MVPDao): Flow<List<StatisticEntity>> {
-            return mvpDao.getMetricStatistic(code)
+        override fun getMetric(mvpDao: MVPDao, from: Long, to: Long): Flow<List<StatisticEntity>> {
+            return mvpDao.getMetricStatistic(code, from, to)
         }
 
         override suspend fun getStat(
@@ -557,15 +546,12 @@ sealed class Metric<P : TimestampedEntity, T>(
             from: Long,
             to: Long,
         ): TimeSeries<Double> {
-            val filtered =
-                values.filter { statistic -> (statistic.timestamp >= from) and (statistic.timestamp <= to) }
-            val sortedList = filtered.sortedBy { statistic -> statistic.timestamp }
             return TimeSeries.DoubleTimeSeries(
-                sortedList.map { statistic -> statistic.value },
-                sortedList.map { statistic -> statistic.timestamp.localize() },
-                sortedList.map { statistic -> statistic.confidenceIntervalLow ?: Double.NaN },
-                sortedList.map { statistic -> statistic.confidenceIntervalHigh ?: Double.NaN },
-                sortedList.map { statistic -> statistic.confidence ?: Double.NaN },
+                values.map { statistic -> statistic.value },
+                values.map { statistic -> statistic.timestamp.localize() },
+                values.map { statistic -> statistic.confidenceIntervalLow ?: Double.NaN },
+                values.map { statistic -> statistic.confidenceIntervalHigh ?: Double.NaN },
+                values.map { statistic -> statistic.confidence ?: Double.NaN },
             )
         }
 
@@ -583,8 +569,8 @@ sealed class Metric<P : TimestampedEntity, T>(
             return Range(low, high)
         }
 
-        override fun getMetric(mvpDao: MVPDao): Flow<List<StatisticEntity>> {
-            return mvpDao.getMetricStatisticFilteredByTimeZone(code)
+        override fun getMetric(mvpDao: MVPDao, from: Long, to: Long): Flow<List<StatisticEntity>> {
+            return mvpDao.getMetricStatistic(code, from, to)
         }
 
         override suspend fun getStat(
@@ -694,7 +680,7 @@ interface CanReturnCompiledTimeSeries<P : TimestampedEntity, T> {
     @Keep
     fun getReferencePopulationRange(basicInfo: BasicInfo): Range
     @Keep
-    fun getMetric(mvpDao: MVPDao): Flow<List<P>>
+    fun getMetric(mvpDao: MVPDao, from: Long, to: Long): Flow<List<P>>
     @Keep
     fun insertOrUpdateMetric(mvpDao: MVPDao, statistics: List<P>)
     @Keep

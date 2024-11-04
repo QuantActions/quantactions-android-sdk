@@ -325,7 +325,7 @@ class MVPRepository @Inject private constructor(
 
         val resources = dbBoundResource(
             fetchFromLocal = {
-                metricOrTrend.getMetric(mvpDao)
+                metricOrTrend.getMetric(mvpDao, from / 1000, to / 1000)
             },
             shouldMakeNetworkRequest = {
                 (refresh && iamParticipationId != "") || ((iamParticipationId != "") && (
