@@ -26,10 +26,8 @@ import android.os.SystemClock
 import android.provider.Settings
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.OneTimeWorkRequest
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -94,13 +92,9 @@ class QABroadcastReceiver : BroadcastReceiver() {
                 Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED -> {
                     Timber.tag("BroadCastReceiver").i("NEW ___ SETTING UP 1 MINUTE __ NEW")
 
-                    // delay 1 minute start service to make sure
-                    val delayRequest = OneTimeWorkRequest.Builder(ServiceStarter::class.java)
-                        .setInitialDelay(1, TimeUnit.MINUTES)
-                        .setBackoffCriteria(BackoffPolicy.LINEAR, 1, TimeUnit.MINUTES)
-                        .addTag("startLater")
-                        .build()
-                    WorkManager.getInstance(context).enqueue(delayRequest)
+                    // delay 1 minute cannot be done anymore in Android 15
+                    // the foreground service has to be started in the receiver
+                    qaPrivate.makeServiceForeground(context)
 
                     val constraints = Constraints.Builder()
                         .build()
