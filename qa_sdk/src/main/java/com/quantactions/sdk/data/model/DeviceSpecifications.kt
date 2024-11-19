@@ -17,6 +17,6 @@ import com.squareup.moshi.JsonClass
  */
 @JsonClass(generateAdapter = true)
 data class DeviceSpecifications(
-    val hardwareModel: String =  Build.MANUFACTURER,
-    val hardwareVendor: String = Build.MODEL,
+    val hardwareModel: String = Build.MODEL,
+    val hardwareVendor: String = Build.MANUFACTURER,
 )
