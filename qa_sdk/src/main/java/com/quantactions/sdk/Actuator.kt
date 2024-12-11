@@ -10,6 +10,8 @@ package com.quantactions.sdk
 
 import android.annotation.SuppressLint
 import android.app.usage.UsageEvents
+import android.app.ActivityManager
+import android.app.ActivityManager.RunningAppProcessInfo
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
@@ -18,11 +20,14 @@ import android.content.res.Configuration
 import android.graphics.PixelFormat
 import android.os.BatteryManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import androidx.annotation.Keep
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.quantactions.sdk.data.entity.CodeOfApp
 import com.quantactions.sdk.data.entity.HourlyTapsEntity
@@ -43,15 +48,46 @@ import java.util.Vector
  * Created by enea on 12/11/16.
  * Contact: enea.ceolini@quantactions.com
  */
-internal class Actuator(service: ReadingsService) {
+internal class Actuator private constructor() {
     private var layerView: CustomTouchView? = null
-    private val context: Context = service
     private var logs: Vector<EntryLog> = Vector()
     private var startTime: Long = 0
-    private val mvpDao: MVPDao
-    private val usm: UsageStatsManager
+    private lateinit var mvpDao: MVPDao
+    private lateinit var usm: UsageStatsManager
+    var added: Boolean = false
 
-    fun addView() {
+    @Keep
+    companion object {
+        @Volatile
+        private var INSTANCE: Actuator? = null
+
+        /**
+         * Retrieves the default singleton instance of [QA].
+         *
+         * @param context A Context for on-demand initialization.
+         * @return The singleton instance of [QA].
+         */
+        @Keep
+        fun getInstance(context: Context): Actuator {
+            synchronized(this) {
+                var instance = INSTANCE
+                if (instance == null) {
+                    instance = Actuator()
+                    INSTANCE = instance
+                    instance.logs = Vector()
+                    instance.addView(context)
+                    instance.mvpDao = getDatabase(context).mvpDao()
+                    usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+                } else {
+                    instance.addView(context)
+                }
+                return instance
+            }
+        }
+    }
+
+
+    fun addView(context: Context) {
         val wParams: WindowManager.LayoutParams =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 WindowManager.LayoutParams(
@@ -79,31 +115,47 @@ internal class Actuator(service: ReadingsService) {
                 )
             }
         val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        layerView = CustomTouchView(context)
+        if (null == layerView) {
+            layerView = CustomTouchView(context)
+        }
 
-        // Add layout to window manager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (Settings.canDrawOverlays(context)) {
-                wm.addView(layerView, wParams)
-                (context as ReadingsService).added = true
-                Timber.i("Adding view")
+        // Main looper to add view from background
+        val handler = Handler(Looper.getMainLooper())
+        if (!added) {
+            // Add layout to window manager
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (Settings.canDrawOverlays(context)) {
+                    handler.post { wm.addView(layerView, wParams) }
+                    added = true
+                    Timber.i("Adding view")
+                    Log.i("Actuator", "Adding view")
+                } else {
+                    added = false
+                }
             } else {
-                (context as ReadingsService).added = false
+                handler.post { wm.addView(layerView, wParams) }
+                added = true
+                Log.i("Actuator", "Adding view")
+                Timber.i("Adding view")
             }
         } else {
-            wm.addView(layerView, wParams)
-            (context as ReadingsService).added = true
-            Timber.i("Adding view")
+            Timber.i("View already added")
+            Log.i("Actuator", "View already added")
         }
     }
 
-    fun removeView() {
+    fun removeView(context: Context) {
+        val handler = Handler(Looper.getMainLooper())
         try {
             if (null != layerView) {
                 val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-                wm.removeView(layerView)
-                (context as ReadingsService).added = false
+                handler.post {
+                    wm.removeView(layerView)
+                    layerView = null
+                }
+                added = false
                 Timber.i("Removing view")
+                Log.i("Actuator", "Removing view")
             }
         } catch (e: Exception) {
             try {
@@ -115,6 +167,10 @@ internal class Actuator(service: ReadingsService) {
         }
     }
 
+    fun getViewVisibility(): Int? {
+        return layerView?.windowVisibility
+    }
+
     fun startSession(time: Long) {
         startTime = time
         logs = Vector()
@@ -123,7 +179,7 @@ internal class Actuator(service: ReadingsService) {
     class AppUsageEvent(var packageName: String, var eventTime: Long)
 
     @DelicateCoroutinesApi
-    suspend fun saveSession(timeStop: Long) {
+    suspend fun saveSession(timeStop: Long, context: Context) {
 
         val tic = Instant.now().toEpochMilli()
 
@@ -347,7 +403,7 @@ internal class Actuator(service: ReadingsService) {
             val time = Instant.now().toEpochMilli()
             logs.add(
                 EntryLog(
-                    time, arrayOf("NULL", "NULL", "NULL")
+                    time, arrayOf("NULL", "NULL", "NULL"), context
                 )
             )
             return false // Return false for other touch events
@@ -356,7 +412,8 @@ internal class Actuator(service: ReadingsService) {
 
     private inner class EntryLog(
         val timeStamp: Long,
-        var top3: Array<String>
+        var top3: Array<String>,
+        context: Context
     ) {
         var orientation: String = when (context.resources.configuration.orientation) {
             Configuration.ORIENTATION_LANDSCAPE -> "L"
@@ -365,16 +422,4 @@ internal class Actuator(service: ReadingsService) {
         }
     }
 
-    init {
-        val intent = Intent(Intent.ACTION_MAIN)
-        intent.addCategory(Intent.CATEGORY_HOME)
-        logs = Vector()
-
-        // This is the what allows us to detect TAPS on the screen in every moment.
-        // We create a View which is Transparent, in the middle of the screen, of size 10X10 pixels
-        // which detects touches but does not disturb the user
-        addView()
-        mvpDao = getDatabase(context).mvpDao()
-        usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-    }
 }

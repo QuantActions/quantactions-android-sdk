@@ -554,7 +554,7 @@ internal class QAPrivate private constructor(
         intent: Intent = Intent(context, ReadingsService::class.java)
     ): Boolean {
         return try {
-            if (!preferences.isDataCollectionPaused && isDeviceRegistered()) {
+//            if (!preferences.isDataCollectionPaused && isDeviceRegistered()) {
                 val result: Int =
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION)
@@ -575,7 +575,7 @@ internal class QAPrivate private constructor(
                     notificationManager?.notify(1, notification)
                 }
 
-            }
+//            }
             true
         } catch (e: Exception) {
             // This means that the foreground service cannot be started from background, either turn
