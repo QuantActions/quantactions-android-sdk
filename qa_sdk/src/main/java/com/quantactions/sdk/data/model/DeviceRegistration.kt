@@ -30,7 +30,9 @@ data class DeviceRegistration(
     val osType: String = "android",
     val osVersion: String = Build.VERSION.RELEASE,
     val sdkVersion: String = BuildConfig.VERSION_NAME,
-    val packageUsingSdk: String
+    val packageUsingSdk: String,
+    val hardwareVersion: String = Build.MODEL,
+    val hardwareVendor: String = Build.MANUFACTURER,
 
 )
 
@@ -51,7 +53,9 @@ data class DeviceResponse(
     val language: String = Locale.getDefault().language,
     val osType: String = "android",
     val osVersion: String = Build.VERSION.RELEASE,
-    val sdkVersion: String = BuildConfig.VERSION_NAME
+    val sdkVersion: String = BuildConfig.VERSION_NAME,
+    val hardwareVersion: String = Build.MODEL,
+    val hardwareVendor: String = Build.MANUFACTURER,
 
 )
 
@@ -70,7 +74,9 @@ data class DevicePatch(
     val osType: String = "android",
     val osVersion: String = Build.VERSION.RELEASE,
     val sdkVersion: String = BuildConfig.VERSION_NAME,
-    val packageUsingSdk: String
+    val packageUsingSdk: String,
+    val hardwareVersion: String = Build.MODEL,
+    val hardwareVendor: String = Build.MANUFACTURER,
 
 )
 
