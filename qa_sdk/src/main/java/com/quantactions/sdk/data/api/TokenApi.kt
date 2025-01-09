@@ -32,7 +32,7 @@ interface TokenApi {
     @POST("flows/credentials/devicereset")
     suspend fun resetPassword(
         @Body passwordResetBody: PasswordResetBody
-    ): ApiResponse<Identity>
+    ): ApiResponse<Void>
 
     @POST("flows/identities")
     suspend fun registerIdentity(
