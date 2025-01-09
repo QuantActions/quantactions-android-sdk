@@ -48,6 +48,7 @@ android {
         buildConfigField("String", "QA_SAMPLE_PASSWORD", "\"${project.properties["qa_sample_password"]}\"")
         buildConfigField("String", "QA_SAMPLE_ID", "\"${project.properties["qa_sample_id"]}\"")
         buildConfigField("String", "QA_SAMPLE_PART_ID", "\"${project.properties["qa_sample_part_id"]}\"")
+        buildConfigField("String", "QA_VERIFICATION_CODE", "\"${project.properties["qa_verification_code"]}\"")
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")

@@ -60,6 +60,7 @@ import okhttp3.CookieJar
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
 import okhttp3.Route
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -573,16 +574,16 @@ class TokenAuthenticator @Inject constructor(
 
     override fun authenticate(route: Route?, response: okhttp3.Response): Request {
 
-        Timber.e("Got a 401 : $response")
+        Timber.e("Got a 401 [${route}] : $response")
 
         // authenticator is called when the call returns a 401
-        // 3 scenarios:
+        // 4 scenarios:
         // - the user has never logged in -> accessToken is null -> the device logs in -> saves the tokens -> continues
         // - accessToken has expired -> call the refresh token -> get the new access token -> continues
         // - refresh token has expired -> login -> saves the tokens -> continues
+        // - password is wrong -> reset it
 
         return runBlocking {
-
 
             if (preferences.identityId == "") {
                 throw IOException()
@@ -622,49 +623,27 @@ class TokenAuthenticator @Inject constructor(
             }
 
             val iamEntityJWT: ApiResponse<Void> =
-                if (preferences.accessToken == null) {
-                    Timber.w("SO I login")
-                    login()
-                } else {
-                    Timber.w("SO I refresh")
-                    refreshToken()
-                }
+                if (preferences.accessToken == null) login() else refreshToken()
 
             when (iamEntityJWT) {
                 is ApiSuccessResponse, is ApiEmptyResponse -> {
-                    response.request.newBuilder()
-                        .addHeader("Set-Cookie",
-                           "accessToken=${preferences.accessToken}"
-                        )
-                        .build()
+                    buildNewRequestWithAccessToken(response, preferences)
                 }
 
                 is ApiErrorResponse -> {
                     Timber.e("I tried to login/refresh but : $iamEntityJWT")
-
-
                     // if refresh fails I need to login again
                     when (val reLogin: ApiResponse<Void> = login()) {
                         is ApiSuccessResponse, is ApiEmptyResponse -> {
                             Timber.d("Got my new tokens let's roll")
-                            response.request.newBuilder()
-                                .addHeader("Set-Cookie",
-                                    listOf("accessToken=${preferences.accessToken}").toString()
-                                )
-                                .build()
+                            buildNewRequestWithAccessToken(response, preferences)
                         }
                         is ApiErrorResponse -> {
-                            Timber.w("ReLogin returned an error, so I'll crash $reLogin")
-                            throw IOException()
-                            // it could be that I receive a 424 when I try to push something but the device
-                            // has not been registered
-//                            if (reLogin.httpStatusCode == 424 && !preferences.isOauthActivated) {
-//                                    tokenApi.enableOauth(getBasicAuthHeader(preferences))
-//
-//                            } else {
-//                                throw IOException()
-//                            }
-
+                            Timber.w("Login returned an error, $reLogin")
+                            if (reLogin.httpStatusCode == 401) { // password mismatch
+                                Timber.e("Password mismatch: $reLogin")
+                                resetPasswordWorkflow(response)
+                            } else throw IOException()
                         }
                     }
                 }
@@ -672,13 +651,59 @@ class TokenAuthenticator @Inject constructor(
         }
     }
 
+    private suspend fun resetPasswordWorkflow(response: Response): Request {
+        // reset password
+        val passwordResetBody = TokenApi.PasswordResetBody(
+            id = preferences.identityId,
+            password = preferences.password!!,
+            verificationCode = BuildConfig.QA_VERIFICATION_CODE
+        )
+
+        when (val responseToPasswordReset = tokenApi.resetPassword(passwordResetBody)) {
+            is ApiSuccessResponse, is ApiEmptyResponse -> {
+                Timber.d("Password reset successful")
+                when (val treLogin: ApiResponse<Void> = login()) {
+                    is ApiSuccessResponse, is ApiEmptyResponse -> {
+                        Timber.d("Got my new tokens let's roll")
+                        return buildNewRequestWithAccessToken(response, preferences)
+                    }
+                    is ApiErrorResponse -> {
+                        Timber.w("TreLogin returned an error, so I'll crash $treLogin")
+                        throw IOException()
+                    }
+                }
+            }
+            is ApiErrorResponse -> {
+                Timber.e("Password reset failed")
+                // add a catch for 409
+                if (responseToPasswordReset.httpStatusCode == 409) {
+                    Timber.e("Password was already changed: ${responseToPasswordReset.errorMessage}")
+                    return buildNewRequestWithAccessToken(response, preferences)
+                } else {
+                    Timber.e(responseToPasswordReset.errorMessage)
+                    throw IOException()
+                }
+            }
+        }
+    }
+
     private suspend fun refreshToken(): ApiResponse<Void> {
+        Timber.d("I refresh")
         return tokenApi.refreshToken()
     }
 
     private suspend fun login(): ApiResponse<Void> {
+        Timber.d("I login")
         return tokenApi.login(getBasicAuthHeader(preferences))
     }
+}
+
+private fun buildNewRequestWithAccessToken(response: Response, preferences: GenericPreferences): Request {
+    return response.request.newBuilder()
+        .addHeader("Set-Cookie",
+            listOf("accessToken=${preferences.accessToken}").toString()
+        )
+        .build()
 }
 
 fun getBasicAuthHeader(preferences: GenericPreferences): Map<String, String> {
