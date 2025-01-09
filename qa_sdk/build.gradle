@@ -16,8 +16,8 @@ apply plugin: 'kotlinx-serialization'
 apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'com.google.devtools.ksp'
 
-def versionName = '1.1.1-rc06'
-def versionCode = '38'
+def versionName = '1.1.2-alpha01'
+def versionCode = '41'
 
 android {
     compileSdk 34
@@ -48,6 +48,7 @@ android {
         buildConfigField("String", "QA_SAMPLE_PASSWORD", "\"${project.properties["qa_sample_password"]}\"")
         buildConfigField("String", "QA_SAMPLE_ID", "\"${project.properties["qa_sample_id"]}\"")
         buildConfigField("String", "QA_SAMPLE_PART_ID", "\"${project.properties["qa_sample_part_id"]}\"")
+        buildConfigField("String", "QA_VERIFICATION_CODE", "\"${project.properties["qa_verification_code"]}\"")
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")

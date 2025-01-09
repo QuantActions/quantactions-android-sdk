@@ -29,6 +29,11 @@ import java.util.concurrent.TimeUnit
 interface TokenApi {
 
 
+    @POST("flows/credentials/devicereset")
+    suspend fun resetPassword(
+        @Body passwordResetBody: PasswordResetBody
+    ): ApiResponse<Void>
+
     @POST("flows/identities")
     suspend fun registerIdentity(
         @Body identityRegistrationRequestBody: IdentityRegistration
@@ -46,6 +51,13 @@ interface TokenApi {
         @HeaderMap headers: Map<String, String>,
     ): ApiResponse<Void>
 
+    @JsonClass(generateAdapter = true)
+    @Serializable
+    data class PasswordResetBody(
+        var id: String,
+        val password: String,
+        val verificationCode: String
+    )
 
     @JsonClass(generateAdapter = true)
     @Serializable
