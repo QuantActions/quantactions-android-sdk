@@ -511,9 +511,9 @@ internal class QAPrivate private constructor(
         return repository.getAndResolveJournalEntry(journalEntryId)
     }
 
-    suspend fun subscription(studyId: String? = null): List<Subscription> {
+    suspend fun subscription(studyId: String? = null, refresh: Boolean = false): List<Subscription> {
         return if (isDeviceRegistered()) {
-            repository.getParticipations(studyId)
+            repository.getParticipations(studyId, refresh = refresh)
         } else listOf()
     }
 
