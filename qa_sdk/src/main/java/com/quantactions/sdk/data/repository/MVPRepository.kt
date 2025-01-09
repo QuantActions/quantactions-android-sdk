@@ -74,6 +74,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -169,7 +171,10 @@ class MVPRepository @Inject private constructor(
     private var iamParticipationId: String = ""
     private var cachedApiKey: String = ""
     private lateinit var tokenApi: TokenApi
-    private var subscriptions: List<Subscription> = listOf()
+
+    private val _subscriptions = MutableStateFlow<MutableList<Subscription>>(mutableListOf())
+    val subscriptions: StateFlow<MutableList<Subscription>> get() = _subscriptions
+
 
     private val Boolean.intValue
         get() = if (this) 1 else 0
@@ -838,6 +843,20 @@ class MVPRepository @Inject private constructor(
 
                     val questionnaires = getQuestionnaires(it.studyId!!)
                     mvpDao.insertOrUpdateStudy(cohort)
+
+                    val currentSubscriptions = _subscriptions.value as MutableList
+                    currentSubscriptions.add(Subscription (
+                        it.id,
+                        listOf(),
+                        cohort.cohortId,
+                        cohort.cohortName ?: "",
+                        if (it.ttl != null) ZonedDateTime.parse(it.ttl)
+                            .toInstant()
+                            .toEpochMilli() else -1,
+                        it.token
+                    ))
+                    _subscriptions.value = currentSubscriptions
+
                     return SubscriptionWithQuestionnaires(
                         cohort,
                         questionnaires, it.id, listOf(),
@@ -910,6 +929,20 @@ class MVPRepository @Inject private constructor(
                         ?: throw QASDKException("Cohort is null")
                     val questionnaires = getQuestionnaires(cohort.cohortId)
                     mvpDao.insertOrUpdateStudy(cohort)
+
+                    val currentSubscriptions = _subscriptions.value as MutableList
+                    currentSubscriptions.add(Subscription (
+                        it.id,
+                        listOf(),
+                        cohort.cohortId,
+                        cohort.cohortName ?: "",
+                        if (it.ttl != null) ZonedDateTime.parse(it.ttl)
+                            .toInstant()
+                            .toEpochMilli() else -1,
+                        it.token
+                    ))
+                    _subscriptions.value = currentSubscriptions
+
                     return SubscriptionWithQuestionnaires(
                         cohort,
                         questionnaires, it.id, listOf(),
@@ -1109,8 +1142,8 @@ class MVPRepository @Inject private constructor(
     suspend fun getParticipations(studyId: String? = null, refresh: Boolean): List<Subscription> {
 
         if (!refresh) {
-            studyId?.let{ return subscriptions.filter { it.cohortId == studyId } }
-            return subscriptions
+            studyId?.let{ return _subscriptions.value.filter { it.cohortId == studyId } }
+            return _subscriptions.value
         }
 
         // re-login for good measure, this is done to refresh the cookie that might not have the
@@ -1118,7 +1151,7 @@ class MVPRepository @Inject private constructor(
         tokenApi.login(getBasicAuthHeader(preferences))
 
         if (deviceID == "") {
-            return subscriptions
+            return _subscriptions.value
         }
 
         val filter = mutableMapOf<String, Any>()
@@ -1155,7 +1188,7 @@ class MVPRepository @Inject private constructor(
 
                     if (studyRegistrationResponse.isEmpty()) {
                         latch.countDown()
-                        return subscriptions
+                        return _subscriptions.value
                     }
 
                     if (studyId != null) {
@@ -1163,7 +1196,7 @@ class MVPRepository @Inject private constructor(
                             studyRegistrationResponse.filter { it.studyId == studyId }
                         if (filtered.isEmpty()) {
                             latch.countDown()
-                            return subscriptions
+                            return _subscriptions.value
                         } else {
                             val participation = filtered[0]
                             iamParticipationId = participation.id
@@ -1172,7 +1205,7 @@ class MVPRepository @Inject private constructor(
                             // here I cache the study info anyway
                             getStudyInfo(participation.studyId!!)
 
-                            subscriptions = listOf(
+                            _subscriptions.value = mutableListOf(
                                 Subscription(
                                     participation.id,
                                     listOf(),
@@ -1198,7 +1231,7 @@ class MVPRepository @Inject private constructor(
                     iamParticipationId = studyRegistrationResponse[0].id
                     latch.countDown()
 
-                    subscriptions = studyRegistrationResponse.map { participation ->
+                    _subscriptions.value = studyRegistrationResponse.map { participation ->
                         Subscription(
                             participation.id,
                             listOf(),
@@ -1210,12 +1243,11 @@ class MVPRepository @Inject private constructor(
                                 .toEpochMilli() else -1,
                             participation.token
                         )
-                    }
-
+                    }.toMutableList()
                 }
                 latch.countDown()
                 wasPartIdRequested = true
-                return subscriptions
+                return _subscriptions.value
             }
 
             is ApiErrorResponse -> {
@@ -1224,13 +1256,13 @@ class MVPRepository @Inject private constructor(
                 latch.countDown()
                 wasPartIdRequested = false
                 Timber.e("ERROR while getting participations ${apiResponse.errorMessage}")
-                return subscriptions
+                return _subscriptions.value
             }
 
             is ApiEmptyResponse -> {
                 latch.countDown()
                 wasPartIdRequested = false
-                return subscriptions
+                return _subscriptions.value
             }
         }
 
