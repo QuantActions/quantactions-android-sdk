@@ -855,7 +855,7 @@ class MVPRepository @Inject private constructor(
                 // launch a background task to be retried later on.
 
                 Timber.e("ERROR while signup ${apiResponse.errorMessage}")
-                if (apiResponse.httpStatusCode in listOf(424, 404)) {
+                if (apiResponse.httpStatusCode in listOf(424, 404, 403)) {
                     // simply pasted the wrong one
                     throw QASDKException("ParticipationID is invalid")
                 } else { // Network problem
