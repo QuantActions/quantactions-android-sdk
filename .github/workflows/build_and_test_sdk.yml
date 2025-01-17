@@ -16,17 +16,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Login to Gcloud
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: 'pushnotificationtap'
+          credentials_json: ${{ secrets.GCLOUD_KEY_FILE }}
+
       - name: Prepare Secrets
         run: |
-          echo "gpr.usr=$GH_USR" >> github.properties
-          echo "gpr.key=$GH_KEY" >> github.properties
-          gcloud auth activate-service-account pushnotificationtap@appspot.gserviceaccount.com --key-file=/home/runner/work/_temp/pushnotificationtap-612444806675.json --project=pushnotificationtap
-        env:
-          GH_USR: ${{ secrets.GH_USR }}
-          GH_KEY: ${{ secrets.GH_KEY }}
+          echo "gprusr=quantactions" >> gradle.properties
+          echo "gprkey=${{ secrets._GITHUB_PAT }}" >> gradle.properties
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'adopt'
           java-version: '17'
@@ -53,8 +55,8 @@ jobs:
         run: |
           gcloud firebase test android run --type instrumentation --app $APP_APK --test $TEST_APK --device model=Pixel3,version=30,locale=en,orientation=portrait --results-dir=test_sdk_results --environment-variables apiKey=$TEST_API_KEY,testIdentityId=$TEST_IDENTITY_ID,testDeviceId=$TEST_DEVICE_ID,testPassword=$TEST_PASSWORD,testParticipationId=$TEST_PARTICIPATION_ID,testStudyId=$TEST_STUDY_ID,QA_SAMPLE_PASSWORD=$QA_SAMPLE_PASSWORD,QA_SAMPLE_ID=$QA_SAMPLE_ID,QA_SAMPLE_PART_ID=$QA_SAMPLE_PART_ID
         env:
-          TEST_APK: ${{ secrets.TEST_SDK_APK }}
-          APP_APK: ${{ secrets.TEST_APP_APK }}
+          TEST_APK: ${{ env.TEST_SDK_APK }}
+          APP_APK: ${{ env.TEST_APP_APK }}
           TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
           TEST_IDENTITY_ID: ${{ secrets.TEST_IDENTITY_ID }}
           TEST_DEVICE_ID: ${{ secrets.TEST_DEVICE_ID }}
