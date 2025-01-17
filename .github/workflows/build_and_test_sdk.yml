@@ -43,7 +43,7 @@ jobs:
             -Ptest.password=${{ secrets.TEST_PASSWORD }}
             -Ptest.participationId=${{ secrets.TEST_PARTICIPATION_ID }}
             -Ptest.studyId=${{ secrets.TEST_STUDY_ID }}
-            test assembleDebug assembleDebugAndroidTest assembleRelease
+            test assembleDebug assembleDebugAndroidTest
 
       - name: Upload APK
         uses: actions/upload-artifact@v3
@@ -53,7 +53,9 @@ jobs:
 
       - name: Firebase Instrumentation Tests (SDK)
         run: |
-          gcloud firebase test android run --type instrumentation --app $APP_APK --test $TEST_APK --device model=Pixel3,version=30,locale=en,orientation=portrait --results-dir=test_sdk_results --environment-variables apiKey=$TEST_API_KEY,testIdentityId=$TEST_IDENTITY_ID,testDeviceId=$TEST_DEVICE_ID,testPassword=$TEST_PASSWORD,testParticipationId=$TEST_PARTICIPATION_ID,testStudyId=$TEST_STUDY_ID,QA_SAMPLE_PASSWORD=$QA_SAMPLE_PASSWORD,QA_SAMPLE_ID=$QA_SAMPLE_ID,QA_SAMPLE_PART_ID=$QA_SAMPLE_PART_ID
+          echo "TEST APK: $TEST_APK"
+          echo "APP_APK: $APP_APK"
+            gcloud firebase test android run --type instrumentation --app $APP_APK --test $TEST_APK --device model=Pixel3,version=30,locale=en,orientation=portrait --results-dir=test_sdk_results --environment-variables apiKey=$TEST_API_KEY,testIdentityId=$TEST_IDENTITY_ID,testDeviceId=$TEST_DEVICE_ID,testPassword=$TEST_PASSWORD,testParticipationId=$TEST_PARTICIPATION_ID,testStudyId=$TEST_STUDY_ID,QA_SAMPLE_PASSWORD=$QA_SAMPLE_PASSWORD,QA_SAMPLE_ID=$QA_SAMPLE_ID,QA_SAMPLE_PART_ID=$QA_SAMPLE_PART_ID;
         env:
           TEST_APK: ${{ env.TEST_SDK_APK }}
           APP_APK: ${{ env.TEST_APP_APK }}
