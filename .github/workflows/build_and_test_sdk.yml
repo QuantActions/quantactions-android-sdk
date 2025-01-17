@@ -57,8 +57,8 @@ jobs:
           echo "APP_APK: $APP_APK"
             gcloud firebase test android run --type instrumentation --app $APP_APK --test $TEST_APK --device model=Pixel3,version=30,locale=en,orientation=portrait --results-dir=test_sdk_results --environment-variables apiKey=$TEST_API_KEY,testIdentityId=$TEST_IDENTITY_ID,testDeviceId=$TEST_DEVICE_ID,testPassword=$TEST_PASSWORD,testParticipationId=$TEST_PARTICIPATION_ID,testStudyId=$TEST_STUDY_ID,QA_SAMPLE_PASSWORD=$QA_SAMPLE_PASSWORD,QA_SAMPLE_ID=$QA_SAMPLE_ID,QA_SAMPLE_PART_ID=$QA_SAMPLE_PART_ID;
         env:
-          TEST_APK: ${{ env.TEST_SDK_APK }}
-          APP_APK: ${{ env.TEST_APP_APK }}
+          TEST_APK: ${{ vars.TEST_SDK_APK }}
+          APP_APK: ${{ vars.TEST_APP_APK }}
           TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
           TEST_IDENTITY_ID: ${{ secrets.TEST_IDENTITY_ID }}
           TEST_DEVICE_ID: ${{ secrets.TEST_DEVICE_ID }}
