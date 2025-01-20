@@ -9,6 +9,7 @@
 package com.quantactions.sdk
 
 import android.annotation.SuppressLint
+import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
@@ -119,8 +120,56 @@ internal class Actuator(service: ReadingsService) {
         logs = Vector()
     }
 
+    class AppUsageEvent(var packageName: String, var eventTime: Long)
+
     @DelicateCoroutinesApi
     suspend fun saveSession(timeStop: Long) {
+
+        val tt = Instant.now().toEpochMilli()
+
+        val usageEvents: UsageEvents = usm.queryEvents(startTime - 1000, timeStop + 30)
+
+        val recentAppUsages: MutableList<AppUsageEvent> =
+            java.util.ArrayList<AppUsageEvent>()
+        val event = UsageEvents.Event()
+        while (usageEvents.hasNextEvent()) {
+            usageEvents.getNextEvent(event)
+            if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
+                recentAppUsages.add(
+                    AppUsageEvent(
+                        event.packageName,
+                        event.timeStamp
+                    )
+                )
+            }
+        }
+
+        recentAppUsages.add(AppUsageEvent(
+            "NULL",
+            timeStop
+        ))
+
+        // Sort the list by event time
+        recentAppUsages.sortWith { o1, o2 ->
+            o1.eventTime.compareTo(o2.eventTime)
+        }
+
+        val nEvents = recentAppUsages.size
+
+        var l = 0
+        val nTaps = logs.size
+
+        for (i in 0 until nEvents - 1) {
+            val thisEvent = recentAppUsages[i]
+            val nextEventTime = recentAppUsages[i + 1].eventTime
+
+            while (l < nTaps && logs[l].timeStamp < nextEventTime) {
+                logs[l].top3[0] = thisEvent.packageName
+                l++
+            }
+
+        }
+
 
         //BATTERY
         val intentFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
@@ -211,6 +260,7 @@ internal class Actuator(service: ReadingsService) {
             }
             e.printStackTrace()
         }
+        Log.i("ReadingService","Saving session: ${Instant.now().toEpochMilli() - tt} ms")
     }
 
     private val timeZone: String
@@ -282,22 +332,6 @@ internal class Actuator(service: ReadingsService) {
         return mvpDao.insertOrUpdateAppCode(listOf(CodeOfApp(0, appName, 0)))[0].toInt()
     }
 
-    // HERE I collected only 2 columns so they are ordered
-
-    private fun printTop3Task(time: Long): Array<String> {
-        val currentApps = arrayOf("NULL", "NULL", "NULL")
-        val appList =
-            usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, time - 60 * 1000, time)
-        if (appList != null && appList.size > 0) {
-            val sortedList = appList.sortedBy { it.lastTimeUsed }.reversed()
-            if (sortedList.isNotEmpty()) currentApps[0] = sortedList[0].packageName
-            if (sortedList.size > 1) currentApps[1] = sortedList[1].packageName
-            if (sortedList.size > 2) currentApps[2] = sortedList[2].packageName
-            return currentApps
-        }
-        return currentApps
-    }
-
     private inner class CustomTouchView  // This is the special view that listen for all the taps happening on the screen.
     // Starting from Honey Comb is not possible to get information about position,size,etc of a
     // tap that happened outside of the view itself. This is a security measure to avoid Tap-jacking.
@@ -309,7 +343,7 @@ internal class Actuator(service: ReadingsService) {
             val time = Instant.now().toEpochMilli()
             logs.add(
                 EntryLog(
-                    time, printTop3Task(time)
+                    time, arrayOf("NULL", "NULL", "NULL")
                 )
             )
             return false // Return false for other touch events
