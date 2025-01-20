@@ -9,9 +9,6 @@
 package com.quantactions.sdk
 
 import android.annotation.SuppressLint
-import android.app.ActivityManager
-import android.app.ActivityManager.RunningAppProcessInfo
-import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
@@ -31,11 +28,14 @@ import com.quantactions.sdk.data.entity.HourlyTapsEntity
 import com.quantactions.sdk.data.repository.MVPDao
 import com.quantactions.sdk.data.repository.MVPRoomDatabase.Companion.getDatabase
 import com.quantactions.sdk.data.repository.TapDataParsed
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
 import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.time.Instant
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
+import java.util.TimeZone
+import java.util.Vector
 
 /**
  * This private class is called from the public ReadingService.class
@@ -48,6 +48,7 @@ internal class Actuator(service: ReadingsService) {
     private var logs: Vector<EntryLog> = Vector()
     private var startTime: Long = 0
     private val mvpDao: MVPDao
+    private val usm: UsageStatsManager
 
     fun addView() {
         val wParams: WindowManager.LayoutParams =
@@ -283,27 +284,16 @@ internal class Actuator(service: ReadingsService) {
 
     // HERE I collected only 2 columns so they are ordered
 
-    private fun printTop3Task(): Array<String> {
+    private fun printTop3Task(time: Long): Array<String> {
         val currentApps = arrayOf("NULL", "NULL", "NULL")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-            val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-            val time = Instant.now().toEpochMilli()
-            val appList =
-                usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, time - 86400000, time)
-
-            if (appList != null && appList.size > 0) {
-                val sortedList = appList.sortedBy { it.lastTimeUsed }.reversed()
-                if (sortedList.isNotEmpty()) currentApps[0] = sortedList[0].packageName
-                if (sortedList.size > 1) currentApps[1] = sortedList[1].packageName
-                if (sortedList.size > 2) currentApps[2] = sortedList[2].packageName
-                return currentApps
-            }
-        } else {
-            val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-            val tasks: List<RunningAppProcessInfo> = am.runningAppProcesses
-            if (tasks.isNotEmpty()) currentApps[0] = tasks[0].processName
-            if (tasks.size > 1) currentApps[1] = tasks[1].processName
-            if (tasks.size > 2) currentApps[2] = tasks[2].processName
+        val appList =
+            usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, time - 60 * 1000, time)
+        if (appList != null && appList.size > 0) {
+            val sortedList = appList.sortedBy { it.lastTimeUsed }.reversed()
+            if (sortedList.isNotEmpty()) currentApps[0] = sortedList[0].packageName
+            if (sortedList.size > 1) currentApps[1] = sortedList[1].packageName
+            if (sortedList.size > 2) currentApps[2] = sortedList[2].packageName
+            return currentApps
         }
         return currentApps
     }
@@ -316,9 +306,10 @@ internal class Actuator(service: ReadingsService) {
         @SuppressLint("ClickableViewAccessibility")
         override fun onTouchEvent(event: MotionEvent): Boolean {
             super.onTouchEvent(event)
+            val time = Instant.now().toEpochMilli()
             logs.add(
                 EntryLog(
-                    Instant.now().toEpochMilli(), printTop3Task()
+                    time, printTop3Task(time)
                 )
             )
             return false // Return false for other touch events
@@ -346,5 +337,6 @@ internal class Actuator(service: ReadingsService) {
         // which detects touches but does not disturb the user
         addView()
         mvpDao = getDatabase(context).mvpDao()
+        usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
     }
 }
