@@ -23,7 +23,7 @@ android {
     compileSdk 34
 
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 22
         targetSdk 34
 
         buildFeatures.buildConfig true
