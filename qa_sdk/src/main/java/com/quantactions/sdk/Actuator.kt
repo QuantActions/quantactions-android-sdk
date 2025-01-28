@@ -125,12 +125,16 @@ internal class Actuator(service: ReadingsService) {
     @DelicateCoroutinesApi
     suspend fun saveSession(timeStop: Long) {
 
-        val tt = Instant.now().toEpochMilli()
+        val tic = Instant.now().toEpochMilli()
 
+        // query usage events from 1 second before start to 30 ms after stop
         val usageEvents: UsageEvents = usm.queryEvents(startTime - 1000, timeStop + 30)
 
         val recentAppUsages: MutableList<AppUsageEvent> =
             java.util.ArrayList<AppUsageEvent>()
+
+        // go through every event and filter in only the activity resumed event i.e. app becoming
+        // visible
         val event = UsageEvents.Event()
         while (usageEvents.hasNextEvent()) {
             usageEvents.getNextEvent(event)
@@ -144,6 +148,8 @@ internal class Actuator(service: ReadingsService) {
             }
         }
 
+        // add the stop event to make sure the taps after the last activity resume event can be
+        // assigned correctly
         recentAppUsages.add(AppUsageEvent(
             "NULL",
             timeStop
@@ -156,20 +162,18 @@ internal class Actuator(service: ReadingsService) {
 
         val nEvents = recentAppUsages.size
 
-        var l = 0
+        var tapsCounter = 0
         val nTaps = logs.size
 
         for (i in 0 until nEvents - 1) {
             val thisEvent = recentAppUsages[i]
             val nextEventTime = recentAppUsages[i + 1].eventTime
 
-            while (l < nTaps && logs[l].timeStamp < nextEventTime) {
-                logs[l].top3[0] = thisEvent.packageName
-                l++
+            while (tapsCounter < nTaps && logs[tapsCounter].timeStamp < nextEventTime) {
+                logs[tapsCounter].top3[0] = thisEvent.packageName
+                tapsCounter++
             }
-
         }
-
 
         //BATTERY
         val intentFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
@@ -260,7 +264,7 @@ internal class Actuator(service: ReadingsService) {
             }
             e.printStackTrace()
         }
-        Log.i("ReadingService","Saving session: ${Instant.now().toEpochMilli() - tt} ms")
+        Log.i("ReadingService","Saving session: ${Instant.now().toEpochMilli() - tic} ms")
     }
 
     private val timeZone: String
