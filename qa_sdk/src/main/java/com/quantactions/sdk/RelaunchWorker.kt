@@ -23,6 +23,7 @@ class RelaunchWorker(context: Context, params: WorkerParameters) : Worker(contex
 
     override fun doWork(): Result {
         Log.i("RelaunchWorker", "Relaunching service: ${actuator.getViewVisibility()}")
+        actuator.addView(applicationContext)
         qa.makeServiceForeground(applicationContext)
         return Result.success()
     }
