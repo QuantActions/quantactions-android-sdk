@@ -180,6 +180,10 @@ If you wish your data to be removed from the archive, simply email data@quantact
     <string name="notification_channel_desc_qa">RelaunchWorker</string>
     <string name="do_not_show_again">Do not show again</string>
     <string name="TAG">QuantActionsSDK</string>
+    <string name="qa_sdk_notification_title_app_needs_a_permission">Action Required: we need a permission</string>
+    <string name="qa_sdk_notification_body_tap_to_open_and_grant_permission">Tap to open and grant permission for seamless data collection</string>
+    <string name="qa_sdk_notification_title_action_required_restart_needed">App Restart Required</string>
+    <string name="qa_sdk_notification_body_tap_to_open_and_restart">Tap to restart the app for seamless data collection.</string>
     <string name="action_required_app_needs_a_permission">Action Required: we need a permission</string>
     <string name="tap_to_open_and_grant_permission">Tap to open and grant permission for seamless data collection</string>
     <string name="action_required_restart_needed">Action Required: The App needs to restart</string>

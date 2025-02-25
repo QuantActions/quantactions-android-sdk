@@ -56,8 +56,8 @@ open class ActivityPermissionNotificationImpl : ActivityPermissionNotification {
             R.color.brand_background_icon_color
         )
         mBuilder.setWhen(0)
-        mBuilder.setContentTitle(context.getString(R.string.action_required_app_needs_a_permission))
-        mBuilder.setContentText(context.getString(R.string.tap_to_open_and_grant_permission))
+        mBuilder.setContentTitle(context.getString(R.string.qa_sdk_notification_title_app_needs_a_permission))
+        mBuilder.setContentText(context.getString(R.string.qa_sdk_notification_body_tap_to_open_and_grant_permission))
         mBuilder.setAutoCancel(true)
         mBuilder.setContentIntent(
             PendingIntent.getActivity(
