@@ -1,0 +1,79 @@
+name: Android CI
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Login to Gcloud
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: 'pushnotificationtap'
+          credentials_json: ${{ secrets.GCLOUD_KEY_FILE }}
+
+      - name: Prepare Secrets
+        run: |
+          echo "gprusr=quantactions" >> gradle.properties
+          echo "gprkey=${{ secrets._GITHUB_PAT }}" >> gradle.properties
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: |
+            -Ptest.apiKey=${{ secrets.TEST_API_KEY }}
+            -Ptest.identityId=${{ secrets.TEST_IDENTITY_ID }}
+            -Ptest.deviceId=${{ secrets.TEST_DEVICE_ID }}
+            -Ptest.password=${{ secrets.TEST_PASSWORD }}
+            -Ptest.participationId=${{ secrets.TEST_PARTICIPATION_ID }}
+            -Ptest.studyId=${{ secrets.TEST_STUDY_ID }}
+            test assembleDebug assembleDebugAndroidTest
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-apk
+          path: '**/*.apk'
+
+      - name: Firebase Instrumentation Tests (SDK)
+        run: |
+          echo "TEST APK: $TEST_APK"
+          echo "APP_APK: $APP_APK"
+            gcloud firebase test android run --type instrumentation --app $APP_APK --test $TEST_APK --device model=Pixel3,version=30,locale=en,orientation=portrait --results-dir=test_sdk_results --environment-variables apiKey=$TEST_API_KEY,testIdentityId=$TEST_IDENTITY_ID,testDeviceId=$TEST_DEVICE_ID,testPassword=$TEST_PASSWORD,testParticipationId=$TEST_PARTICIPATION_ID,testStudyId=$TEST_STUDY_ID,QA_SAMPLE_PASSWORD=$QA_SAMPLE_PASSWORD,QA_SAMPLE_ID=$QA_SAMPLE_ID,QA_SAMPLE_PART_ID=$QA_SAMPLE_PART_ID;
+        env:
+          TEST_APK: ${{ vars.TEST_SDK_APK }}
+          APP_APK: ${{ vars.TEST_APP_APK }}
+          TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
+          TEST_IDENTITY_ID: ${{ secrets.TEST_IDENTITY_ID }}
+          TEST_DEVICE_ID: ${{ secrets.TEST_DEVICE_ID }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+          TEST_PARTICIPATION_ID: ${{ secrets.TEST_PARTICIPATION_ID }}
+          TEST_STUDY_ID: ${{ secrets.TEST_STUDY_ID }}
+          QA_SAMPLE_PASSWORD: ${{ secrets.QA_SAMPLE_PASSWORD }}
+          QA_SAMPLE_ID: ${{ secrets.QA_SAMPLE_ID }}
+          QA_SAMPLE_PART_ID: ${{ secrets.QA_SAMPLE_PART_ID }}
+
+      - name: Retrieve test results
+        run: gsutil cp gs://test-lab-x186ifk5q10q4-k8d32juhknhic/test_sdk_results/Pixel3-30-en-portrait/test_result_1.xml ./test_result_sdk_1.xml
+
+      - name: Publish Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: '**/test_result_*.xml'

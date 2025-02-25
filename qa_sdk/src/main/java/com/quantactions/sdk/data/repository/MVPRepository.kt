@@ -801,11 +801,12 @@ class MVPRepository @Inject private constructor(
         }
     }
 
-    suspend fun registerUser(coreDeviceSpecificationId: String): ApiResponse<RegistrationResponse> {
+    suspend fun registerUser(context: Context, coreDeviceSpecificationId: String): ApiResponse<RegistrationResponse> {
         val deviceRegistration = DeviceRegistration(
             deviceSpecificationId = coreDeviceSpecificationId,
             enableAppIdAccess = canUsage,
             enableDrawOverAccess = canDraw,
+            enableLocationAccess = canActivity(context),
             firebaseTokenId = firebaseToken,
             packageUsingSdk = packageName
         )
@@ -855,7 +856,7 @@ class MVPRepository @Inject private constructor(
                 // launch a background task to be retried later on.
 
                 Timber.e("ERROR while signup ${apiResponse.errorMessage}")
-                if (apiResponse.httpStatusCode in listOf(424, 404)) {
+                if (apiResponse.httpStatusCode in listOf(424, 404, 403)) {
                     // simply pasted the wrong one
                     throw QASDKException("ParticipationID is invalid")
                 } else { // Network problem
@@ -925,7 +926,7 @@ class MVPRepository @Inject private constructor(
                 // launch a background task to be retried later on.
 
                 Timber.e("ERROR while signup ${apiResponse.errorMessage}")
-                if (apiResponse.httpStatusCode in listOf(424, 404)) {
+                if (apiResponse.httpStatusCode in listOf(424, 404, 403)) {
                     // simply pasted the wrong one
                     throw QASDKException("ParticipationID is invalid")
                 } else { // Network problem
@@ -1416,12 +1417,12 @@ class MVPRepository @Inject private constructor(
         )
     }
 
-    suspend fun updateDeviceInfo(): ApiResponse<DeviceRegistration> {
+    suspend fun updateDeviceInfo(context: Context): ApiResponse<DeviceRegistration> {
 
         val deviceInfo = DevicePatch(
             enableAppIdAccess = canUsage,
             enableDrawOverAccess = canDraw,
-            enableLocationAccess = canActivity,
+            enableLocationAccess = canActivity(context),
             firebaseTokenId = firebaseToken,
             packageUsingSdk = packageName
         )

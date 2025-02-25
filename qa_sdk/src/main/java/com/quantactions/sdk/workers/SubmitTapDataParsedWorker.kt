@@ -13,7 +13,6 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
-import com.quantactions.sdk.data.repository.DeviceHealthParsedToPush
 import com.quantactions.sdk.data.repository.MVPRepository
 import com.quantactions.sdk.data.repository.TapDataBody
 import com.quantactions.sdk.data.repository.TapDataParsedToPush
@@ -32,6 +31,11 @@ class SubmitTapDataParsedWorker(context: Context, params: WorkerParameters) :
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
 
         val toPushTap = getPendingTapDataParsed()
+
+        if (toPushTap.second.isEmpty()) {
+            Timber.d("No Tap data to push -> skip")
+            return@withContext Result.success()
+        }
 
         val tapHealthDataBody = TapDataBody(toPushTap.second)
 

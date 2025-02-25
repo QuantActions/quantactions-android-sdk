@@ -16,14 +16,14 @@ apply plugin: 'kotlinx-serialization'
 apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'com.google.devtools.ksp'
 
-def versionName = '1.1.1'
-def versionCode = '40'
+def versionName = '1.1.2'
+def versionCode = '47'
 
 android {
     compileSdk 34
 
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 22
         targetSdk 34
 
         buildFeatures.buildConfig true
@@ -48,6 +48,7 @@ android {
         buildConfigField("String", "QA_SAMPLE_PASSWORD", "\"${project.properties["qa_sample_password"]}\"")
         buildConfigField("String", "QA_SAMPLE_ID", "\"${project.properties["qa_sample_id"]}\"")
         buildConfigField("String", "QA_SAMPLE_PART_ID", "\"${project.properties["qa_sample_part_id"]}\"")
+        buildConfigField("String", "QA_VERIFICATION_CODE", "\"${project.properties["qa_verification_code"]}\"")
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
@@ -250,9 +251,6 @@ tasks.register('javadoc', Javadoc) {
 }
 
 // publish the library to github packages
-def githubProperties = new Properties()
-githubProperties.load(new FileInputStream(rootProject.file("github.properties"))) //Set env variable GPR_USER & GPR_API_KEY if not adding a properties file
-
 
 publishing {
     publications {
@@ -281,8 +279,8 @@ publishing {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/QuantActions/quantactions-android-sdk")
             credentials {
-                username = githubProperties['gpr.usr'] ?: System.getenv("GPR_USER")
-                password = githubProperties['gpr.key'] ?: System.getenv("GPR_API_KEY")
+                username = gprusr
+                password = gprkey
             }
         }
     }

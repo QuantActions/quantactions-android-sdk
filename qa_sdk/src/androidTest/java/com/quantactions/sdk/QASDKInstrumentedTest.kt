@@ -114,8 +114,9 @@ class SDKFunctionalityTest {
     @Throws(InterruptedException::class)
     fun testUpdateDeviceInfo() {
 
+        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
         val job = runBlocking {
-            when (val response = repository.updateDeviceInfo()) {
+            when (val response = repository.updateDeviceInfo(appContext)) {
                 is ApiErrorResponse -> {
                     Resource.error("", 404, null)
                 }
