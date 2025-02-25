@@ -806,6 +806,7 @@ class MVPRepository @Inject private constructor(
             deviceSpecificationId = coreDeviceSpecificationId,
             enableAppIdAccess = canUsage,
             enableDrawOverAccess = canDraw,
+            enableLocationAccess = canActivity,
             firebaseTokenId = firebaseToken,
             packageUsingSdk = packageName
         )

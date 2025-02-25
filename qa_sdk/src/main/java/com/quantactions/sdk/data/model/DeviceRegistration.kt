@@ -23,7 +23,7 @@ data class DeviceRegistration(
     val deviceSpecificationId: String? = null,
     val enableAppIdAccess: Boolean,
     val enableDrawOverAccess: Boolean,
-    val enableLocationAccess: Boolean = false,
+    val enableLocationAccess: Boolean,
     val enablePushNotification: Boolean = true,
     val firebaseTokenId: String? = null,
     val language: String = Locale.getDefault().language,
