@@ -16,6 +16,7 @@ import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
+import com.google.gson.Gson
 import com.hadiyarajesh.flower_core.ApiEmptyResponse
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiResponse
@@ -33,6 +34,7 @@ import com.quantactions.sdk.R
 import com.quantactions.sdk.Subscription
 import com.quantactions.sdk.TapsStats
 import com.quantactions.sdk.TimeSeries
+import com.quantactions.sdk.cognitive_tests.PVTResponse
 import com.quantactions.sdk.data.api.ApiService
 import com.quantactions.sdk.data.api.TokenApi
 import com.quantactions.sdk.data.api.TokenAuthenticator
@@ -42,6 +44,7 @@ import com.quantactions.sdk.data.api.responses.JournalEntriesResponse
 import com.quantactions.sdk.data.api.responses.RegistrationResponse
 import com.quantactions.sdk.data.entity.ActivityTransitionEntity
 import com.quantactions.sdk.data.entity.CodeOfApp
+import com.quantactions.sdk.data.entity.CognitiveTestEntity
 import com.quantactions.sdk.data.entity.Cohort
 import com.quantactions.sdk.data.entity.HourlyTapsEntity
 import com.quantactions.sdk.data.entity.JournalEntryEntity
@@ -161,6 +164,7 @@ class MVPRepository @Inject private constructor(
         get() = preferences.getFBCode()
     private lateinit var apiService: ApiService//.create(preferences, apiKey ?: preferences.apiKey)
     internal val mvpDao = getDatabase(context).mvpDao()
+    internal val cognitiveTestDao = getDatabase(context).cognitiveTestDao()
     val workManager = WorkManager.getInstance(context)
     private var canActivity = preferences.canActivity(context)
     private var canDraw = preferences.canDraw(context)
@@ -311,6 +315,21 @@ class MVPRepository @Inject private constructor(
     fun canUsage(context: Context): Boolean {
         canUsage = preferences.canUsage(context)
         return canUsage
+    }
+
+    suspend fun saveTestResult(testType: String, result: PVTResponse) {
+        val gson = Gson()
+        val resultJson = gson.toJson(result)
+        val entity = CognitiveTestEntity(testType = testType, resultJson = resultJson, sync = 0)
+        cognitiveTestDao.insert(entity)
+    }
+
+    suspend fun getTestResults(): List<PVTResponse> {
+        val gson = Gson()
+        val entities = cognitiveTestDao.getResultsForType("PVT")
+        return entities.map { entity ->
+            gson.fromJson(entity.resultJson, PVTResponse::class.java)
+        }
     }
 
     @ExperimentalCoroutinesApi

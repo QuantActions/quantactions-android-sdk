@@ -7,8 +7,11 @@
  * *******************************************************************************
  */
 
-package com.quantactions.sdk.cognitive_tests
+package com.quantactions.sdk
 
-enum class CognitiveTests {
-    PVT
+import androidx.room.TypeConverter
+import com.google.gson.Gson
+
+class JsonConverter {
+
 }

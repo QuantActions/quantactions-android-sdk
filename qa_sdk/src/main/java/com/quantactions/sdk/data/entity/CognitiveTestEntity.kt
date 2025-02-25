@@ -7,8 +7,15 @@
  * *******************************************************************************
  */
 
-package com.quantactions.sdk.cognitive_tests
+package com.quantactions.sdk.data.entity
 
-enum class CognitiveTests {
-    PVT
-}
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "cognitive_test_results")
+data class CognitiveTestEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val testType: String, // Discriminator: "memory", "attention", etc.
+    val resultJson: String, // The JSON string of the test result
+    val sync: Int
+)

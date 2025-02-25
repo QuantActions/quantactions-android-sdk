@@ -13,7 +13,6 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class PVTResponse(
-    val id: String,
     val reactionTimes: List<Long>,
     val waitTimes: List<Long>,
     val date: Long,

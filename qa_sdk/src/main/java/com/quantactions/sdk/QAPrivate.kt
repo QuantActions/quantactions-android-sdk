@@ -26,6 +26,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.hadiyarajesh.flower_core.ApiEmptyResponse
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
+import com.quantactions.sdk.cognitive_tests.PVTResponse
 import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
 import com.quantactions.sdk.data.entity.*
 import com.quantactions.sdk.data.model.JournalEntry
@@ -742,5 +743,13 @@ internal class QAPrivate private constructor(
     @Throws(QASDKException::class)
     suspend fun getConnectedDevices(): List<String> {
         return repository.getConnectedDevices()
+    }
+
+    suspend fun saveTestResult(tesType: String, testResult: PVTResponse) {
+        repository.saveTestResult(tesType, testResult)
+    }
+
+    suspend fun getTestResults(): List<PVTResponse> {
+        return repository.getTestResults()
     }
 }

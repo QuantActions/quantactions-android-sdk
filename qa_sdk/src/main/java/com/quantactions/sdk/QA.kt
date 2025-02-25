@@ -22,6 +22,7 @@ import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.quantactions.sdk.cognitive_tests.PVTResponse
 import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
 import com.quantactions.sdk.data.entity.*
 import com.quantactions.sdk.data.model.JournalEntry
@@ -574,5 +575,13 @@ class QA private constructor(
         newSelfDeclaredHealthy: Boolean = basicInfo.selfDeclaredHealthy
     ) {
         qaPrivate.updateBasicInfo(newYearOfBirth, newGender, newSelfDeclaredHealthy)
+    }
+
+    suspend fun saveTestResult(testResult: PVTResponse) {
+        qaPrivate.saveTestResult("PVT", testResult)
+    }
+
+    suspend fun getTestResults(): List<PVTResponse> {
+        return qaPrivate.getTestResults()
     }
 }
