@@ -27,13 +27,13 @@ class RegisterWorker(context: Context, params: WorkerParameters) :
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         repository.checkRegisteredStatus()
-        registerSpecificationsAndDevice(repository)
+        registerSpecificationsAndDevice(applicationContext, repository)
     }
 }
 
 
 
-suspend fun registerSpecificationsAndDevice(repository: MVPRepository): ListenableWorker.Result {
+suspend fun registerSpecificationsAndDevice(context: Context, repository: MVPRepository): ListenableWorker.Result {
     when (val response = repository.registerDeviceSpecifications()) {
         is ApiEmptyResponse -> {
             return ListenableWorker.Result.retry()
@@ -46,7 +46,7 @@ suspend fun registerSpecificationsAndDevice(repository: MVPRepository): Listenab
             return if (response.body != null) {
                 Timber.d("Registered device specs -> ${response.body!!.id}")
                 repository.saveDeviceSpecificationsId(response.body!!.id)
-                registerDevice(repository, response.body!!.id)
+                registerDevice(context, repository, response.body!!.id)
             } else {
                 ListenableWorker.Result.failure()
             }
@@ -54,8 +54,8 @@ suspend fun registerSpecificationsAndDevice(repository: MVPRepository): Listenab
     }
 }
 
-suspend fun registerDevice(repository: MVPRepository, id: String): ListenableWorker.Result {
-    when (val response2 = repository.registerUser(id)) {
+suspend fun registerDevice(context: Context, repository: MVPRepository, id: String): ListenableWorker.Result {
+    when (val response2 = repository.registerUser(context, id)) {
         is ApiEmptyResponse -> {
             return ListenableWorker.Result.retry()
         }
