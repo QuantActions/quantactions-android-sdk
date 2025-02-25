@@ -62,7 +62,7 @@ dependencies {
 1c. Add the QuantActions SDK dependency to your app-level `build.gradle` file
       
 ```groovy
-implementation 'com.quantactions:quantactions-android-sdk:1.1.0'
+implementation 'com.quantactions:quantactions-android-sdk:1.1.2'
 ```
       
 and re-sync the project. Remember to check the latest SDK version in case you are reading an old version of the documentation.
@@ -263,8 +263,8 @@ android {
 }
 
 dependencies {
-   coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
-   implementation 'com.quantactions:quantactions-android-sdk:1.1.0'
+   coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.2'
+   implementation 'com.quantactions:quantactions-android-sdk:1.1.2'
 }
 
 ```
