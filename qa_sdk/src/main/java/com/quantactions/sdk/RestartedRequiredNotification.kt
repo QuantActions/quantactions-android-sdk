@@ -56,8 +56,8 @@ open class RestartedRequiredNotificationImpl : RestartedRequiredNotification {
             R.color.brand_background_icon_color
         )
         mBuilder.setWhen(0)
-        mBuilder.setContentTitle(context.getString(R.string.action_required_restart_needed))
-        mBuilder.setContentText(context.getString(R.string.tap_to_open_and_restart))
+        mBuilder.setContentTitle(context.getString(R.string.qa_sdk_notification_title_action_required_restart_needed))
+        mBuilder.setContentText(context.getString(R.string.qa_sdk_notification_body_tap_to_open_and_restart))
         mBuilder.setAutoCancel(true)
         mBuilder.setContentIntent(
             PendingIntent.getActivity(

@@ -147,6 +147,8 @@ We suggest to ask this permission during the app onboarding process and to initi
 
 ### 3a. Android 14+ 
 
+#### 3a.1. Data Collection Notification
+
 Because QA SDK is always active in the background, Android API O and above require a notification to always be present to inform the user, by default the notification uses [this](https://fonts.google.com/icons?selected=Material%20Icons%20Outlined%3Aequalizer%3A) icon. To override it and use your own icon you can simply create a drawable named `ic_equalizer_black_24dp` and place it in your `res/drawable` folder and this will override the drawable of the SDK.
 
 From Android 14 (SDK 34), the OS is more strict with background/foreground service, hence the foreground data collection needs to
@@ -158,6 +160,30 @@ Finally you need to inform the SDK of the new notification in the following way:
 qa.updater = MyCustomNotification(qa)
 ```
 Note that the SDK notification uses a separate notification channel called `QA Service` and can be easily unselected by the user from the OS notifications settings to avoid having it always present.
+
+#### 3a.2. Missing Action Recognition Permission
+
+From Android 14 (SDK 34) the `Manifest.permission.ACTIVITY_RECOGNITION` is needed to run the SDK. If the permission is not granted or lost for any reason, the SDK will not be able to collect data. 
+While the data collection is set to restart itself if interrupted, in cases when this permission is missing the data collection cannot restart.
+In these cases an automatic notification will be shown to the user to inform them that the data collection is not running and that the permission is needed to restart it.
+
+You can customize the text of this notification by overwriting the following two strings in your `strings.xml` file:
+
+```xml
+<string name="qa_sdk_notification_title_app_needs_a_permission">Action Required: we need a permission</string>
+<string name="qa_sdk_notification_body_tap_to_open_and_grant_permission">Tap to open and grant permission for seamless data collection</string>
+```
+
+### Android 15+
+If your app targets Android 15 (SDK 35) or above, the automatic re-launch of data collection could be affected by Android SDK 35 that prevents background/foreground processes to be spawn when the phone is locked.
+Similarly to the Android 14 behaviour, if the restarts of the data collection fails for reasons related to the OS, the SDK will show a notification to the user to inform them that the data collection is not running and that the app needs to be open for the collection to be restarted.
+
+You can customize the text of this notification by overwriting the following two strings in your `strings.xml` file:
+
+```xml
+<string name="qa_sdk_notification_title_action_required_restart_needed">App Restart Required</string>
+<string name="qa_sdk_notification_body_tap_to_open_and_restart">Tap to restart the app for seamless data collection.</string>
+```
 
 ## 4. Sign-up to a cohort
 To track a device it is **necessary** to subscribe the device to a cohort. Each device can be subscribed in two ways. For a cohort with a known number of devices to track, QuantActions provides a set of codes (subscriptionIds) that have to be distributed. The way the code is entered into the app is the choice of the developer. In our TapCounter R&D app we use both a copy&paste method and a QR code scanning method, once the code as been acquired the device can then be registered using the SDK
