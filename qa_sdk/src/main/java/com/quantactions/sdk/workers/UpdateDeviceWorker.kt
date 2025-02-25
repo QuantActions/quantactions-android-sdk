@@ -29,7 +29,7 @@ class UpdateDeviceWorker(context: Context, params: WorkerParameters) :
 
         try {
             if (repository.deviceID == ""){
-                registerSpecificationsAndDevice(repository)
+                registerSpecificationsAndDevice(applicationContext, repository)
             }
         } catch (e: Exception) {
             try {
@@ -40,7 +40,7 @@ class UpdateDeviceWorker(context: Context, params: WorkerParameters) :
             e.printStackTrace()
         }
 
-        when (val response = repository.updateDeviceInfo()){
+        when (val response = repository.updateDeviceInfo(applicationContext)){
             is ApiErrorResponse -> {
                 Timber.e(response.errorMessage)
                 Result.failure()

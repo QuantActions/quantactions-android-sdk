@@ -151,7 +151,7 @@ internal class QAPrivate private constructor(
             preferences.oldToNewDBMigrationDone = true
             preferences.oldToNewAPIMigrationDone = true
             // I only register the user is it is the first launch, if this fails it will be retried upon sync
-            registerSpecificationsAndDevice()
+            registerSpecificationsAndDevice(context)
             checkAndRunService(context)
             return true
 
@@ -220,7 +220,7 @@ internal class QAPrivate private constructor(
     }
 
     @Throws(QASDKException::class)
-    private suspend fun registerSpecificationsAndDevice() {
+    private suspend fun registerSpecificationsAndDevice(context: Context) {
 
         repository.checkRegisteredStatus()
 
@@ -239,7 +239,7 @@ internal class QAPrivate private constructor(
                 if (response.body != null) {
                     Timber.d("Registered device specs -> ${response.body!!.id}")
                     repository.saveDeviceSpecificationsId(response.body!!.id)
-                    registerDevice(response.body!!.id)
+                    registerDevice(context, response.body!!.id)
                 } else {
                     throw QASDKException("Device registration failed, this should, never happen")                }
             }
@@ -250,8 +250,8 @@ internal class QAPrivate private constructor(
     }
 
     @Throws(QASDKException::class)
-    private suspend fun registerDevice(id: String) {
-        when (val response2 = repository.registerUser(id)) {
+    private suspend fun registerDevice(context: Context, id: String) {
+        when (val response2 = repository.registerUser(context, id)) {
             is ApiEmptyResponse -> {
                 throw QASDKException("Device registration failed, this should, never happen")
             }
