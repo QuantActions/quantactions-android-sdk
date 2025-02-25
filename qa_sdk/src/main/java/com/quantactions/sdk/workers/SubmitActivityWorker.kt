@@ -15,12 +15,7 @@ import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.quantactions.sdk.data.repository.ActivityBody
 import com.quantactions.sdk.data.repository.ActivityToPush
-import com.quantactions.sdk.data.repository.DeviceHealthParsedToPush
 import com.quantactions.sdk.data.repository.MVPRepository
-import com.quantactions.sdk.data.repository.TapDataBody
-import com.quantactions.sdk.data.repository.TapDataParsedToPush
-import com.quantactions.sdk.literalToIntList
-import com.quantactions.sdk.literalToLongList
 import com.squareup.moshi.JsonClass
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -34,6 +29,11 @@ class SubmitActivityWorker(context: Context, params: WorkerParameters) :
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
 
         val toPushTap = getPendingActivity()
+
+        if (toPushTap.second.isEmpty()) {
+            Timber.d("No Activity data to push -> skip")
+            return@withContext Result.success()
+        }
 
         val activityBody = ActivityBody(toPushTap.second)
 

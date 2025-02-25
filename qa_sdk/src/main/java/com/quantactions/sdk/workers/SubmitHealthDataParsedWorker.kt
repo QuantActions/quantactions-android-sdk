@@ -33,6 +33,11 @@ class SubmitHealthDataParsedWorker(context: Context, params: WorkerParameters) :
 
         val toPushHealth = pushPendingDeviceHealthParsed()
 
+        if (toPushHealth.second.isEmpty()) {
+            Timber.d("No Health data to push -> skip")
+            return@withContext Result.success()
+        }
+
         val tapHealthDataBody = HealthDataBody(toPushHealth.second)
 
             val healthIdsToUpdate = toPushHealth.first
