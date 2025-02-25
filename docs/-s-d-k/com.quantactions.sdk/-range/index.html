@@ -75,7 +75,7 @@
   <div class="breadcrumbs"><a href="../../../index.html">SDK</a><span class="delimiter">/</span><a href="../index.html">com.quantactions.sdk</a><span class="delimiter">/</span><span class="current">Range</span></div>
   <div class="cover ">
     <h1 class="cover"><span><span>Range</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":qa_sdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">Range</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>low<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-float/index.html">Float</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>high<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-float/index.html">Float</a></span></span><span class="token punctuation">)</span></div><p class="paragraph">For each subpopulation we provide a <a href="low.html">low</a> and a <a href="high.html">high</a> value for a range of a metric. Where <a href="high.html">high</a> is the 75% percentile while <a href="low.html">low</a> is the 25% percentile.</p></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":qa_sdk:dokkaHtml/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="com.squareup.moshi/JsonClass///PointingToDeclaration/"><span class="token annotation builtin">JsonClass</span></span><span class="token punctuation">(</span><span>generateAdapter<span class="token operator"> = </span><span class="breakable-word"><span class="token boolean">true</span></span></span><wbr></wbr><span class="token punctuation">)</span></div><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">class </span><a href="index.html">Range</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span><span class="token annotation builtin">@</span><span data-unresolved-link="com.squareup.moshi/Json///PointingToDeclaration/"><span class="token annotation builtin">Json</span></span><span class="token punctuation">(</span><span>name<span class="token operator"> = </span><span class="breakable-word"><span class="token string">&quot;25th&quot;</span></span></span><wbr></wbr><span class="token punctuation">)</span> </span><span class="token keyword">val </span>percentile25<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-float/index.html">Float</a><span class="token punctuation">, </span></span><span class="parameter "><span><span class="token annotation builtin">@</span><span data-unresolved-link="com.squareup.moshi/Json///PointingToDeclaration/"><span class="token annotation builtin">Json</span></span><span class="token punctuation">(</span><span>name<span class="token operator"> = </span><span class="breakable-word"><span class="token string">&quot;75th&quot;</span></span></span><wbr></wbr><span class="token punctuation">)</span> </span><span class="token keyword">val </span>percentile75<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-float/index.html">Float</a></span></span><span class="token punctuation">)</span></div><p class="paragraph">For each subpopulation we provide a <a href="percentile25.html">percentile25</a> and a <a href="percentile75.html">percentile75</a> value for a range of a metric. Where <a href="percentile75.html">percentile75</a> is the 75% percentile while <a href="percentile25.html">percentile25</a> is the 25% percentile.</p></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
@@ -92,7 +92,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":qa_sdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">low<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-float/index.html">Float</a><span class="token punctuation">, </span></span><span class="parameter ">high<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-float/index.html">Float</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":qa_sdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span><span class="token annotation builtin">@</span><span data-unresolved-link="com.squareup.moshi/Json///PointingToDeclaration/"><span class="token annotation builtin">Json</span></span><span class="token punctuation">(</span><span>name<span class="token operator"> = </span><span class="breakable-word"><span class="token string">&quot;25th&quot;</span></span></span><wbr></wbr><span class="token punctuation">)</span> </span>percentile25<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-float/index.html">Float</a><span class="token punctuation">, </span></span><span class="parameter "><span><span class="token annotation builtin">@</span><span data-unresolved-link="com.squareup.moshi/Json///PointingToDeclaration/"><span class="token annotation builtin">Json</span></span><span class="token punctuation">(</span><span>name<span class="token operator"> = </span><span class="breakable-word"><span class="token string">&quot;75th&quot;</span></span></span><wbr></wbr><span class="token punctuation">)</span> </span>percentile75<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-float/index.html">Float</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
@@ -101,32 +101,32 @@
       </div>
       <div data-togglable="PROPERTY">
         <h2 class="">Properties</h2>
-        <div class="table"><a data-name="709153357%2FProperties%2F740937853" anchor-label="high" id="709153357%2FProperties%2F740937853" data-filterable-set=":qa_sdk:dokkaHtml/release"></a>
+        <div class="table"><a data-name="349040495%2FProperties%2F740937853" anchor-label="percentile25" id="349040495%2FProperties%2F740937853" data-filterable-set=":qa_sdk:dokkaHtml/release"></a>
           <div class="table-row" data-filterable-current=":qa_sdk:dokkaHtml/release" data-filterable-set=":qa_sdk:dokkaHtml/release">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="high.html"><span><span>high</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="709153357%2FProperties%2F740937853"></span>
+                  <div><a href="percentile25.html"><span><span>percentile25</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="349040495%2FProperties%2F740937853"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":qa_sdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="high.html">high</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-float/index.html">Float</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":qa_sdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="percentile25.html">percentile25</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-float/index.html">Float</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1142763849%2FProperties%2F740937853" anchor-label="low" id="-1142763849%2FProperties%2F740937853" data-filterable-set=":qa_sdk:dokkaHtml/release"></a>
+<a data-name="862143284%2FProperties%2F740937853" anchor-label="percentile75" id="862143284%2FProperties%2F740937853" data-filterable-set=":qa_sdk:dokkaHtml/release"></a>
           <div class="table-row" data-filterable-current=":qa_sdk:dokkaHtml/release" data-filterable-set=":qa_sdk:dokkaHtml/release">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="low.html"><span><span>low</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1142763849%2FProperties%2F740937853"></span>
+                  <div><a href="percentile75.html"><span><span>percentile75</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="862143284%2FProperties%2F740937853"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":qa_sdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="low.html">low</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-float/index.html">Float</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":qa_sdk:dokkaHtml/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="percentile75.html">percentile75</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin-stdlib/kotlin/-float/index.html">Float</a></div></div></div>
                 </div>
               </div>
             </div>
