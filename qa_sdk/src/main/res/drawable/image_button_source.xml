@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ /********************************************************************************
   ~ Copyright (C) QuantActions AG - All Rights Reserved
   ~ Unauthorized copying of this file, via any medium is strictly prohibited
@@ -8,9 +7,7 @@
   ~ *********************************************************************************/
   -->
 
-<resources>
-    <color name="white">#FFFFFF</color>
-    <color name="brand_background_icon_color">#FFFFFF</color>
-    <color name="brand_cognitive_tests_background">#000000</color>
-
-</resources>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/baseline_bolt_24_pressed" android:state_pressed="true" />
+    <item android:drawable="@drawable/baseline_bolt_24" /> <!-- Default state -->
+</selector>

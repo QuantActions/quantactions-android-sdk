@@ -26,7 +26,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.hadiyarajesh.flower_core.ApiEmptyResponse
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
-import com.quantactions.sdk.cognitive_tests.PVTResponse
+import com.quantactions.sdk.cognitive_tests.pvt.PVTResponse
 import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
 import com.quantactions.sdk.data.entity.*
 import com.quantactions.sdk.data.model.JournalEntry

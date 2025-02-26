@@ -40,6 +40,9 @@
 
     <application>
 
+        <activity android:name=".cognitive_tests.pvt.PVTActivity">
+        </activity>
+
 <!--        <service-->
 <!--            android:name=".ReadingsService"-->
 <!--            android:exported="true"-->

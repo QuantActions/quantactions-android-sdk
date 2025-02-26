@@ -22,7 +22,8 @@ import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.quantactions.sdk.cognitive_tests.PVTResponse
+import com.quantactions.sdk.cognitive_tests.pvt.PVTActivity
+import com.quantactions.sdk.cognitive_tests.pvt.PVTResponse
 import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
 import com.quantactions.sdk.data.entity.*
 import com.quantactions.sdk.data.model.JournalEntry
@@ -583,5 +584,10 @@ class QA private constructor(
 
     suspend fun getTestResults(): List<PVTResponse> {
         return qaPrivate.getTestResults()
+    }
+
+    fun startCognitiveTest(context: Context, testType: String) {
+        val intent = Intent(context, PVTActivity::class.java)
+        context.startActivity(intent)
     }
 }

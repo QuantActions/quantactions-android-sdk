@@ -7,7 +7,7 @@
  * *******************************************************************************
  */
 
-package com.quantactions.sdk.cognitive_tests
+package com.quantactions.sdk.cognitive_tests.pvt
 
 import com.squareup.moshi.JsonClass
 

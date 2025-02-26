@@ -160,6 +160,8 @@ dependencies {
 
     dokkaHtmlPlugin 'org.jetbrains.dokka:android-documentation-plugin:1.7.20'
 
+    // UI for cognitive tests
+    api("com.google.android.material:material:1.12.0")
 }
 
 

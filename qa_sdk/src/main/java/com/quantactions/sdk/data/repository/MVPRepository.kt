@@ -34,7 +34,7 @@ import com.quantactions.sdk.R
 import com.quantactions.sdk.Subscription
 import com.quantactions.sdk.TapsStats
 import com.quantactions.sdk.TimeSeries
-import com.quantactions.sdk.cognitive_tests.PVTResponse
+import com.quantactions.sdk.cognitive_tests.pvt.PVTResponse
 import com.quantactions.sdk.data.api.ApiService
 import com.quantactions.sdk.data.api.TokenApi
 import com.quantactions.sdk.data.api.TokenAuthenticator

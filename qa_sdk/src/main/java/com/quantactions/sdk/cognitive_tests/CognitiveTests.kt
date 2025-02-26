@@ -10,5 +10,6 @@
 package com.quantactions.sdk.cognitive_tests
 
 enum class CognitiveTests {
-    PVT
+    PVT,
+    DotMemory,
 }
