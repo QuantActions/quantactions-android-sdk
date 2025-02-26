@@ -10,7 +10,8 @@
 
 <resources>
     <color name="white">#FFFFFF</color>
-    <color name="brand_background_icon_color">#FFFFFF</color>
-    <color name="brand_cognitive_tests_background">#000000</color>
+    <color name="black">#000000</color>
+    <color name="brand_background_icon_color">@color/white</color>
+    <color name="brand_cognitive_tests_background">@color/black</color>
 
 </resources>

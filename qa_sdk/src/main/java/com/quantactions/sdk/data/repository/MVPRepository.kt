@@ -34,7 +34,8 @@ import com.quantactions.sdk.R
 import com.quantactions.sdk.Subscription
 import com.quantactions.sdk.TapsStats
 import com.quantactions.sdk.TimeSeries
-import com.quantactions.sdk.cognitive_tests.pvt.PVTResponse
+import com.quantactions.sdk.cognitivetests.dotmemory.DotMemoryTestResponse
+import com.quantactions.sdk.cognitivetests.pvt.PVTResponse
 import com.quantactions.sdk.data.api.ApiService
 import com.quantactions.sdk.data.api.TokenApi
 import com.quantactions.sdk.data.api.TokenAuthenticator
@@ -317,18 +318,33 @@ class MVPRepository @Inject private constructor(
         return canUsage
     }
 
-    suspend fun saveTestResult(testType: String, result: PVTResponse) {
+    suspend fun savePVTResult(result: PVTResponse) {
         val gson = Gson()
         val resultJson = gson.toJson(result)
-        val entity = CognitiveTestEntity(testType = testType, resultJson = resultJson, sync = 0)
+        val entity = CognitiveTestEntity(testType = "PVT", resultJson = resultJson, sync = 0)
         cognitiveTestDao.insert(entity)
     }
 
-    suspend fun getTestResults(): List<PVTResponse> {
+    suspend fun getPVTResults(): List<PVTResponse> {
         val gson = Gson()
         val entities = cognitiveTestDao.getResultsForType("PVT")
         return entities.map { entity ->
             gson.fromJson(entity.resultJson, PVTResponse::class.java)
+        }
+    }
+
+    suspend fun saveDotMemoryTestResult(result: DotMemoryTestResponse) {
+        val gson = Gson()
+        val resultJson = gson.toJson(result)
+        val entity = CognitiveTestEntity(testType = "DotMemory", resultJson = resultJson, sync = 0)
+        cognitiveTestDao.insert(entity)
+    }
+
+    suspend fun getDotMemoryTestResults(): List<DotMemoryTestResponse> {
+        val gson = Gson()
+        val entities = cognitiveTestDao.getResultsForType("DotMemory")
+        return entities.map { entity ->
+            gson.fromJson(entity.resultJson, DotMemoryTestResponse::class.java)
         }
     }
 

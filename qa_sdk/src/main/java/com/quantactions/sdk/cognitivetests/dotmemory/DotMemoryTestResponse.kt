@@ -7,16 +7,15 @@
  * *******************************************************************************
  */
 
-package com.quantactions.sdk.cognitive_tests.pvt
+package com.quantactions.sdk.cognitivetests.dotmemory
 
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class PVTResponse(
-    val reactionTimes: List<Long>,
-    val waitTimes: List<Long>,
+data class DotMemoryTestResponse(
+    val timeTaken: List<Long>,
+    val recallErrorScore: List<Double>,
+    val proportionOfDistractors: List<Double>,
     val date: Long,
-    val localTime: String,
-    val falseStartCount: Int,
-    val noResponseCount: Int
+    val localTime: String
 )

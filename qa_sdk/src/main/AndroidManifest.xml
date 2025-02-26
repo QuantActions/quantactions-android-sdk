@@ -40,7 +40,10 @@
 
     <application>
 
-        <activity android:name=".cognitive_tests.pvt.PVTActivity">
+        <activity android:name=".cognitivetests.pvt.PVTActivity">
+        </activity>
+
+        <activity android:name=".cognitivetests.dotmemory.DotMemoryTestActivity">
         </activity>
 
 <!--        <service-->

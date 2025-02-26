@@ -7,7 +7,7 @@
  * *******************************************************************************
  */
 
-package com.quantactions.sdk.cognitive_tests.pvt
+package com.quantactions.sdk.cognitivetests.pvt
 
 import android.annotation.SuppressLint
 import android.os.Bundle

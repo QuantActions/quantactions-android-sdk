@@ -7,9 +7,10 @@
  * *******************************************************************************
  */
 
-package com.quantactions.sdk.cognitive_tests.pvt
+package com.quantactions.sdk.cognitivetests.dotmemory
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.quantactions.sdk.QA
@@ -29,40 +30,35 @@ import javax.inject.Inject
  * @param application Android application
  * */
 
-open class PVTViewModel @Inject constructor(
+open class DotMemoryTestViewModel @Inject constructor(
     application: Application,
 ) : AndroidViewModel(application) {
 
 
-    private var _testResults = MutableStateFlow(listOf<PVTResponse>())
-    val testResults: StateFlow<List<PVTResponse>> get() = _testResults
+    private var _testResults = MutableStateFlow(listOf<DotMemoryTestResponse>())
+    val testResults: StateFlow<List<DotMemoryTestResponse>> get() = _testResults
 
     private var _saving = MutableStateFlow(false)
     val saving: StateFlow<Boolean> get() = _saving
 
     private val qa = QA.getInstance(application.applicationContext)
 
-    private fun getTestResults() {
+    fun getTestResults() {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-            val studies = qa.getTestResults()
-            _testResults.value = studies
+                val results = qa.getDotMemoryTestResults()
+                _testResults.value = results
             }
         }
     }
 
-    suspend fun saveResponse(response: PVTResponse) {
-            withContext(Dispatchers.Default) {
-                _saving.value = true
-                qa.saveTestResult(response)
-                _saving.value = false
-            }
+    suspend fun saveResponse(response: DotMemoryTestResponse) {
+        withContext(Dispatchers.Default) {
+            _saving.value = true
+            qa.saveDotMemoryTestResult(response)
+            _saving.value = false
+        }
     }
-
-    init {
-        getTestResults()
-    }
-
 
 }
 

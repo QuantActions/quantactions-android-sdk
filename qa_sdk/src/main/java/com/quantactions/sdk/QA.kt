@@ -22,8 +22,11 @@ import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.quantactions.sdk.cognitive_tests.pvt.PVTActivity
-import com.quantactions.sdk.cognitive_tests.pvt.PVTResponse
+import com.quantactions.sdk.cognitivetests.CognitiveTest
+import com.quantactions.sdk.cognitivetests.dotmemory.DotMemoryTestActivity
+import com.quantactions.sdk.cognitivetests.dotmemory.DotMemoryTestResponse
+import com.quantactions.sdk.cognitivetests.pvt.PVTActivity
+import com.quantactions.sdk.cognitivetests.pvt.PVTResponse
 import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
 import com.quantactions.sdk.data.entity.*
 import com.quantactions.sdk.data.model.JournalEntry
@@ -578,16 +581,33 @@ class QA private constructor(
         qaPrivate.updateBasicInfo(newYearOfBirth, newGender, newSelfDeclaredHealthy)
     }
 
-    suspend fun saveTestResult(testResult: PVTResponse) {
-        qaPrivate.saveTestResult("PVT", testResult)
+    suspend fun savePVTResult(testResult: PVTResponse) {
+        qaPrivate.savePVTResult(testResult)
     }
 
-    suspend fun getTestResults(): List<PVTResponse> {
-        return qaPrivate.getTestResults()
+    suspend fun getPVTResults(): List<PVTResponse> {
+        return qaPrivate.getPVTResults()
     }
 
-    fun startCognitiveTest(context: Context, testType: String) {
-        val intent = Intent(context, PVTActivity::class.java)
-        context.startActivity(intent)
+    suspend fun saveDotMemoryTestResult(testResult: DotMemoryTestResponse) {
+        qaPrivate.saveDotMemoryTestResult(testResult)
+    }
+
+    suspend fun getDotMemoryTestResults(): List<DotMemoryTestResponse> {
+        return qaPrivate.getDotMemoryTestResults()
+    }
+
+    fun startCognitiveTest(context: Context, cognitiveTest: CognitiveTest) {
+        when (cognitiveTest) {
+            CognitiveTest.PVT -> {
+                val intent = Intent(context, PVTActivity::class.java)
+                context.startActivity(intent)
+            }
+
+            CognitiveTest.DotMemory -> {
+                val intent = Intent(context, DotMemoryTestActivity::class.java)
+                context.startActivity(intent)
+            }
+        }
     }
 }

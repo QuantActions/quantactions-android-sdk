@@ -26,7 +26,8 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.hadiyarajesh.flower_core.ApiEmptyResponse
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
-import com.quantactions.sdk.cognitive_tests.pvt.PVTResponse
+import com.quantactions.sdk.cognitivetests.dotmemory.DotMemoryTestResponse
+import com.quantactions.sdk.cognitivetests.pvt.PVTResponse
 import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
 import com.quantactions.sdk.data.entity.*
 import com.quantactions.sdk.data.model.JournalEntry
@@ -745,11 +746,19 @@ internal class QAPrivate private constructor(
         return repository.getConnectedDevices()
     }
 
-    suspend fun saveTestResult(tesType: String, testResult: PVTResponse) {
-        repository.saveTestResult(tesType, testResult)
+    suspend fun savePVTResult(testResult: PVTResponse) {
+        repository.savePVTResult(testResult)
     }
 
-    suspend fun getTestResults(): List<PVTResponse> {
-        return repository.getTestResults()
+    suspend fun getPVTResults(): List<PVTResponse> {
+        return repository.getPVTResults()
+    }
+
+    suspend fun saveDotMemoryTestResult(testResult: DotMemoryTestResponse) {
+        repository.saveDotMemoryTestResult(testResult)
+    }
+
+    suspend fun getDotMemoryTestResults(): List<DotMemoryTestResponse> {
+        return repository.getDotMemoryTestResults()
     }
 }
