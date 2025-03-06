@@ -318,10 +318,20 @@ class MVPRepository @Inject private constructor(
         return canUsage
     }
 
-    suspend fun savePVTResult(result: PVTResponse) {
+    suspend fun savePVTResult(
+        result: PVTResponse,
+        timestamp: Long,
+        localTime: String
+    ) {
         val gson = Gson()
         val resultJson = gson.toJson(result)
-        val entity = CognitiveTestEntity(testType = "PVT", resultJson = resultJson, sync = 0)
+        val entity = CognitiveTestEntity(
+            testType = "PVT",
+            results = resultJson,
+            timestamp = timestamp,
+            localTime = localTime,
+            sync = 0
+        )
         cognitiveTestDao.insert(entity)
     }
 
@@ -329,14 +339,24 @@ class MVPRepository @Inject private constructor(
         val gson = Gson()
         val entities = cognitiveTestDao.getResultsForType("PVT")
         return entities.map { entity ->
-            gson.fromJson(entity.resultJson, PVTResponse::class.java)
+            gson.fromJson(entity.results, PVTResponse::class.java)
         }
     }
 
-    suspend fun saveDotMemoryTestResult(result: DotMemoryTestResponse) {
+    suspend fun saveDotMemoryTestResult(
+        result: DotMemoryTestResponse,
+        timestamp: Long,
+        localTime: String
+    ) {
         val gson = Gson()
         val resultJson = gson.toJson(result)
-        val entity = CognitiveTestEntity(testType = "DotMemory", resultJson = resultJson, sync = 0)
+        val entity = CognitiveTestEntity(
+            testType = "DotMemory",
+            results = resultJson,
+            timestamp = timestamp,
+            localTime = localTime,
+            sync = 0
+        )
         cognitiveTestDao.insert(entity)
     }
 
@@ -344,7 +364,7 @@ class MVPRepository @Inject private constructor(
         val gson = Gson()
         val entities = cognitiveTestDao.getResultsForType("DotMemory")
         return entities.map { entity ->
-            gson.fromJson(entity.resultJson, DotMemoryTestResponse::class.java)
+            gson.fromJson(entity.results, DotMemoryTestResponse::class.java)
         }
     }
 
@@ -1715,6 +1735,35 @@ class MVPRepository @Inject private constructor(
 
             is ApiEmptyResponse -> {
                 throw QASDKException("Response Body to identity is empty, this should not happen, file a bug report!")
+            }
+        }
+    }
+
+    suspend fun submitCognitiveTestResponse(
+        answer: CognitiveTestEntity
+    ) {
+
+        cognitiveTestDao.insertOrUpdateCognitiveTestResult(answer)
+        val idToDelete = answer.id
+        val toPush = CognitiveTestEntity.toBody(answer)
+
+        val apiResponse = apiService.submitCognitiveTestResponse(
+            identityId, toPush
+        )
+
+        when (apiResponse) {
+            is ApiSuccessResponse -> {
+                apiResponse.body?.let {
+                    cognitiveTestDao.deleteCognitiveTestResult(idToDelete)
+                }
+            }
+
+            is ApiErrorResponse -> {
+                throw QASDKException("API Error [submitCognitiveTestResponse()]: ${apiResponse.errorMessage} || ${apiResponse.httpStatusCode}")
+            }
+
+            is ApiEmptyResponse -> {
+                throw QASDKException("Response Body to sendQuestionnaire is empty, this should not happen, file a bug report!")
             }
         }
     }

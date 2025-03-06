@@ -134,22 +134,22 @@ class DotMemoryTestActivity : AppCompatActivity() {
 
     private fun prepareGrid(grid: GridLayout) {
 
-            val cellSize = calculateCellSize(grid)
-            Log.d("Cell size", "place random dots $cellSize")
+        val cellSize = calculateCellSize(grid)
+        Log.d("Cell size", "place random dots $cellSize")
 
-            (0 until 25).forEach { pos ->
-                val dot = View(this@DotMemoryTestActivity).apply {
-                    setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background))
-                }
-                val params = GridLayout.LayoutParams().apply {
-                    rowSpec = GridLayout.spec(pos / 5)
-                    columnSpec = GridLayout.spec(pos % 5)
-                    width = cellSize
-                    height = cellSize
-                    setMargins(3, 3, 3, 3)
-                }
-                grid.addView(dot, params)
+        (0 until 25).forEach { pos ->
+            val dot = View(this@DotMemoryTestActivity).apply {
+                setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background))
             }
+            val params = GridLayout.LayoutParams().apply {
+                rowSpec = GridLayout.spec(pos / 5)
+                columnSpec = GridLayout.spec(pos % 5)
+                width = cellSize
+                height = cellSize
+                setMargins(3, 3, 3, 3)
+            }
+            grid.addView(dot, params)
+        }
     }
 
     private fun placeRandomDots(grid: GridLayout, numDots: Int) {
@@ -178,163 +178,165 @@ class DotMemoryTestActivity : AppCompatActivity() {
             }
             grid.addView(dot, params)
         }
-}
-
-private fun placeRandomLetters(grid: GridLayout, numFs: Int) {
-    positionsFs.clear()
-    selectedLetters.clear()
-    while (positionsFs.size < numFs) {
-        positionsFs.add(Random.nextInt(0, 40))
     }
 
-    val cellSize = calculateCellSize(grid)
-    Log.d("Cell size", "place random letters $cellSize")
+    private fun placeRandomLetters(grid: GridLayout, numFs: Int) {
+        positionsFs.clear()
+        selectedLetters.clear()
+        while (positionsFs.size < numFs) {
+            positionsFs.add(Random.nextInt(0, 40))
+        }
 
-    for (i in 0 until 40) {
-        val letter = TextView(this).apply {
-            text = if (positionsFs.contains(i)) "F" else "E"
-            setTextColor(resources.getColor(R.color.white))
-            setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background))
-            textSize = 24f
-            gravity = android.view.Gravity.CENTER
-            tag = "unselected"
-            setOnClickListener {
-                if (tag == "unselected") {
-                    setBackgroundColor(resources.getColor(R.color.white))
-                    setTextColor(resources.getColor(R.color.brand_cognitive_tests_background))
-                    tag = "selected"
-                    selectedLetters.add(i)
-                } else {
-                    setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background))
-                    setTextColor(resources.getColor(R.color.white))
-                    tag = "unselected"
-                    selectedLetters.remove(i)
+        val cellSize = calculateCellSize(grid)
+        Log.d("Cell size", "place random letters $cellSize")
+
+        for (i in 0 until 40) {
+            val letter = TextView(this).apply {
+                text = if (positionsFs.contains(i)) "F" else "E"
+                setTextColor(resources.getColor(R.color.white))
+                setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background))
+                textSize = 24f
+                gravity = android.view.Gravity.CENTER
+                tag = "unselected"
+                setOnClickListener {
+                    if (tag == "unselected") {
+                        setBackgroundColor(resources.getColor(R.color.white))
+                        setTextColor(resources.getColor(R.color.brand_cognitive_tests_background))
+                        tag = "selected"
+                        selectedLetters.add(i)
+                    } else {
+                        setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background))
+                        setTextColor(resources.getColor(R.color.white))
+                        tag = "unselected"
+                        selectedLetters.remove(i)
+                    }
                 }
             }
+            val params = GridLayout.LayoutParams().apply {
+                rowSpec = GridLayout.spec(i / 5)
+                columnSpec = GridLayout.spec(i % 5)
+                width = cellSize
+                height = cellSize
+                setMargins(3, 3, 3, 3)
+            }
+            grid.addView(letter, params)
         }
-        val params = GridLayout.LayoutParams().apply {
-            rowSpec = GridLayout.spec(i / 5)
-            columnSpec = GridLayout.spec(i % 5)
-            width = cellSize
-            height = cellSize
-            setMargins(3, 3, 3, 3)
-        }
-        grid.addView(letter, params)
     }
-}
 
-private fun setupRecallGrid(grid: GridLayout) {
-    val cellSize = calculateCellSize(grid)
-    Log.d("Cell size", "setup recall grid $cellSize")
-    placedDots.clear()
-    placedDotsCount = 0
+    private fun setupRecallGrid(grid: GridLayout) {
+        val cellSize = calculateCellSize(grid)
+        Log.d("Cell size", "setup recall grid $cellSize")
+        placedDots.clear()
+        placedDotsCount = 0
 
-    for (i in 0 until 25) {
-        val cell = View(this).apply {
-            setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background))
-            tag = "unselected"
-            setOnClickListener {
-                if (tag == "unselected" && placedDotsCount < 3) {
-                    setBackgroundResource(R.drawable.circle_shape)
-                    tag = "selected"
-                    placedDotsCount++
-                    placedDots.add(i)
-                } else if (tag == "selected") {
-                    setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background))
-                    tag = "unselected"
-                    placedDotsCount--
-                    placedDots.remove(i)
+        for (i in 0 until 25) {
+            val cell = View(this).apply {
+                setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background))
+                tag = "unselected"
+                setOnClickListener {
+                    if (tag == "unselected" && placedDotsCount < 3) {
+                        setBackgroundResource(R.drawable.circle_shape)
+                        tag = "selected"
+                        placedDotsCount++
+                        placedDots.add(i)
+                    } else if (tag == "selected") {
+                        setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background))
+                        tag = "unselected"
+                        placedDotsCount--
+                        placedDots.remove(i)
+                    }
                 }
             }
+            val params = GridLayout.LayoutParams().apply {
+                rowSpec = GridLayout.spec(i / 5)
+                columnSpec = GridLayout.spec(i % 5)
+                width = cellSize
+                height = cellSize
+                setMargins(3, 3, 3, 3)
+            }
+            grid.addView(cell, params)
         }
-        val params = GridLayout.LayoutParams().apply {
-            rowSpec = GridLayout.spec(i / 5)
-            columnSpec = GridLayout.spec(i % 5)
-            width = cellSize
-            height = cellSize
-            setMargins(3, 3, 3, 3)
-        }
-        grid.addView(cell, params)
     }
-}
 
-private fun calculateCellSize(grid: GridLayout): Int {
-    val displayMetrics = DisplayMetrics()
-    windowManager.defaultDisplay.getMetrics(displayMetrics)
-    val screenWidth = displayMetrics.widthPixels
-    val screenHeight = displayMetrics.heightPixels
-    val gridSize = min(screenWidth, screenHeight) * 0.9 - 40 // 40dp margin (20dp each side)
-    return (gridSize / grid.columnCount).toInt()
-}
+    private fun calculateCellSize(grid: GridLayout): Int {
+        val displayMetrics = DisplayMetrics()
+        windowManager.defaultDisplay.getMetrics(displayMetrics)
+        val screenWidth = displayMetrics.widthPixels
+        val screenHeight = displayMetrics.heightPixels
+        val gridSize = min(screenWidth, screenHeight) * 0.9 - 40 // 40dp margin (20dp each side)
+        return (gridSize / grid.columnCount).toInt()
+    }
 
-private fun calculateRecallErrorScore(): Double {
-    val distances = mutableListOf<Double>()
-    for (target in targetDots) {
-        for (placed in placedDots) {
-            val targetRow = target / 5
-            val targetCol = target % 5
-            val placedRow = placed / 5
-            val placedCol = placed % 5
-            val distance = sqrt(
-                (targetRow - placedRow).toDouble().pow(2) + (targetCol - placedCol).toDouble()
-                    .pow(2)
+    private fun calculateRecallErrorScore(): Double {
+        val distances = mutableListOf<Double>()
+        for (target in targetDots) {
+            for (placed in placedDots) {
+                val targetRow = target / 5
+                val targetCol = target % 5
+                val placedRow = placed / 5
+                val placedCol = placed % 5
+                val distance = sqrt(
+                    (targetRow - placedRow).toDouble().pow(2) + (targetCol - placedCol).toDouble()
+                        .pow(2)
+                )
+                distances.add(distance)
+            }
+        }
+        distances.sort()
+        return distances.take(3).sum()
+    }
+
+    private fun calculateProportionOfDistractors(): Double {
+        val numberFsSelected = selectedLetters.intersect(positionsFs).size
+        val numberEsSelected = selectedLetters.size - numberFsSelected
+        return (numberFsSelected.toDouble() - numberEsSelected) / numFs
+    }
+
+    private fun showFinalResults() {
+        val avgTimeTaken = timeTakenList.average()
+        val avgRecallErrorScore = recallErrorScoreList.average()
+        val avgProportionOfDistractors = proportionOfDistractorsList.average()
+
+        timeTakenTextView.text = "Average Time Taken: ${avgTimeTaken / 1000.0} seconds\n" +
+                "Average Recall Error Score: ${"%.2f".format(avgRecallErrorScore)}\n" +
+                "Average Proportion of Distractors: ${"%.2f".format(avgProportionOfDistractors)}"
+        timeTakenTextView.visibility = View.VISIBLE
+
+
+        // save
+        val res = DotMemoryTestResponse(
+            timeTaken = timeTakenList,
+            recallErrorScore = recallErrorScoreList,
+            proportionOfDistractors = proportionOfDistractorsList,
+        )
+
+        // Here we show a loading dialog while we save the response
+        // after the response has been saved we dismiss the dialog and close the activity
+        val loadingDialog = MaterialAlertDialogBuilder(this)
+            .setTitle("Saving response")
+            .setMessage("Median RT: $avgTimeTaken ms\nPlease wait...")
+            .setPositiveButton("Finish") { dialog, _ ->
+                dialog.dismiss()
+                finish()
+            }
+            // button should be disable until we can go back
+            .setCancelable(false)
+            .create()
+        loadingDialog.show()
+
+        loadingDialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
+        lifecycle.coroutineScope.launch(Dispatchers.IO) {
+            viewModel.saveResponse(
+                res,
+                timestamp = System.currentTimeMillis(),
+                localTime = LocalTime.now().toString(),
             )
-            distances.add(distance)
+            runOnUiThread {
+                loadingDialog.setMessage("Median RT: $avgTimeTaken ms\nDone!")
+                loadingDialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
+            }
         }
+
+
     }
-    distances.sort()
-    return distances.take(3).sum()
-}
-
-private fun calculateProportionOfDistractors(): Double {
-    val numberFsSelected = selectedLetters.intersect(positionsFs).size
-    val numberEsSelected = selectedLetters.size - numberFsSelected
-    return (numberFsSelected.toDouble() - numberEsSelected) / numFs
-}
-
-private fun showFinalResults() {
-    val avgTimeTaken = timeTakenList.average()
-    val avgRecallErrorScore = recallErrorScoreList.average()
-    val avgProportionOfDistractors = proportionOfDistractorsList.average()
-
-    timeTakenTextView.text = "Average Time Taken: ${avgTimeTaken / 1000.0} seconds\n" +
-            "Average Recall Error Score: ${"%.2f".format(avgRecallErrorScore)}\n" +
-            "Average Proportion of Distractors: ${"%.2f".format(avgProportionOfDistractors)}"
-    timeTakenTextView.visibility = View.VISIBLE
-
-
-    // save
-    val res = DotMemoryTestResponse(
-        timeTaken = timeTakenList,
-        recallErrorScore = recallErrorScoreList,
-        proportionOfDistractors = proportionOfDistractorsList,
-        date = System.currentTimeMillis(),
-        localTime = LocalTime.now().toString(),
-    )
-
-    // Here we show a loading dialog while we save the response
-    // after the response has been saved we dismiss the dialog and close the activity
-    val loadingDialog = MaterialAlertDialogBuilder(this)
-        .setTitle("Saving response")
-        .setMessage("Median RT: $avgTimeTaken ms\nPlease wait...")
-        .setPositiveButton("Finish") { dialog, _ ->
-            dialog.dismiss()
-            finish()
-        }
-        // button should be disable until we can go back
-        .setCancelable(false)
-        .create()
-    loadingDialog.show()
-
-    loadingDialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
-    lifecycle.coroutineScope.launch(Dispatchers.IO) {
-        viewModel.saveResponse(res)
-        runOnUiThread {
-            loadingDialog.setMessage("Median RT: $avgTimeTaken ms\nDone!")
-            loadingDialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
-        }
-    }
-
-
-}
 }

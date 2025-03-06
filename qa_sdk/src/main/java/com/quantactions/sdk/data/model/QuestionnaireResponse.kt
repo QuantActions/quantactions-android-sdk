@@ -18,7 +18,6 @@ import com.squareup.moshi.JsonClass
  */
 @JsonClass(generateAdapter = true)
 data class QuestionnaireResponse(
-    // TODO this should be accepted
     val created: String,
     val response: Map<String, Any?>?
 )

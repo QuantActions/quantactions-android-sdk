@@ -23,10 +23,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.coroutineScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.quantactions.sdk.BuildConfig
 import com.quantactions.sdk.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import kotlin.random.Random
 
 class PVTActivity : AppCompatActivity() {
@@ -44,7 +47,7 @@ class PVTActivity : AppCompatActivity() {
     private val reactionTimes =
         mutableListOf<Triple<Long, Long, TrialType>>() // Triple of reaction time, waiting time, and trial type
     private var currentWaitingTime: Long = 0
-    private val maxTestDuration: Long = 3 * 60 * 1000 // 3 minutes in milliseconds
+    private val maxTestDuration: Long = (if (BuildConfig.DEBUG) 1 else 3) * 60 * 1000L // 3 minutes in milliseconds
     private var noResponseCounter: Int = 0
     private val listOfRandomTimes: MutableList<Long> = mutableListOf()
 
@@ -150,8 +153,7 @@ class PVTActivity : AppCompatActivity() {
         val res = PVTResponse(
             reactionTimes = validTimes,
             waitTimes = listOfRandomTimes,
-            date = System.currentTimeMillis(),
-            localTime = LocalTime.now().toString(),
+
             falseStartCount = falseStarts,
             noResponseCount = noResponseCounter
         )
@@ -169,10 +171,13 @@ class PVTActivity : AppCompatActivity() {
             .setCancelable(false)
             .create()
         loadingDialog.show()
-
         loadingDialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
         lifecycle.coroutineScope.launch(Dispatchers.IO) {
-            viewModel.saveResponse(res)
+            viewModel.saveResponse(
+                res,
+                timestamp = System.currentTimeMillis(),
+                localTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"))
+            )
             runOnUiThread {
                 loadingDialog.setMessage("Median RT: $medianRT ms\nDone!")
                 loadingDialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true

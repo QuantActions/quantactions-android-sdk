@@ -10,7 +10,6 @@
 package com.quantactions.sdk.cognitivetests.dotmemory
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.quantactions.sdk.QA
@@ -19,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalTime
 import javax.inject.Inject
 
 /**
@@ -52,10 +52,14 @@ open class DotMemoryTestViewModel @Inject constructor(
         }
     }
 
-    suspend fun saveResponse(response: DotMemoryTestResponse) {
+    suspend fun saveResponse(
+        response: DotMemoryTestResponse,
+        timestamp: Long = System.currentTimeMillis(),
+        localTime: String = LocalTime.now().toString(),
+    ) {
         withContext(Dispatchers.Default) {
             _saving.value = true
-            qa.saveDotMemoryTestResult(response)
+            qa.saveDotMemoryTestResult(response, timestamp, localTime)
             _saving.value = false
         }
     }

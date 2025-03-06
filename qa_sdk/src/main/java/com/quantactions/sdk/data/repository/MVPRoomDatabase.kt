@@ -1100,7 +1100,9 @@ val MIGRATION_10_11 = object : Migration(10, 11) {
             "CREATE TABLE cognitive_test_results (" +
                     "'id' INTEGER NOT NULL, " +
                     "'testType' TEXT NOT NULL, " +
-                    "'resultJson' TEXT NOT NULL, " +
+                    "'results' TEXT NOT NULL, " +
+                    "'timestamp' INTEGER NOT NULL, " +
+                    "'localTime' TEXT NOT NULL, " +
                     "'sync' INTEGER NOT NULL, " +
                     "PRIMARY KEY('id')" +
                     ")"

@@ -31,4 +31,7 @@ interface CognitiveTestDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdateCognitiveTestResult(action: CognitiveTestEntity)
 
+    @Query("DELETE FROM cognitive_test_results where id = :id")
+    fun deleteCognitiveTestResult(id: Int)
+
 }

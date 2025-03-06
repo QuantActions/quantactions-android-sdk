@@ -581,16 +581,24 @@ class QA private constructor(
         qaPrivate.updateBasicInfo(newYearOfBirth, newGender, newSelfDeclaredHealthy)
     }
 
-    suspend fun savePVTResult(testResult: PVTResponse) {
-        qaPrivate.savePVTResult(testResult)
+    suspend fun savePVTResult(
+        testResult: PVTResponse,
+        timestamp: Long = System.currentTimeMillis(),
+        localTime: String = Instant.now().toString()
+    ) {
+        qaPrivate.saveCognitiveTestResult(testResult, timestamp, localTime)
     }
 
     suspend fun getPVTResults(): List<PVTResponse> {
         return qaPrivate.getPVTResults()
     }
 
-    suspend fun saveDotMemoryTestResult(testResult: DotMemoryTestResponse) {
-        qaPrivate.saveDotMemoryTestResult(testResult)
+    suspend fun saveDotMemoryTestResult(
+        testResult: DotMemoryTestResponse,
+        timestamp: Long = System.currentTimeMillis(),
+        localTime: String = Instant.now().toString()
+    ) {
+        qaPrivate.saveDotMemoryTestResult(testResult, timestamp, localTime)
     }
 
     suspend fun getDotMemoryTestResults(): List<DotMemoryTestResponse> {

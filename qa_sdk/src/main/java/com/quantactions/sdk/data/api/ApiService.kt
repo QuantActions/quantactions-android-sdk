@@ -19,6 +19,7 @@ import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.hadiyarajesh.flower_retrofit.FlowerCallAdapterFactory
 import com.quantactions.sdk.BuildConfig
 import com.quantactions.sdk.GenericPreferences
+import com.quantactions.sdk.cognitivetests.pvt.PVTResponse
 import com.quantactions.sdk.data.api.adapters.QuestionnaireAdapter
 import com.quantactions.sdk.data.api.adapters.SleepSummaryAdapter
 import com.quantactions.sdk.data.api.adapters.StatisticAdapter
@@ -385,6 +386,35 @@ interface ApiService {
         @Body withdrawBody: WithdrawBody
     ): ApiResponse<StudyRegistrationResponse>
 
+    /**
+     * This endpoint pushes a cognitive test result to the backend. The result is a JSON object
+     *
+     * @return a list of [com.quantactions.sdk.data.api.responses.JournalEntriesResponse]
+     * */
+    @POST("flows/identities/{identityId}/cognitivetests")
+    suspend fun submitCognitiveTestResponse(
+        @Path("identityId") identityId: String,
+        @Body response: CognitiveTestResponseBody
+    ): ApiResponse<IdResponse>
+
+    sealed class CognitiveTestResponseBodyType {
+        class SingleValue(val value: CognitiveTestResponseBody) : CognitiveTestResponseBodyType()
+        class ValueList(val list: List<CognitiveTestResponseBody>) : CognitiveTestResponseBodyType()
+    }
+
+    @Serializable
+    data class IdResponse(
+        val id: String,
+    )
+
+    @JsonClass(generateAdapter = true)
+    @Serializable
+    data class CognitiveTestResponseBody(
+        val testType: String,
+        val localTime: String,
+        val timestamp: Long,
+        val results: PVTResponse
+    )
 
     @JsonClass(generateAdapter = true)
     @Serializable
@@ -474,8 +504,8 @@ interface ApiService {
             cookieJar: UvCookieJar,
         ): ApiService {
             val logger =
-//                HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
-                HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC }
+                HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
+//                HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC }
 //                HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.HEADERS }
 
             val client = OkHttpClient.Builder()

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 11,
-    "identityHash": "18c74f60f34e0df317bfb815e78cec1a",
+    "identityHash": "fed272c908e2cb0b3f6ce39e59486f57",
     "entities": [
       {
         "tableName": "stat_table",
@@ -870,7 +870,7 @@
       },
       {
         "tableName": "cognitive_test_results",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `testType` TEXT NOT NULL, `resultJson` TEXT NOT NULL, `sync` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `testType` TEXT NOT NULL, `results` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `localTime` TEXT NOT NULL, `sync` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -885,8 +885,20 @@
             "notNull": true
           },
           {
-            "fieldPath": "resultJson",
-            "columnName": "resultJson",
+            "fieldPath": "results",
+            "columnName": "results",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "localTime",
+            "columnName": "localTime",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -910,7 +922,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '18c74f60f34e0df317bfb815e78cec1a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'fed272c908e2cb0b3f6ce39e59486f57')"
     ]
   }
 }

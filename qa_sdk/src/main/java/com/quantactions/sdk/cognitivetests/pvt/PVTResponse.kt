@@ -10,13 +10,13 @@
 package com.quantactions.sdk.cognitivetests.pvt
 
 import com.squareup.moshi.JsonClass
+import kotlinx.serialization.Serializable
 
 @JsonClass(generateAdapter = true)
+@Serializable
 data class PVTResponse(
     val reactionTimes: List<Long>,
     val waitTimes: List<Long>,
-    val date: Long,
-    val localTime: String,
     val falseStartCount: Int,
     val noResponseCount: Int
 )

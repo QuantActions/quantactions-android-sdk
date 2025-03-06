@@ -23,6 +23,7 @@ import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.crashlytics.ktx.setCustomKeys
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
+import com.google.gson.Gson
 import com.hadiyarajesh.flower_core.ApiEmptyResponse
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
@@ -746,19 +747,45 @@ internal class QAPrivate private constructor(
         return repository.getConnectedDevices()
     }
 
-    suspend fun savePVTResult(testResult: PVTResponse) {
-        repository.savePVTResult(testResult)
+    suspend fun savePVTResult(
+        testResult: PVTResponse,
+        timestamp: Long = System.currentTimeMillis(),
+        localTime: String = Instant.now().toString()
+    ) {
+        repository.savePVTResult(testResult, timestamp, localTime)
     }
 
     suspend fun getPVTResults(): List<PVTResponse> {
         return repository.getPVTResults()
     }
 
-    suspend fun saveDotMemoryTestResult(testResult: DotMemoryTestResponse) {
-        repository.saveDotMemoryTestResult(testResult)
+    suspend fun saveDotMemoryTestResult(
+        testResult: DotMemoryTestResponse,
+        timestamp: Long = System.currentTimeMillis(),
+        localTime: String = Instant.now().toString()
+    ) {
+        repository.saveDotMemoryTestResult(testResult, timestamp, localTime)
     }
 
     suspend fun getDotMemoryTestResults(): List<DotMemoryTestResponse> {
         return repository.getDotMemoryTestResults()
+    }
+
+    @Throws(QASDKException::class)
+    suspend fun saveCognitiveTestResult(
+        testResult: PVTResponse,
+        timestamp: Long = System.currentTimeMillis(),
+        localTime: String = Instant.now().toString()
+    ) {
+        val gson = Gson()
+        val resultJson = gson.toJson(testResult)
+        val entity = CognitiveTestEntity(
+            testType = "PVT",
+            results = resultJson,
+            timestamp = timestamp,
+            localTime = localTime,
+            sync = 0
+        )
+        return repository.submitCognitiveTestResponse(entity)
     }
 }

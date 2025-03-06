@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
+import java.time.Instant
 import javax.inject.Inject
 
 /**
@@ -51,10 +53,19 @@ open class PVTViewModel @Inject constructor(
         }
     }
 
-    suspend fun saveResponse(response: PVTResponse) {
+    suspend fun saveResponse(
+        response: PVTResponse,
+        timestamp: Long = System.currentTimeMillis(),
+        localTime: String = Instant.now().toString()
+    ) {
             withContext(Dispatchers.Default) {
                 _saving.value = true
-                qa.savePVTResult(response)
+                try {
+                    qa.savePVTResult(response, timestamp, localTime)
+                } catch (e: Exception) {
+                    Timber.e("Error, will retry later: $e")
+                }
+
                 _saving.value = false
             }
     }

@@ -16,6 +16,4 @@ data class DotMemoryTestResponse(
     val timeTaken: List<Long>,
     val recallErrorScore: List<Double>,
     val proportionOfDistractors: List<Double>,
-    val date: Long,
-    val localTime: String
 )
