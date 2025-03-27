@@ -595,12 +595,16 @@ class QA private constructor(
     fun <T>startCognitiveTest(context: Context, cognitiveTest: CognitiveTest<T>) {
         when (cognitiveTest) {
             CognitiveTest.PVT -> {
-                val intent = Intent(context, PVTActivity::class.java)
+                val intent = Intent(context, PVTActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
                 context.startActivity(intent)
             }
 
             CognitiveTest.DotMemory -> {
-                val intent = Intent(context, DotMemoryTestActivity::class.java)
+                val intent = Intent(context, DotMemoryTestActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
                 context.startActivity(intent)
             }
         }
