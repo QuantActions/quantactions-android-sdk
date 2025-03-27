@@ -1064,7 +1064,8 @@ class MVPRepository @Inject private constructor(
                     if (studyInfo.enableSyncOnScreenOff) 1 else 0,
                     if (studyInfo.enableDrawOverAccess) 1 else 0,
                     0,
-                    0
+                    0,
+                    studyInfo.enableCognitiveTests ?: false
                 )
                 mvpDao.insertOrUpdateStudy(cohort)
 
@@ -1115,7 +1116,8 @@ class MVPRepository @Inject private constructor(
                     if (studyInfo.enableSyncOnScreenOff) 1 else 0,
                     if (studyInfo.enableDrawOverAccess) 1 else 0,
                     0,
-                    0
+                    0,
+                    studyInfo.enableCognitiveTests ?: false
                 )
                 mvpDao.insertOrUpdateStudy(cohort)
 

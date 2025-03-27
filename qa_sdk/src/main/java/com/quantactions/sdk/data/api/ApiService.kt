@@ -475,7 +475,8 @@ interface ApiService {
         var privacyPolicy: String,
         var privacyPolicyDate: String,
         var premiumFeaturesTtlInDays: Int?,
-        var created: String
+        var created: String,
+        var enableCognitiveTests: Boolean?,
     )
 
 

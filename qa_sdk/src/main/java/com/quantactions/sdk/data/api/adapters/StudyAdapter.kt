@@ -67,7 +67,8 @@ class StudyAdapter {
                 s.permAppId,
                 s.permDrawOver,
                 s.permLocation,
-                s.permContact
+                s.permContact,
+                s.enableCognitiveTests ?: false
             )
 
 

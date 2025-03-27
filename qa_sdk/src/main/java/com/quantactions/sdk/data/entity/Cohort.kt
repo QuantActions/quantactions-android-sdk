@@ -72,5 +72,9 @@ data class Cohort(
 
     /** Deprecated - we do not use this functionality anymore */
     @ColumnInfo(name = "permContact")
-    val permContact: Int?
+    val permContact: Int?,
+
+    /** Deprecated - we do not use this functionality anymore */
+    @ColumnInfo(name = "enableCognitiveTest")
+    val enableCognitiveTests: Boolean
 )

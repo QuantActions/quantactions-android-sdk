@@ -81,8 +81,6 @@ class MainActivity : ComponentActivity() {
                     currentChart = selectedChart,
                     basicInfo = metricsViewModel.getBasicInfo()
                 )
-
-
             }
         }
     }

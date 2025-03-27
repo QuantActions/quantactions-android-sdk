@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 11,
-    "identityHash": "fed272c908e2cb0b3f6ce39e59486f57",
+    "identityHash": "b3990d17d8218ff2ee62ad4bbb7012e9",
     "entities": [
       {
         "tableName": "stat_table",
@@ -224,7 +224,7 @@
       },
       {
         "tableName": "studies",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`studyId` TEXT NOT NULL, `privacyPolicy` TEXT, `studyTitle` TEXT, `dataPattern` TEXT, `gpsResolution` INTEGER NOT NULL, `canWithdraw` INTEGER NOT NULL, `syncOnScreenOff` INTEGER, `perimeterCheck` INTEGER, `permAppId` INTEGER, `permDrawOver` INTEGER, `permLocation` INTEGER, `permContact` INTEGER, PRIMARY KEY(`studyId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`studyId` TEXT NOT NULL, `privacyPolicy` TEXT, `studyTitle` TEXT, `dataPattern` TEXT, `gpsResolution` INTEGER NOT NULL, `canWithdraw` INTEGER NOT NULL, `syncOnScreenOff` INTEGER, `perimeterCheck` INTEGER, `permAppId` INTEGER, `permDrawOver` INTEGER, `permLocation` INTEGER, `permContact` INTEGER, `enableCognitiveTest` INTEGER NOT NULL, PRIMARY KEY(`studyId`))",
         "fields": [
           {
             "fieldPath": "cohortId",
@@ -297,6 +297,12 @@
             "columnName": "permContact",
             "affinity": "INTEGER",
             "notNull": false
+          },
+          {
+            "fieldPath": "enableCognitiveTests",
+            "columnName": "enableCognitiveTest",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -922,7 +928,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'fed272c908e2cb0b3f6ce39e59486f57')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b3990d17d8218ff2ee62ad4bbb7012e9')"
     ]
   }
 }

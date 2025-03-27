@@ -58,6 +58,7 @@ class Study {
     var userId: String? = null
     var questionnaires: List<Questionnaire>? = null
     var premiumFeaturesTTL: Int? = null
+    var enableCognitiveTests: Boolean? = false
 }
 
 
