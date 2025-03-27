@@ -17,7 +17,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.quantactions.sdk.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.time.LocalTime
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -329,7 +330,7 @@ class DotMemoryTestActivity : AppCompatActivity() {
             viewModel.saveResponse(
                 res,
                 timestamp = System.currentTimeMillis(),
-                localTime = LocalTime.now().toString(),
+                localTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"))
             )
             runOnUiThread {
                 loadingDialog.setMessage("Median RT: $avgTimeTaken ms\nDone!")

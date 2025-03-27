@@ -19,7 +19,6 @@ import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.hadiyarajesh.flower_retrofit.FlowerCallAdapterFactory
 import com.quantactions.sdk.BuildConfig
 import com.quantactions.sdk.GenericPreferences
-import com.quantactions.sdk.cognitivetests.pvt.PVTResponse
 import com.quantactions.sdk.data.api.adapters.QuestionnaireAdapter
 import com.quantactions.sdk.data.api.adapters.SleepSummaryAdapter
 import com.quantactions.sdk.data.api.adapters.StatisticAdapter
@@ -413,7 +412,8 @@ interface ApiService {
         val testType: String,
         val localTime: String,
         val timestamp: Long,
-        val results: PVTResponse
+        @Contextual
+        val results: Any
     )
 
     @JsonClass(generateAdapter = true)

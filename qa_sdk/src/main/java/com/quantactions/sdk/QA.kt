@@ -24,9 +24,7 @@ import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.quantactions.sdk.cognitivetests.CognitiveTest
 import com.quantactions.sdk.cognitivetests.dotmemory.DotMemoryTestActivity
-import com.quantactions.sdk.cognitivetests.dotmemory.DotMemoryTestResponse
 import com.quantactions.sdk.cognitivetests.pvt.PVTActivity
-import com.quantactions.sdk.cognitivetests.pvt.PVTResponse
 import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
 import com.quantactions.sdk.data.entity.*
 import com.quantactions.sdk.data.model.JournalEntry
@@ -581,31 +579,20 @@ class QA private constructor(
         qaPrivate.updateBasicInfo(newYearOfBirth, newGender, newSelfDeclaredHealthy)
     }
 
-    suspend fun savePVTResult(
-        testResult: PVTResponse,
+    suspend fun <T>saveCognitiveTestResult(
+        testType: CognitiveTest<T>,
+        testResult: T,
         timestamp: Long = System.currentTimeMillis(),
         localTime: String = Instant.now().toString()
     ) {
-        qaPrivate.saveCognitiveTestResult(testResult, timestamp, localTime)
+        qaPrivate.saveCognitiveTestResult(testType, testResult, timestamp, localTime)
     }
 
-    suspend fun getPVTResults(): List<PVTResponse> {
-        return qaPrivate.getPVTResults()
+    suspend fun <T>getCognitiveTestResults(testType: CognitiveTest<T>): List<T> {
+        return qaPrivate.getCognitiveTestResults(testType)
     }
 
-    suspend fun saveDotMemoryTestResult(
-        testResult: DotMemoryTestResponse,
-        timestamp: Long = System.currentTimeMillis(),
-        localTime: String = Instant.now().toString()
-    ) {
-        qaPrivate.saveDotMemoryTestResult(testResult, timestamp, localTime)
-    }
-
-    suspend fun getDotMemoryTestResults(): List<DotMemoryTestResponse> {
-        return qaPrivate.getDotMemoryTestResults()
-    }
-
-    fun startCognitiveTest(context: Context, cognitiveTest: CognitiveTest) {
+    fun <T>startCognitiveTest(context: Context, cognitiveTest: CognitiveTest<T>) {
         when (cognitiveTest) {
             CognitiveTest.PVT -> {
                 val intent = Intent(context, PVTActivity::class.java)

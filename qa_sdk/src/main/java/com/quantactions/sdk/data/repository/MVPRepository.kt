@@ -34,6 +34,7 @@ import com.quantactions.sdk.R
 import com.quantactions.sdk.Subscription
 import com.quantactions.sdk.TapsStats
 import com.quantactions.sdk.TimeSeries
+import com.quantactions.sdk.cognitivetests.CognitiveTest
 import com.quantactions.sdk.cognitivetests.dotmemory.DotMemoryTestResponse
 import com.quantactions.sdk.cognitivetests.pvt.PVTResponse
 import com.quantactions.sdk.data.api.ApiService
@@ -318,53 +319,21 @@ class MVPRepository @Inject private constructor(
         return canUsage
     }
 
-    suspend fun savePVTResult(
-        result: PVTResponse,
-        timestamp: Long,
-        localTime: String
-    ) {
+    suspend fun <T>getCognitiveTestResults(testType: CognitiveTest<T>): List<T> {
         val gson = Gson()
-        val resultJson = gson.toJson(result)
-        val entity = CognitiveTestEntity(
-            testType = "PVT",
-            results = resultJson,
-            timestamp = timestamp,
-            localTime = localTime,
-            sync = 0
-        )
-        cognitiveTestDao.insert(entity)
-    }
+        val entities = cognitiveTestDao.getResultsForType(testType.id)
+        return when (testType) {
+            is CognitiveTest.PVT -> {
+                entities.map { entity ->
+                    gson.fromJson(entity.results, PVTResponse::class.java) as T
+                }
+            }
 
-    suspend fun getPVTResults(): List<PVTResponse> {
-        val gson = Gson()
-        val entities = cognitiveTestDao.getResultsForType("PVT")
-        return entities.map { entity ->
-            gson.fromJson(entity.results, PVTResponse::class.java)
-        }
-    }
-
-    suspend fun saveDotMemoryTestResult(
-        result: DotMemoryTestResponse,
-        timestamp: Long,
-        localTime: String
-    ) {
-        val gson = Gson()
-        val resultJson = gson.toJson(result)
-        val entity = CognitiveTestEntity(
-            testType = "DotMemory",
-            results = resultJson,
-            timestamp = timestamp,
-            localTime = localTime,
-            sync = 0
-        )
-        cognitiveTestDao.insert(entity)
-    }
-
-    suspend fun getDotMemoryTestResults(): List<DotMemoryTestResponse> {
-        val gson = Gson()
-        val entities = cognitiveTestDao.getResultsForType("DotMemory")
-        return entities.map { entity ->
-            gson.fromJson(entity.results, DotMemoryTestResponse::class.java)
+            is CognitiveTest.DotMemory -> {
+                entities.map { entity ->
+                    gson.fromJson(entity.results, DotMemoryTestResponse::class.java) as T
+                }
+            }
         }
     }
 
@@ -1739,13 +1708,13 @@ class MVPRepository @Inject private constructor(
         }
     }
 
-    suspend fun submitCognitiveTestResponse(
+    suspend fun <T>submitCognitiveTestResponse(
+        cognitiveTest: CognitiveTest<T>,
         answer: CognitiveTestEntity
     ) {
 
-        cognitiveTestDao.insertOrUpdateCognitiveTestResult(answer)
-        val idToDelete = answer.id
-        val toPush = CognitiveTestEntity.toBody(answer)
+        val idToDelete = cognitiveTestDao.insertOrUpdateCognitiveTestResult(answer)
+        val toPush = CognitiveTestEntity.toBody(answer, cognitiveTest)
 
         val apiResponse = apiService.submitCognitiveTestResponse(
             identityId, toPush
@@ -1754,12 +1723,12 @@ class MVPRepository @Inject private constructor(
         when (apiResponse) {
             is ApiSuccessResponse -> {
                 apiResponse.body?.let {
-                    cognitiveTestDao.deleteCognitiveTestResult(idToDelete)
+                    cognitiveTestDao.setSyncStatusTo1(idToDelete)
                 }
             }
 
             is ApiErrorResponse -> {
-                throw QASDKException("API Error [submitCognitiveTestResponse()]: ${apiResponse.errorMessage} || ${apiResponse.httpStatusCode}")
+                Timber.e("API Error [submitCognitiveTestResponse()]: ${apiResponse.errorMessage} || ${apiResponse.httpStatusCode}")
             }
 
             is ApiEmptyResponse -> {
@@ -1768,7 +1737,28 @@ class MVPRepository @Inject private constructor(
         }
     }
 
-    suspend fun deleteLocalStudies() {
+    fun setCognitiveTestSyncStatusTo1(answer: CognitiveTestEntity) {
+        cognitiveTestDao.setSyncStatusTo1(answer.id.toLong())
+    }
+
+
+    suspend fun <T>submitPendingCognitiveTestResponse(
+        cognitiveTest: CognitiveTest<T>,
+        answer: CognitiveTestEntity
+    ): ApiResponse<ApiService.IdResponse> {
+
+        val toPush = CognitiveTestEntity.toBody(answer, cognitiveTest)
+
+        return apiService.submitCognitiveTestResponse(
+            identityId, toPush
+        )
+    }
+
+    fun getPendingCognitiveTests(): List<CognitiveTestEntity> {
+        return cognitiveTestDao.getPendingCognitiveTests()
+    }
+
+    fun deleteLocalStudies() {
         mvpDao.deleteStudies()
     }
 

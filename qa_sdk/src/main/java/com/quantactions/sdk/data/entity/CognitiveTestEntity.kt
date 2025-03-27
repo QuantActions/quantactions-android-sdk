@@ -12,8 +12,9 @@ package com.quantactions.sdk.data.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.google.gson.Gson
+import com.quantactions.sdk.cognitivetests.CognitiveTest
+import com.quantactions.sdk.cognitivetests.dotmemory.DotMemoryTestResponse
 import com.quantactions.sdk.cognitivetests.pvt.PVTResponse
-import com.quantactions.sdk.data.api.ApiService
 import com.quantactions.sdk.data.api.ApiService.CognitiveTestResponseBody
 
 @Entity(tableName = "cognitive_test_results")
@@ -26,13 +27,17 @@ data class CognitiveTestEntity(
     val sync: Int,
 ){
     companion object {
-        fun toBody(cognitiveTestEntity: CognitiveTestEntity): CognitiveTestResponseBody {
+        fun <T>toBody(cognitiveTestEntity: CognitiveTestEntity, cognitiveTest: CognitiveTest<T>): CognitiveTestResponseBody {
             val gson = Gson()
+            val result = when (cognitiveTest) {
+                is CognitiveTest.PVT -> gson.fromJson(cognitiveTestEntity.results, PVTResponse::class.java)
+                is CognitiveTest.DotMemory -> gson.fromJson(cognitiveTestEntity.results, DotMemoryTestResponse::class.java)
+            }
             return CognitiveTestResponseBody(
                     testType = cognitiveTestEntity.testType,
                     localTime = cognitiveTestEntity.localTime,
                     timestamp = cognitiveTestEntity.timestamp,
-                    results = gson.fromJson(cognitiveTestEntity.results, PVTResponse::class.java)
+                    results = result
                 )
         }
     }

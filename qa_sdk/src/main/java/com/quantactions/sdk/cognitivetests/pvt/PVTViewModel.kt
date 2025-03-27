@@ -13,6 +13,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.quantactions.sdk.QA
+import com.quantactions.sdk.cognitivetests.CognitiveTest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,7 +48,7 @@ open class PVTViewModel @Inject constructor(
     private fun getTestResults() {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-            val studies = qa.getPVTResults()
+            val studies = qa.getCognitiveTestResults(CognitiveTest.PVT)
             _testResults.value = studies
             }
         }
@@ -61,7 +62,7 @@ open class PVTViewModel @Inject constructor(
             withContext(Dispatchers.Default) {
                 _saving.value = true
                 try {
-                    qa.savePVTResult(response, timestamp, localTime)
+                    qa.saveCognitiveTestResult(CognitiveTest.PVT, response, timestamp, localTime)
                 } catch (e: Exception) {
                     Timber.e("Error, will retry later: $e")
                 }

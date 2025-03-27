@@ -22,10 +22,17 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
 import com.quantactions.sdk.data.repository.MVPRepository
-import com.quantactions.sdk.workers.*
+import com.quantactions.sdk.workers.PushPendingCognitiveTestsWorker
+import com.quantactions.sdk.workers.PushPendingJournalEntriesWorker
+import com.quantactions.sdk.workers.PushPendingQuestionnairesWorker
+import com.quantactions.sdk.workers.RegisterWorker
+import com.quantactions.sdk.workers.SubmitActivityWorker
+import com.quantactions.sdk.workers.SubmitHealthDataParsedWorker
+import com.quantactions.sdk.workers.SubmitStatsWorker
+import com.quantactions.sdk.workers.SubmitTapDataParsedWorker
+import com.quantactions.sdk.workers.UpdateAppsListWorker
+import com.quantactions.sdk.workers.UpdateDeviceWorker
 import timber.log.Timber
-import java.io.*
-import java.util.*
 
 internal class SyncHelper(context: Context) {
 
@@ -88,6 +95,20 @@ internal class SyncHelper(context: Context) {
                 )
             } else {
                 Timber.i("No pending questionnaires -> not running")
+            }
+
+            // pending cog test
+            val pendingCognitiveTest = repository.getPendingCognitiveTests()
+            if (pendingCognitiveTest.isNotEmpty()) {
+                workManager.enqueueUniqueWork(
+                    "submitPendingCogTest",
+                    ExistingWorkPolicy.REPLACE,
+                    OneTimeWorkRequest.Builder(PushPendingCognitiveTestsWorker::class.java)
+                        .addTag("submitPendingCogTest")
+                        .build()
+                )
+            } else {
+                Timber.i("No pending cog tests -> not running")
             }
 
             // pending journal entries

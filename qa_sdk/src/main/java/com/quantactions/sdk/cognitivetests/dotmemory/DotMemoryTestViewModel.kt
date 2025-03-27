@@ -13,6 +13,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.quantactions.sdk.QA
+import com.quantactions.sdk.cognitivetests.CognitiveTest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -46,7 +47,7 @@ open class DotMemoryTestViewModel @Inject constructor(
     fun getTestResults() {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-                val results = qa.getDotMemoryTestResults()
+                val results = qa.getCognitiveTestResults(CognitiveTest.DotMemory)
                 _testResults.value = results
             }
         }
@@ -59,7 +60,7 @@ open class DotMemoryTestViewModel @Inject constructor(
     ) {
         withContext(Dispatchers.Default) {
             _saving.value = true
-            qa.saveDotMemoryTestResult(response, timestamp, localTime)
+            qa.saveCognitiveTestResult(CognitiveTest.DotMemory, response, timestamp, localTime)
             _saving.value = false
         }
     }

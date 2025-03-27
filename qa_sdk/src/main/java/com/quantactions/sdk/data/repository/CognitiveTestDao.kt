@@ -29,9 +29,15 @@ interface CognitiveTestDao {
     suspend fun getResultsForType(testType: String): List<CognitiveTestEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertOrUpdateCognitiveTestResult(action: CognitiveTestEntity)
+    suspend fun insertOrUpdateCognitiveTestResult(action: CognitiveTestEntity): Long
 
     @Query("DELETE FROM cognitive_test_results where id = :id")
-    fun deleteCognitiveTestResult(id: Int)
+    fun deleteCognitiveTestResult(id: Long)
+
+    @Query("UPDATE cognitive_test_results set sync = 1 where id = :id")
+    fun setSyncStatusTo1(id: Long)
+
+    @Query("SELECT * FROM cognitive_test_results WHERE sync = 0")
+    fun getPendingCognitiveTests(): List<CognitiveTestEntity>
 
 }

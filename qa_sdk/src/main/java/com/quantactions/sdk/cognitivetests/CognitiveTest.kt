@@ -9,7 +9,13 @@
 
 package com.quantactions.sdk.cognitivetests
 
-enum class CognitiveTest {
-    PVT,
-    DotMemory,
+import androidx.annotation.Keep
+import com.quantactions.sdk.cognitivetests.dotmemory.DotMemoryTestResponse
+import com.quantactions.sdk.cognitivetests.pvt.PVTResponse
+
+
+sealed class CognitiveTest<T>(val id: String) {
+    data object PVT : CognitiveTest<PVTResponse>("PVT")
+    data object DotMemory : CognitiveTest<DotMemoryTestResponse>("DotMemory")
 }
+

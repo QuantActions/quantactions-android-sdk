@@ -27,8 +27,7 @@ import com.google.gson.Gson
 import com.hadiyarajesh.flower_core.ApiEmptyResponse
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
-import com.quantactions.sdk.cognitivetests.dotmemory.DotMemoryTestResponse
-import com.quantactions.sdk.cognitivetests.pvt.PVTResponse
+import com.quantactions.sdk.cognitivetests.CognitiveTest
 import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
 import com.quantactions.sdk.data.entity.*
 import com.quantactions.sdk.data.model.JournalEntry
@@ -747,45 +746,25 @@ internal class QAPrivate private constructor(
         return repository.getConnectedDevices()
     }
 
-    suspend fun savePVTResult(
-        testResult: PVTResponse,
-        timestamp: Long = System.currentTimeMillis(),
-        localTime: String = Instant.now().toString()
-    ) {
-        repository.savePVTResult(testResult, timestamp, localTime)
+    suspend fun <T>getCognitiveTestResults(testType: CognitiveTest<T>): List<T> {
+        return repository.getCognitiveTestResults(testType)
     }
 
-    suspend fun getPVTResults(): List<PVTResponse> {
-        return repository.getPVTResults()
-    }
-
-    suspend fun saveDotMemoryTestResult(
-        testResult: DotMemoryTestResponse,
-        timestamp: Long = System.currentTimeMillis(),
-        localTime: String = Instant.now().toString()
-    ) {
-        repository.saveDotMemoryTestResult(testResult, timestamp, localTime)
-    }
-
-    suspend fun getDotMemoryTestResults(): List<DotMemoryTestResponse> {
-        return repository.getDotMemoryTestResults()
-    }
-
-    @Throws(QASDKException::class)
-    suspend fun saveCognitiveTestResult(
-        testResult: PVTResponse,
+    suspend fun <T>saveCognitiveTestResult(
+        testType: CognitiveTest<T>,
+        testResult: T,
         timestamp: Long = System.currentTimeMillis(),
         localTime: String = Instant.now().toString()
     ) {
         val gson = Gson()
         val resultJson = gson.toJson(testResult)
         val entity = CognitiveTestEntity(
-            testType = "PVT",
+            testType = testType.id,
             results = resultJson,
             timestamp = timestamp,
             localTime = localTime,
             sync = 0
         )
-        return repository.submitCognitiveTestResponse(entity)
+        return repository.submitCognitiveTestResponse(testType, entity)
     }
 }
