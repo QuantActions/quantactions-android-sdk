@@ -391,13 +391,13 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
         }
     }
 
-    fun saveHealthyRanges(code: String, ranges: PopulationRange) {
+    override fun saveHealthyRanges(code: String, ranges: PopulationRange) {
         val editor = sharedPref.edit()
         editor.putString("${HEALTHY_RANGES}_$code", Json.encodeToString(PopulationRange.serializer(), ranges))
         editor.apply()
     }
 
-    fun getHealthyRanges(code: String): PopulationRange {
+    override fun getHealthyRanges(code: String): PopulationRange {
         val ranges = sharedPref.getString("${HEALTHY_RANGES}_$code", null)
         return if (null != ranges) {
             Json.decodeFromString(PopulationRange.serializer(), ranges)

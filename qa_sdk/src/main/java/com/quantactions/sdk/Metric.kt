@@ -149,7 +149,7 @@ sealed class Metric<P : TimestampedEntity, T>(
 
         override suspend fun cacheHealthyRanges(
             apiService: ApiService,
-            managePref2: ManagePref2,
+            managePref2: GenericPreferences,
             identityId: String
         ) {
             TODO("Not yet defined for this metric")
@@ -269,7 +269,7 @@ sealed class Metric<P : TimestampedEntity, T>(
 
         override suspend fun cacheHealthyRanges(
             apiService: ApiService,
-            managePref2: ManagePref2,
+            managePref2: GenericPreferences,
             identityId: String
         ) {
             TODO("Not yet defined for this metric")
@@ -521,7 +521,7 @@ sealed class Metric<P : TimestampedEntity, T>(
 
         override suspend fun cacheHealthyRanges(
             apiService: ApiService,
-            managePref2: ManagePref2,
+            managePref2: GenericPreferences,
             identityId: String
         ) {
             val filter = prepareFilterCode(code)
@@ -674,7 +674,7 @@ interface CanReturnCompiledTimeSeries<P : TimestampedEntity, T> {
 
     @Keep
     suspend fun cacheHealthyRanges(apiService: ApiService,
-                                   managePref2: ManagePref2,
+                                   managePref2: GenericPreferences,
                            identityId: String)
 
     @Keep
