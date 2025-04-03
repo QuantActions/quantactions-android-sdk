@@ -487,12 +487,12 @@ internal class QAPrivate private constructor(
         context: Context,
         apiKey: String
     ): List<JournalEntry> {
-        val fakeRepository = MVPRepository.getInstance(
+        val mockRepository = MockRepository.getInstance(
             context,
             apiKey
         )
-        fakeRepository.cacheJournalEvents()
-        return fakeRepository.cacheJournal("f87984d2-3606-4225-b355-ceaad2304b6d")
+        mockRepository.cacheJournalEvents()
+        return mockRepository.cacheJournal()
     }
 
     @Throws(SDKNotInitialisedException::class)
