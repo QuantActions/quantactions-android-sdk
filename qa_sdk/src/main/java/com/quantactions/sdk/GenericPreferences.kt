@@ -35,4 +35,8 @@ interface GenericPreferences {
 
     fun saveAccessTokens(accessToken: String? = null, refreshToken: String? = null)
 
+    fun saveHealthyRanges(code: String, ranges: PopulationRange)
+
+    fun getHealthyRanges(code: String): PopulationRange
+
 }
