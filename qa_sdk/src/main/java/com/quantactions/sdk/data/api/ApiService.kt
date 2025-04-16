@@ -505,8 +505,8 @@ interface ApiService {
             cookieJar: UvCookieJar,
         ): ApiService {
             val logger =
-                HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
-//                HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC }
+//                HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
+                HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC }
 //                HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.HEADERS }
 
             val client = OkHttpClient.Builder()
