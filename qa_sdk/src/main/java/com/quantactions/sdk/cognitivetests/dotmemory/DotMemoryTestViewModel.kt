@@ -23,18 +23,13 @@ import java.time.LocalTime
 import javax.inject.Inject
 
 /**
- * This is the view model that holds the connection to the SDK and it is responsible to retrieve
- * and serve the scores from the SDK.
- * Holds also a reference to the calendar to retrieve correctly the needed data.
- * The implementation is modular in such a way that when new metrics will come in it is easy enough
- * to add them to here
+ * This is the view model for the DotMemory test.
  * @param application Android application
  * */
 
 open class DotMemoryTestViewModel @Inject constructor(
     application: Application,
 ) : AndroidViewModel(application) {
-
 
     private var _testResults = MutableStateFlow(listOf<DotMemoryTestResponse>())
     val testResults: StateFlow<List<DotMemoryTestResponse>> get() = _testResults

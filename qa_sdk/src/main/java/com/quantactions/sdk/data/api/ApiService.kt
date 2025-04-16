@@ -388,18 +388,13 @@ interface ApiService {
     /**
      * This endpoint pushes a cognitive test result to the backend. The result is a JSON object
      *
-     * @return a list of [com.quantactions.sdk.data.api.responses.JournalEntriesResponse]
+     * @return ID of the save test result
      * */
     @POST("flows/identities/{identityId}/cognitivetests")
     suspend fun submitCognitiveTestResponse(
         @Path("identityId") identityId: String,
         @Body response: CognitiveTestResponseBody
     ): ApiResponse<IdResponse>
-
-    sealed class CognitiveTestResponseBodyType {
-        class SingleValue(val value: CognitiveTestResponseBody) : CognitiveTestResponseBodyType()
-        class ValueList(val list: List<CognitiveTestResponseBody>) : CognitiveTestResponseBodyType()
-    }
 
     @Serializable
     data class IdResponse(

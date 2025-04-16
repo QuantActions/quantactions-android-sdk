@@ -24,18 +24,13 @@ import java.time.Instant
 import javax.inject.Inject
 
 /**
- * This is the view model that holds the connection to the SDK and it is responsible to retrieve
- * and serve the scores from the SDK.
- * Holds also a reference to the calendar to retrieve correctly the needed data.
- * The implementation is modular in such a way that when new metrics will come in it is easy enough
- * to add them to here
+ * This is the view model for the PVT test.
  * @param application Android application
  * */
 
 open class PVTViewModel @Inject constructor(
     application: Application,
 ) : AndroidViewModel(application) {
-
 
     private var _testResults = MutableStateFlow(listOf<PVTResponse>())
     val testResults: StateFlow<List<PVTResponse>> get() = _testResults
@@ -66,7 +61,6 @@ open class PVTViewModel @Inject constructor(
                 } catch (e: Exception) {
                     Timber.e("Error, will retry later: $e")
                 }
-
                 _saving.value = false
             }
     }
