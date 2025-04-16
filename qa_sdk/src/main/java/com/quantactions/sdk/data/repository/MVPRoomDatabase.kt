@@ -1110,7 +1110,7 @@ val MIGRATION_10_11 = object : Migration(10, 11) {
 
         database.execSQL(
             "ALTER TABLE studies " +
-                    "ADD COLUMN enableCognitiveTests BOOLEAN DEFAULT FALSE"
+                    "ADD COLUMN enableCognitiveTest INTEGER NOT NULL DEFAULT 0"
         )
     }
 }
