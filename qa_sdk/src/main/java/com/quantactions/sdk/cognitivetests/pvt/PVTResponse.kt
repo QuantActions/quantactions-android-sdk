@@ -7,17 +7,16 @@
  * *******************************************************************************
  */
 
-package com.quantactions.sdk.data.model
+package com.quantactions.sdk.cognitivetests.pvt
 
 import com.squareup.moshi.JsonClass
+import kotlinx.serialization.Serializable
 
-/**
- * @hide
- *
- * @property response a JSON object with the response
- */
 @JsonClass(generateAdapter = true)
-data class QuestionnaireResponse(
-    val created: String,
-    val response: Map<String, Any?>?
+@Serializable
+data class PVTResponse(
+    val reactionTimes: List<Long>,
+    val waitTimes: List<Long>,
+    val falseStartCount: Int,
+    val noResponseCount: Int
 )

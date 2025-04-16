@@ -22,6 +22,9 @@ import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.quantactions.sdk.cognitivetests.CognitiveTest
+import com.quantactions.sdk.cognitivetests.dotmemory.DotMemoryTestActivity
+import com.quantactions.sdk.cognitivetests.pvt.PVTActivity
 import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
 import com.quantactions.sdk.data.entity.*
 import com.quantactions.sdk.data.model.JournalEntry
@@ -574,5 +577,36 @@ class QA private constructor(
         newSelfDeclaredHealthy: Boolean = basicInfo.selfDeclaredHealthy
     ) {
         qaPrivate.updateBasicInfo(newYearOfBirth, newGender, newSelfDeclaredHealthy)
+    }
+
+    suspend fun <T>saveCognitiveTestResult(
+        testType: CognitiveTest<T>,
+        testResult: T,
+        timestamp: Long = System.currentTimeMillis(),
+        localTime: String = Instant.now().toString()
+    ) {
+        qaPrivate.saveCognitiveTestResult(testType, testResult, timestamp, localTime)
+    }
+
+    suspend fun <T>getCognitiveTestResults(testType: CognitiveTest<T>): List<T> {
+        return qaPrivate.getCognitiveTestResults(testType)
+    }
+
+    fun <T>startCognitiveTest(context: Context, cognitiveTest: CognitiveTest<T>) {
+        when (cognitiveTest) {
+            CognitiveTest.PVT -> {
+                val intent = Intent(context, PVTActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                context.startActivity(intent)
+            }
+
+            CognitiveTest.DotMemory -> {
+                val intent = Intent(context, DotMemoryTestActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                context.startActivity(intent)
+            }
+        }
     }
 }

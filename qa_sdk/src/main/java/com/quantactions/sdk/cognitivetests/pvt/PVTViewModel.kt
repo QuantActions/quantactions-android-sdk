@@ -1,0 +1,69 @@
+/*
+ * *******************************************************************************
+ * Copyright (C) QuantActions AG - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited
+ * Proprietary and confidential
+ * Written by Enea Ceolini <enea.ceolini@quantactions.com>, August 2024
+ * *******************************************************************************
+ */
+
+package com.quantactions.sdk.cognitivetests.pvt
+
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.quantactions.sdk.QA
+import com.quantactions.sdk.cognitivetests.CognitiveTest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
+import java.time.Instant
+import javax.inject.Inject
+
+/**
+ * This is the view model for the PVT test.
+ * @param application Android application
+ * */
+
+open class PVTViewModel @Inject constructor(
+    application: Application,
+) : AndroidViewModel(application) {
+
+    private var _testResults = MutableStateFlow(listOf<PVTResponse>())
+    val testResults: StateFlow<List<PVTResponse>> get() = _testResults
+
+    private var _saving = MutableStateFlow(false)
+    val saving: StateFlow<Boolean> get() = _saving
+
+    private val qa = QA.getInstance(application.applicationContext)
+
+    private fun getTestResults() {
+        viewModelScope.launch {
+            withContext(Dispatchers.Default) {
+            val studies = qa.getCognitiveTestResults(CognitiveTest.PVT)
+            _testResults.value = studies
+            }
+        }
+    }
+
+    suspend fun saveResponse(
+        response: PVTResponse,
+        timestamp: Long = System.currentTimeMillis(),
+        localTime: String = Instant.now().toString()
+    ) {
+            withContext(Dispatchers.Default) {
+                _saving.value = true
+                try {
+                    qa.saveCognitiveTestResult(CognitiveTest.PVT, response, timestamp, localTime)
+                } catch (e: Exception) {
+                    Timber.e("Error, will retry later: $e")
+                }
+                _saving.value = false
+            }
+    }
+
+}
+

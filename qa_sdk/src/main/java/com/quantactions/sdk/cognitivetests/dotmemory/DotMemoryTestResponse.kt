@@ -7,17 +7,13 @@
  * *******************************************************************************
  */
 
-package com.quantactions.sdk.data.model
+package com.quantactions.sdk.cognitivetests.dotmemory
 
 import com.squareup.moshi.JsonClass
 
-/**
- * @hide
- *
- * @property response a JSON object with the response
- */
 @JsonClass(generateAdapter = true)
-data class QuestionnaireResponse(
-    val created: String,
-    val response: Map<String, Any?>?
+data class DotMemoryTestResponse(
+    val timeTaken: List<Long>,
+    val recallErrorScore: List<Double>,
+    val proportionOfDistractors: List<Double>,
 )

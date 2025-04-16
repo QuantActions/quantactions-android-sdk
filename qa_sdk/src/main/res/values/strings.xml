@@ -182,5 +182,12 @@ If you wish your data to be removed from the archive, simply email data@quantact
     <string name="TAG">QuantActionsSDK</string>
     <string name="action_required_app_needs_a_permission">Action Required: we need a permission</string>
     <string name="tap_to_open_and_grant_permission">Tap to open and grant permission for seamless data collection</string>
+    <string name="tap_the_button_when_numbers_appear">Tap the button when numbers appear</string>
+    <string name="pvt_action">PVT action</string>
+    <string name="powered_by">Powered by</string>
+    <string name="quantactions">QuantActions</string>
+    <string name="too_fast">Too fast!</string>
+    <string name="too_slow">Too slow!</string>
+    <string name="_9999">9999</string>
 
 </resources>

@@ -7,17 +7,15 @@
  * *******************************************************************************
  */
 
-package com.quantactions.sdk.data.model
+package com.quantactions.sdk.cognitivetests
 
-import com.squareup.moshi.JsonClass
+import androidx.annotation.Keep
+import com.quantactions.sdk.cognitivetests.dotmemory.DotMemoryTestResponse
+import com.quantactions.sdk.cognitivetests.pvt.PVTResponse
 
-/**
- * @hide
- *
- * @property response a JSON object with the response
- */
-@JsonClass(generateAdapter = true)
-data class QuestionnaireResponse(
-    val created: String,
-    val response: Map<String, Any?>?
-)
+
+sealed class CognitiveTest<T>(val id: String) {
+    data object PVT : CognitiveTest<PVTResponse>("PVT")
+    data object DotMemory : CognitiveTest<DotMemoryTestResponse>("DotMemory")
+}
+

@@ -23,9 +23,11 @@ import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.crashlytics.ktx.setCustomKeys
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
+import com.google.gson.Gson
 import com.hadiyarajesh.flower_core.ApiEmptyResponse
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
+import com.quantactions.sdk.cognitivetests.CognitiveTest
 import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
 import com.quantactions.sdk.data.entity.*
 import com.quantactions.sdk.data.model.JournalEntry
@@ -742,5 +744,27 @@ internal class QAPrivate private constructor(
     @Throws(QASDKException::class)
     suspend fun getConnectedDevices(): List<String> {
         return repository.getConnectedDevices()
+    }
+
+    suspend fun <T>getCognitiveTestResults(testType: CognitiveTest<T>): List<T> {
+        return repository.getCognitiveTestResults(testType)
+    }
+
+    suspend fun <T>saveCognitiveTestResult(
+        testType: CognitiveTest<T>,
+        testResult: T,
+        timestamp: Long = System.currentTimeMillis(),
+        localTime: String = Instant.now().toString()
+    ) {
+        val gson = Gson()
+        val resultJson = gson.toJson(testResult)
+        val entity = CognitiveTestEntity(
+            testType = testType.id,
+            results = resultJson,
+            timestamp = timestamp,
+            localTime = localTime,
+            sync = 0
+        )
+        return repository.submitCognitiveTestResponse(testType, entity)
     }
 }

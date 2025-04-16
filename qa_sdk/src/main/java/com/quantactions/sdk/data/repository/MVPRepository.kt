@@ -16,6 +16,7 @@ import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
+import com.google.gson.Gson
 import com.hadiyarajesh.flower_core.ApiEmptyResponse
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiResponse
@@ -33,6 +34,9 @@ import com.quantactions.sdk.R
 import com.quantactions.sdk.Subscription
 import com.quantactions.sdk.TapsStats
 import com.quantactions.sdk.TimeSeries
+import com.quantactions.sdk.cognitivetests.CognitiveTest
+import com.quantactions.sdk.cognitivetests.dotmemory.DotMemoryTestResponse
+import com.quantactions.sdk.cognitivetests.pvt.PVTResponse
 import com.quantactions.sdk.data.api.ApiService
 import com.quantactions.sdk.data.api.TokenApi
 import com.quantactions.sdk.data.api.TokenAuthenticator
@@ -42,6 +46,7 @@ import com.quantactions.sdk.data.api.responses.JournalEntriesResponse
 import com.quantactions.sdk.data.api.responses.RegistrationResponse
 import com.quantactions.sdk.data.entity.ActivityTransitionEntity
 import com.quantactions.sdk.data.entity.CodeOfApp
+import com.quantactions.sdk.data.entity.CognitiveTestEntity
 import com.quantactions.sdk.data.entity.Cohort
 import com.quantactions.sdk.data.entity.HourlyTapsEntity
 import com.quantactions.sdk.data.entity.JournalEntryEntity
@@ -161,6 +166,7 @@ class MVPRepository @Inject private constructor(
         get() = preferences.getFBCode()
     private lateinit var apiService: ApiService//.create(preferences, apiKey ?: preferences.apiKey)
     internal val mvpDao = getDatabase(context).mvpDao()
+    internal val cognitiveTestDao = getDatabase(context).cognitiveTestDao()
     val workManager = WorkManager.getInstance(context)
     private var canActivity = preferences.canActivity(context)
     private var canDraw = preferences.canDraw(context)
@@ -311,6 +317,24 @@ class MVPRepository @Inject private constructor(
     fun canUsage(context: Context): Boolean {
         canUsage = preferences.canUsage(context)
         return canUsage
+    }
+
+    suspend fun <T>getCognitiveTestResults(testType: CognitiveTest<T>): List<T> {
+        val gson = Gson()
+        val entities = cognitiveTestDao.getResultsForType(testType.id)
+        return when (testType) {
+            is CognitiveTest.PVT -> {
+                entities.map { entity ->
+                    gson.fromJson(entity.results, PVTResponse::class.java) as T
+                }
+            }
+
+            is CognitiveTest.DotMemory -> {
+                entities.map { entity ->
+                    gson.fromJson(entity.results, DotMemoryTestResponse::class.java) as T
+                }
+            }
+        }
     }
 
     @ExperimentalCoroutinesApi
@@ -1040,7 +1064,8 @@ class MVPRepository @Inject private constructor(
                     if (studyInfo.enableSyncOnScreenOff) 1 else 0,
                     if (studyInfo.enableDrawOverAccess) 1 else 0,
                     0,
-                    0
+                    0,
+                    studyInfo.enableCognitiveTests ?: false
                 )
                 mvpDao.insertOrUpdateStudy(cohort)
 
@@ -1091,7 +1116,8 @@ class MVPRepository @Inject private constructor(
                     if (studyInfo.enableSyncOnScreenOff) 1 else 0,
                     if (studyInfo.enableDrawOverAccess) 1 else 0,
                     0,
-                    0
+                    0,
+                    studyInfo.enableCognitiveTests ?: false
                 )
                 mvpDao.insertOrUpdateStudy(cohort)
 
@@ -1684,7 +1710,57 @@ class MVPRepository @Inject private constructor(
         }
     }
 
-    suspend fun deleteLocalStudies() {
+    suspend fun <T>submitCognitiveTestResponse(
+        cognitiveTest: CognitiveTest<T>,
+        answer: CognitiveTestEntity
+    ) {
+
+        val idToDelete = cognitiveTestDao.insertOrUpdateCognitiveTestResult(answer)
+        val toPush = CognitiveTestEntity.toBody(answer, cognitiveTest)
+
+        val apiResponse = apiService.submitCognitiveTestResponse(
+            identityId, toPush
+        )
+
+        when (apiResponse) {
+            is ApiSuccessResponse -> {
+                apiResponse.body?.let {
+                    cognitiveTestDao.setSyncStatusTo1(idToDelete)
+                }
+            }
+
+            is ApiErrorResponse -> {
+                Timber.e("API Error [submitCognitiveTestResponse()]: ${apiResponse.errorMessage} || ${apiResponse.httpStatusCode}")
+            }
+
+            is ApiEmptyResponse -> {
+                throw QASDKException("Response Body to sendQuestionnaire is empty, this should not happen, file a bug report!")
+            }
+        }
+    }
+
+    fun setCognitiveTestSyncStatusTo1(answer: CognitiveTestEntity) {
+        cognitiveTestDao.setSyncStatusTo1(answer.id.toLong())
+    }
+
+
+    suspend fun <T>submitPendingCognitiveTestResponse(
+        cognitiveTest: CognitiveTest<T>,
+        answer: CognitiveTestEntity
+    ): ApiResponse<ApiService.IdResponse> {
+
+        val toPush = CognitiveTestEntity.toBody(answer, cognitiveTest)
+
+        return apiService.submitCognitiveTestResponse(
+            identityId, toPush
+        )
+    }
+
+    fun getPendingCognitiveTests(): List<CognitiveTestEntity> {
+        return cognitiveTestDao.getPendingCognitiveTests()
+    }
+
+    fun deleteLocalStudies() {
         mvpDao.deleteStudies()
     }
 

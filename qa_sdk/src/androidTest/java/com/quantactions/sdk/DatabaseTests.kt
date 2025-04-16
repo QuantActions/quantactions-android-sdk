@@ -32,6 +32,24 @@ class MigrationTest {
 
     @Test
     @Throws(IOException::class)
+    fun migrate9To10() {
+        var db = helper.createDatabase(TEST_DB, 9).apply {
+            close()
+        }
+        db = helper.runMigrationsAndValidate(TEST_DB, 10, true, MIGRATION_9_10)
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun migrate10To11() {
+        var db = helper.createDatabase(TEST_DB, 10).apply {
+            close()
+        }
+        db = helper.runMigrationsAndValidate(TEST_DB, 11, true, MIGRATION_10_11)
+    }
+
+    @Test
+    @Throws(IOException::class)
     fun migrate7To8() {
         var db = helper.createDatabase(TEST_DB, 7).apply {
             // db has schema version 1. insert some data using SQL queries.

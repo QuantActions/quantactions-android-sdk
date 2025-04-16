@@ -10,6 +10,7 @@
 package com.quantactions.sdk.data.repository
 
 import androidx.room.TypeConverter
+import com.google.gson.Gson
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
@@ -34,6 +35,18 @@ class Converters {
     @TypeConverter
     fun fromListToInt(list: List<Int>): String {
         return Json.encodeToString(ListSerializer(Int.serializer()), list)
+    }
+
+    private val gson = Gson()
+
+    @TypeConverter
+    fun fromJson(value: String): Map<String, Any> {
+        return gson.fromJson(value, Map::class.java) as Map<String, Any>
+    }
+
+    @TypeConverter
+    fun toJson(value: Map<String, Any>): String {
+        return gson.toJson(value)
     }
 
 }

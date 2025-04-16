@@ -19,7 +19,20 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.quantactions.sdk.BuildConfig
-import com.quantactions.sdk.data.entity.*
+import com.quantactions.sdk.data.entity.ActivityTransitionEntity
+import com.quantactions.sdk.data.entity.CodeOfApp
+import com.quantactions.sdk.data.entity.CognitiveTestEntity
+import com.quantactions.sdk.data.entity.Cohort
+import com.quantactions.sdk.data.entity.HourlyTapsEntity
+import com.quantactions.sdk.data.entity.JournalEntryEntity
+import com.quantactions.sdk.data.entity.JournalEntryJoinsJournalEventEntity
+import com.quantactions.sdk.data.entity.JournalEventEntity
+import com.quantactions.sdk.data.entity.Questionnaire
+import com.quantactions.sdk.data.entity.QuestionnaireResponseEntity
+import com.quantactions.sdk.data.entity.SleepSummaryEntity
+import com.quantactions.sdk.data.entity.StatisticEntity
+import com.quantactions.sdk.data.entity.StatisticStringEntity
+import com.quantactions.sdk.data.entity.TrendEntity
 import net.sqlcipher.database.SQLiteDatabase.getBytes
 import net.sqlcipher.database.SupportFactory
 
@@ -42,13 +55,15 @@ import net.sqlcipher.database.SupportFactory
         SleepSummaryEntity::class,
         TrendEntity::class,
         ActivityTransitionEntity::class,
+        CognitiveTestEntity::class
     ],
-    version = 10, exportSchema = true
+    version = 11, exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class MVPRoomDatabase : RoomDatabase() {
 
     abstract fun mvpDao(): MVPDao
+    abstract fun cognitiveTestDao(): CognitiveTestDao
 
     companion object {
         // Singleton prevents multiple instances of database opening at the
@@ -105,6 +120,8 @@ abstract class MVPRoomDatabase : RoomDatabase() {
                         .addMigrations(MIGRATION_7_10)  // QA Recharge
                         .addMigrations(MIGRATION_8_10)  // QA Recharge
                         .addMigrations(MIGRATION_9_10)  // QA Recharge
+                        // Adding cognitive tests
+                        .addMigrations(MIGRATION_10_11)  // QA Recharge
 
                     // Adding encryption of DB if not debug
                     if (!BuildConfig.DEBUG) {
@@ -1072,6 +1089,28 @@ val MIGRATION_9_10 = object : Migration(9, 10) {
                     "'sync' INTEGER NOT NULL, " +
                     "PRIMARY KEY('id')" +
                     ")"
+        )
+    }
+}
+
+val MIGRATION_10_11 = object : Migration(10, 11) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+
+        database.execSQL(
+            "CREATE TABLE cognitive_test_results (" +
+                    "'id' INTEGER NOT NULL, " +
+                    "'testType' TEXT NOT NULL, " +
+                    "'results' TEXT NOT NULL, " +
+                    "'timestamp' INTEGER NOT NULL, " +
+                    "'localTime' TEXT NOT NULL, " +
+                    "'sync' INTEGER NOT NULL, " +
+                    "PRIMARY KEY('id')" +
+                    ")"
+        )
+
+        database.execSQL(
+            "ALTER TABLE studies " +
+                    "ADD COLUMN enableCognitiveTest INTEGER NOT NULL DEFAULT 0"
         )
     }
 }
