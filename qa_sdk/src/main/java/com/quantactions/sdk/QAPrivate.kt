@@ -435,7 +435,7 @@ internal class QAPrivate private constructor(
         return repository.sendQuestionnaireResponse(resp)
     }
 
-    suspend fun getQuestionnairesList(): List<Questionnaire> {
+    suspend fun getQuestionnairesList(): List<QuestionnaireWithCohortName> {
         return repository.getQuestionnaires()
     }
 

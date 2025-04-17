@@ -443,7 +443,7 @@ class QA private constructor(
      * a device is subscribed to).
      * @return a list of [Questionnaire]
      */
-    suspend fun getQuestionnairesList(): List<Questionnaire> {
+    suspend fun getQuestionnairesList(): List<QuestionnaireWithCohortName> {
         return qaPrivate.getQuestionnairesList()
     }
 

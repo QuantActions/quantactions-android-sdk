@@ -1112,5 +1112,18 @@ val MIGRATION_10_11 = object : Migration(10, 11) {
             "ALTER TABLE studies " +
                     "ADD COLUMN enableCognitiveTest INTEGER NOT NULL DEFAULT 0"
         )
+
+        database.execSQL("DROP TABLE questionnaires")
+
+        database.execSQL("CREATE TABLE questionnaires " +
+                "(" +
+                "'id' TEXT NOT NULL, " +
+                "'qName' TEXT NOT NULL, " +
+                "'qDescription' TEXT NOT NULL, " +
+                "'qCode' TEXT NOT NULL, " +
+                "'qStudy' TEXT NOT NULL, " +
+                "'qBody' TEXT NOT NULL, " +
+                "PRIMARY KEY('id', 'qStudy'))")
+
     }
 }
