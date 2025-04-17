@@ -54,6 +54,7 @@ import com.quantactions.sdk.data.entity.JournalEntryJoinsJournalEventEntity
 import com.quantactions.sdk.data.entity.JournalEventEntity
 import com.quantactions.sdk.data.entity.Questionnaire
 import com.quantactions.sdk.data.entity.QuestionnaireResponseEntity
+import com.quantactions.sdk.data.entity.QuestionnaireWithCohortName
 import com.quantactions.sdk.data.entity.TimestampedEntity
 import com.quantactions.sdk.data.model.AppToPush
 import com.quantactions.sdk.data.model.DevicePatch
@@ -1262,12 +1263,12 @@ class MVPRepository @Inject private constructor(
         return mvpDao.getStudiesSingle()
     }
 
-    suspend fun getStudies(): List<Cohort> {
+    fun getStudies(): List<Cohort> {
         return mvpDao.getStudies()
     }
 
 
-    suspend fun getQuestionnaires(): List<Questionnaire> {
+    fun getQuestionnaires(): List<QuestionnaireWithCohortName> {
         return mvpDao.getQuestionnaires()
     }
 

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 11,
-    "identityHash": "b3990d17d8218ff2ee62ad4bbb7012e9",
+    "identityHash": "c4fe790ad8d98534634939f088a324f4",
     "entities": [
       {
         "tableName": "stat_table",
@@ -124,7 +124,7 @@
       },
       {
         "tableName": "questionnaires",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `qName` TEXT NOT NULL, `qDescription` TEXT NOT NULL, `qCode` TEXT NOT NULL, `qStudy` TEXT NOT NULL, `qBody` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `qName` TEXT NOT NULL, `qDescription` TEXT NOT NULL, `qCode` TEXT NOT NULL, `qStudy` TEXT NOT NULL, `qBody` TEXT NOT NULL, PRIMARY KEY(`id`, `qStudy`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -166,7 +166,8 @@
         "primaryKey": {
           "autoGenerate": false,
           "columnNames": [
-            "id"
+            "id",
+            "qStudy"
           ]
         },
         "indices": [],
@@ -928,7 +929,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b3990d17d8218ff2ee62ad4bbb7012e9')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c4fe790ad8d98534634939f088a324f4')"
     ]
   }
 }

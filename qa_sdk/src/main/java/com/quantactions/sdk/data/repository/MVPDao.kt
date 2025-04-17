@@ -25,6 +25,7 @@ import com.quantactions.sdk.data.entity.JournalEntryJoinsJournalEventEntity
 import com.quantactions.sdk.data.entity.JournalEventEntity
 import com.quantactions.sdk.data.entity.Questionnaire
 import com.quantactions.sdk.data.entity.QuestionnaireResponseEntity
+import com.quantactions.sdk.data.entity.QuestionnaireWithCohortName
 import com.quantactions.sdk.data.entity.SleepSummaryEntity
 import com.quantactions.sdk.data.entity.StatisticEntity
 import com.quantactions.sdk.data.entity.StatisticStringEntity
@@ -94,9 +95,8 @@ interface MVPDao {
     fun updateDeviceHealthParsedSyncStatus(starts: List<Long>)
 
     // QUESTIONNAIRES
-    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Query("SELECT q.*, s.studyTitle FROM questionnaires q INNER JOIN studies s on q.qStudy = s.studyId ORDER BY s.studyTitle ASC;")
-    fun getQuestionnaires(): List<Questionnaire>
+    fun getQuestionnaires(): List<QuestionnaireWithCohortName>
 
     @Query("SELECT * FROM questionnaire_responses")
     fun getQuestionnaireResponses(): List<QuestionnaireResponseEntity>
