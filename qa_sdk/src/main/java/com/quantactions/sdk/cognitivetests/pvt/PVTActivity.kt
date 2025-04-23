@@ -13,6 +13,7 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageButton
@@ -28,7 +29,6 @@ import com.quantactions.sdk.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import kotlin.random.Random
 
@@ -139,6 +139,12 @@ class PVTActivity : AppCompatActivity() {
     }
 
     private fun showResults() {
+
+        if (isFinishing || isDestroyed) {
+            Log.w("PVTActivity", "Activity is finishing or destroyed; skipping showResults")
+            return
+        }
+
         timerLayout.visibility = LinearLayout.GONE
         resultTextView.visibility = TextView.GONE
 
@@ -187,7 +193,8 @@ class PVTActivity : AppCompatActivity() {
 
     private fun calculateMedianInt(numbers: List<Long>): Double {
         if (numbers.isEmpty()) {
-            throw IllegalArgumentException("Cannot calculate median of an empty list")
+            Log.w("PVTActivity", "Cannot calculate median of an empty list")
+            return 0.0
         }
 
         val sortedNumbers = numbers.sorted()
