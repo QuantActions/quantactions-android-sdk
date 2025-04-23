@@ -14,6 +14,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.quantactions.sdk.QA
 import com.quantactions.sdk.cognitivetests.CognitiveTest
+import com.quantactions.sdk.cognitivetests.CognitiveTestResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,8 +33,8 @@ open class PVTViewModel @Inject constructor(
     application: Application,
 ) : AndroidViewModel(application) {
 
-    private var _testResults = MutableStateFlow(listOf<PVTResponse>())
-    val testResults: StateFlow<List<PVTResponse>> get() = _testResults
+    private var _testResults = MutableStateFlow(listOf<CognitiveTestResult<PVTResponse>>())
+    val testResults: StateFlow<List<CognitiveTestResult<PVTResponse>>> get() = _testResults
 
     private var _saving = MutableStateFlow(false)
     val saving: StateFlow<Boolean> get() = _saving
@@ -43,8 +44,9 @@ open class PVTViewModel @Inject constructor(
     private fun getTestResults() {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-            val studies = qa.getCognitiveTestResults(CognitiveTest.PVT)
-            _testResults.value = studies
+                qa.getCognitiveTestResults(CognitiveTest.PVT).collect { studies ->
+                    _testResults.value = studies
+                }
             }
         }
     }
@@ -54,15 +56,15 @@ open class PVTViewModel @Inject constructor(
         timestamp: Long = System.currentTimeMillis(),
         localTime: String = Instant.now().toString()
     ) {
-            withContext(Dispatchers.Default) {
-                _saving.value = true
-                try {
-                    qa.saveCognitiveTestResult(CognitiveTest.PVT, response, timestamp, localTime)
-                } catch (e: Exception) {
-                    Timber.e("Error, will retry later: $e")
-                }
-                _saving.value = false
+        withContext(Dispatchers.Default) {
+            _saving.value = true
+            try {
+                qa.saveCognitiveTestResult(CognitiveTest.PVT, response, timestamp, localTime)
+            } catch (e: Exception) {
+                Timber.e("Error, will retry later: $e")
             }
+            _saving.value = false
+        }
     }
 
 }

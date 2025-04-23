@@ -23,6 +23,7 @@ import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.quantactions.sdk.cognitivetests.CognitiveTest
+import com.quantactions.sdk.cognitivetests.CognitiveTestResult
 import com.quantactions.sdk.cognitivetests.dotmemory.DotMemoryTestActivity
 import com.quantactions.sdk.cognitivetests.pvt.PVTActivity
 import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
@@ -588,7 +589,7 @@ class QA private constructor(
         qaPrivate.saveCognitiveTestResult(testType, testResult, timestamp, localTime)
     }
 
-    suspend fun <T>getCognitiveTestResults(testType: CognitiveTest<T>): List<T> {
+    fun <T>getCognitiveTestResults(testType: CognitiveTest<T>): Flow<List<CognitiveTestResult<T>>> {
         return qaPrivate.getCognitiveTestResults(testType)
     }
 

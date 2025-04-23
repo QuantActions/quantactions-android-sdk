@@ -28,6 +28,7 @@ import com.hadiyarajesh.flower_core.ApiEmptyResponse
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.quantactions.sdk.cognitivetests.CognitiveTest
+import com.quantactions.sdk.cognitivetests.CognitiveTestResult
 import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
 import com.quantactions.sdk.data.entity.*
 import com.quantactions.sdk.data.model.JournalEntry
@@ -746,7 +747,7 @@ internal class QAPrivate private constructor(
         return repository.getConnectedDevices()
     }
 
-    suspend fun <T>getCognitiveTestResults(testType: CognitiveTest<T>): List<T> {
+    fun <T>getCognitiveTestResults(testType: CognitiveTest<T>): Flow<List<CognitiveTestResult<T>>> {
         return repository.getCognitiveTestResults(testType)
     }
 
