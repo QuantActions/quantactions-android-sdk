@@ -16,6 +16,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.quantactions.sdk.data.entity.CognitiveTestEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CognitiveTestDao {
@@ -26,7 +27,7 @@ interface CognitiveTestDao {
     suspend fun getAllResults(): List<CognitiveTestEntity>
 
     @Query("SELECT * FROM cognitive_test_results WHERE testType = :testType")
-    suspend fun getResultsForType(testType: String): List<CognitiveTestEntity>
+    fun getResultsForType(testType: String): Flow<List<CognitiveTestEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdateCognitiveTestResult(action: CognitiveTestEntity): Long

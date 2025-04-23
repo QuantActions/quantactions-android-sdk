@@ -14,6 +14,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.quantactions.sdk.QA
 import com.quantactions.sdk.cognitivetests.CognitiveTest
+import com.quantactions.sdk.cognitivetests.CognitiveTestResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,8 +32,8 @@ open class DotMemoryTestViewModel @Inject constructor(
     application: Application,
 ) : AndroidViewModel(application) {
 
-    private var _testResults = MutableStateFlow(listOf<DotMemoryTestResponse>())
-    val testResults: StateFlow<List<DotMemoryTestResponse>> get() = _testResults
+    private var _testResults = MutableStateFlow(listOf<CognitiveTestResult<DotMemoryTestResponse>>())
+    val testResults: StateFlow<List<CognitiveTestResult<DotMemoryTestResponse>>> get() = _testResults
 
     private var _saving = MutableStateFlow(false)
     val saving: StateFlow<Boolean> get() = _saving
@@ -42,8 +43,9 @@ open class DotMemoryTestViewModel @Inject constructor(
     fun getTestResults() {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-                val results = qa.getCognitiveTestResults(CognitiveTest.DotMemory)
-                _testResults.value = results
+                qa.getCognitiveTestResults(CognitiveTest.DotMemory).collect { results ->
+                    _testResults.value = results
+                }
             }
         }
     }

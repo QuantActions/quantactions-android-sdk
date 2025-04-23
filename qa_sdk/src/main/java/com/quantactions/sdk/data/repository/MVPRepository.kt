@@ -35,7 +35,7 @@ import com.quantactions.sdk.Subscription
 import com.quantactions.sdk.TapsStats
 import com.quantactions.sdk.TimeSeries
 import com.quantactions.sdk.cognitivetests.CognitiveTest
-import com.quantactions.sdk.cognitivetests.dotmemory.DotMemoryTestResponse
+import com.quantactions.sdk.cognitivetests.CognitiveTestResult
 import com.quantactions.sdk.cognitivetests.pvt.PVTResponse
 import com.quantactions.sdk.data.api.ApiService
 import com.quantactions.sdk.data.api.TokenApi
@@ -320,22 +320,33 @@ class MVPRepository @Inject private constructor(
         return canUsage
     }
 
-    suspend fun <T>getCognitiveTestResults(testType: CognitiveTest<T>): List<T> {
+    fun <T>getCognitiveTestResults(testType: CognitiveTest<T>): Flow<List<CognitiveTestResult<T>>> {
         val gson = Gson()
-        val entities = cognitiveTestDao.getResultsForType(testType.id)
-        return when (testType) {
-            is CognitiveTest.PVT -> {
-                entities.map { entity ->
-                    gson.fromJson(entity.results, PVTResponse::class.java) as T
+        return cognitiveTestDao.getResultsForType(testType.id).map { entities ->
+            when (testType) {
+                is CognitiveTest.PVT -> {
+                    entities.map { entity ->
+                        CognitiveTestResult(
+                            cognitiveTest = CognitiveTest.PVT.id,
+                            result = gson.fromJson(entity.results, PVTResponse::class.java) as T,
+                            timestamp = entity.timestamp,
+                            localTime = entity.localTime
+                        )
+                    }
                 }
-            }
 
-            is CognitiveTest.DotMemory -> {
-                entities.map { entity ->
-                    gson.fromJson(entity.results, DotMemoryTestResponse::class.java) as T
+                is CognitiveTest.DotMemory -> {
+                    entities.map { entity ->
+                        CognitiveTestResult(
+                            cognitiveTest = CognitiveTest.DotMemory.id,
+                            result = gson.fromJson(entity.results, PVTResponse::class.java) as T,
+                            timestamp = entity.timestamp,
+                            localTime = entity.localTime
+                        )
+                    }
                 }
             }
-        }
+        }.flowOn(Dispatchers.IO)
     }
 
     @ExperimentalCoroutinesApi

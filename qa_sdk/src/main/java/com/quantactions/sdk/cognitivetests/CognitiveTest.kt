@@ -9,7 +9,6 @@
 
 package com.quantactions.sdk.cognitivetests
 
-import androidx.annotation.Keep
 import com.quantactions.sdk.cognitivetests.dotmemory.DotMemoryTestResponse
 import com.quantactions.sdk.cognitivetests.pvt.PVTResponse
 
@@ -19,3 +18,9 @@ sealed class CognitiveTest<T>(val id: String) {
     data object DotMemory : CognitiveTest<DotMemoryTestResponse>("DotMemory")
 }
 
+class CognitiveTestResult<T>(
+    val cognitiveTest: String,
+    val result: T,
+    val timestamp: Long,
+    val localTime: String,
+)
