@@ -82,7 +82,8 @@ class StudyAdapter {
                         questionnaire.description!!,
                         questionnaire.id!!,
                         s.id!!,
-                        questionnaire.definition!!
+                        questionnaire.definition!!,
+                        questionnaire.completionTimeMinutes ?: 5
                     )
                 )
             }

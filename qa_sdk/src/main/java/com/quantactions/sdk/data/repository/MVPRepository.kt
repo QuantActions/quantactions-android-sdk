@@ -1017,7 +1017,8 @@ class MVPRepository @Inject private constructor(
                         it.description,
                         it.code,
                         studyId,
-                        it.definition.toMutableMap().stringify()
+                        it.definition.toMutableMap().stringify(),
+                        it.completionTimeMinutes
                     )
                 }
 

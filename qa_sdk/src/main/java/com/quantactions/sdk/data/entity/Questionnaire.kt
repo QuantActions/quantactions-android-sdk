@@ -51,5 +51,10 @@ data class Questionnaire(
     /** Body of the questionnaire in JSON format */
     @Keep
     @ColumnInfo(name = "qBody")
-    val questionnaireBody: String
+    val questionnaireBody: String,
+
+    /** Completion time in minutes */
+    @Keep
+    @ColumnInfo(name = "completionTimeMinutes")
+    val completionTimeMinutes: Int
 )

@@ -51,5 +51,10 @@ data class QuestionnaireWithCohortName(
     /** Name of Cohort */
     @Keep
     @ColumnInfo(name = "studyTitle")
-    val cohortName: String
+    val cohortName: String,
+
+    /** Completion time in minutes */
+    @Keep
+    @ColumnInfo(name = "completionTimeMinutes")
+    val completionTimeMinutes: Int
 )

@@ -57,7 +57,7 @@ import net.sqlcipher.database.SupportFactory
         ActivityTransitionEntity::class,
         CognitiveTestEntity::class
     ],
-    version = 11, exportSchema = true
+    version = 12, exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class MVPRoomDatabase : RoomDatabase() {
@@ -122,6 +122,8 @@ abstract class MVPRoomDatabase : RoomDatabase() {
                         .addMigrations(MIGRATION_9_10)  // QA Recharge
                         // Adding cognitive tests
                         .addMigrations(MIGRATION_10_11)  // QA Recharge
+                        // Adding completion time to questionnaires
+                        .addMigrations(MIGRATION_11_12)  // TapCounter
 
                     // Adding encryption of DB if not debug
                     if (!BuildConfig.DEBUG) {
@@ -1125,5 +1127,15 @@ val MIGRATION_10_11 = object : Migration(10, 11) {
                 "'qBody' TEXT NOT NULL, " +
                 "PRIMARY KEY('id', 'qStudy'))")
 
+    }
+}
+
+val MIGRATION_11_12 = object : Migration(11, 12) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+
+        database.execSQL(
+            "ALTER TABLE questionnaires " +
+                    "ADD COLUMN completionTimeMinutes INTEGER NOT NULL DEFAULT 5"
+        )
     }
 }
