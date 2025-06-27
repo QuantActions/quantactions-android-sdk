@@ -325,7 +325,7 @@ interface ApiService {
         val description: String,
         val language: String,
         val definition: Map<String, @Contextual  Any>,
-        val completionTimeMinutes: Int,
+        val completionTimeMinutes: Int?,
     )
 
     @POST("flows/identities/{identityId}/links")
