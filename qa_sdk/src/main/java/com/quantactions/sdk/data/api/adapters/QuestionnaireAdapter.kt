@@ -51,7 +51,10 @@ class QuestionnaireAdapter {
                 questionnaireEntities.add(
                     Questionnaire(s.id + ":" + questionnaire.id,
                         questionnaire.title!!,
-                        questionnaire.description!!, questionnaire.id!!, s.id!!, questionnaire.definition!!)
+                        questionnaire.description!!,
+                        questionnaire.id!!, s.id!!,
+                        questionnaire.definition!!,
+                        questionnaire.completionTimeMinutes ?: 5)
                 )
             }
 
