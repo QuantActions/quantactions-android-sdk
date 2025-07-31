@@ -10,8 +10,6 @@ package com.quantactions.sdk
 
 import android.annotation.SuppressLint
 import android.app.usage.UsageEvents
-import android.app.ActivityManager
-import android.app.ActivityManager.RunningAppProcessInfo
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
@@ -77,7 +75,7 @@ internal class Actuator private constructor() {
                     instance.logs = Vector()
                     instance.addView(context)
                     instance.mvpDao = getDatabase(context).mvpDao()
-                    usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+                    instance.usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
                 } else {
                     instance.addView(context)
                 }
