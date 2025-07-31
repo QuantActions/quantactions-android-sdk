@@ -9,24 +9,34 @@
 package com.quantactions.sdk
 
 import android.Manifest
-import android.app.*
-import android.content.*
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.Service
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.os.*
+import android.os.Binder
+import android.os.Build
+import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.IntentCompat.getParcelableExtra
 import com.google.android.gms.location.ActivityRecognition
 import com.google.android.gms.location.ActivityTransition
 import com.google.android.gms.location.ActivityTransitionRequest
 import com.google.android.gms.location.DetectedActivity
 import com.quantactions.sdk.QA.Companion.getInstance
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.util.*
+import java.util.Arrays
 
 /**
  * Background service (forced to be foreground for SDK >= Android O) that allows QA to function
@@ -39,7 +49,6 @@ class ReadingsService : Service() {
     private lateinit var actuator: Actuator
     private val job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + job)
-    var added = false
 
     override fun onCreate() {
 
@@ -48,7 +57,7 @@ class ReadingsService : Service() {
         filter.addAction(Intent.ACTION_SCREEN_OFF)
         mReceiver = QABroadcastReceiver()
         registerReceiver(mReceiver, filter)
-        actuator = Actuator(this@ReadingsService)
+        actuator = Actuator.getInstance(this@ReadingsService)
         getInstance(this@ReadingsService).updater.updateNotification()
 
         // Necessary for handling foreground task
@@ -211,7 +220,7 @@ class ReadingsService : Service() {
                     startSession(System.currentTimeMillis())
                 } else { // otherwise (if the screen goes off) I analyze the data recorded in the last session
                     scope.launch {
-                        actuator.saveSession(System.currentTimeMillis())
+                        actuator.saveSession(System.currentTimeMillis(), this@ReadingsService)
                     }
                 }
             }
@@ -235,9 +244,8 @@ class ReadingsService : Service() {
      * Adding the tap collector view to the screen
      */
     private fun addView() {
-        if (!added) {
-            actuator.addView()
-            added = true
+        if (!actuator.added) {
+            actuator.addView(this@ReadingsService)
         }
     }
 
@@ -245,8 +253,7 @@ class ReadingsService : Service() {
      * Removing the view from the screen, this is necessary in some cases
      */
     private fun removeView() {
-        actuator.removeView()
-        added = false
+        actuator.removeView(this@ReadingsService)
     }
 
     override fun onDestroy() {

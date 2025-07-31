@@ -17,6 +17,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
 import android.os.Build
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.work.*
 import com.google.firebase.crashlytics.ktx.crashlytics
@@ -80,6 +81,7 @@ internal class QAPrivate private constructor(
     }
 
     var activityPermissionNotification: ActivityPermissionNotification = ActivityPermissionNotificationImpl()
+    var restartedRequiredNotification: RestartedRequiredNotification = RestartedRequiredNotificationImpl()
     val deviceID: String
         get() = repository.deviceID
     val identityId: String
@@ -92,13 +94,6 @@ internal class QAPrivate private constructor(
     fun isDeviceRegistered(): Boolean {
         return repository.isDeviceRegistered()
     }
-
-//    fun isDeviceRegistered(context: Context): Boolean {
-//        val keyFile = Utils.optionalKey(context)
-//        val isPresent = keyFile != null
-//        keyFile?.close()
-//        return isPresent
-//    }
 
     private fun registerDeviceAsync() {
         val registerWork = OneTimeWorkRequest.Builder(RegisterWorker::class.java)
@@ -574,7 +569,6 @@ internal class QAPrivate private constructor(
                         context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
                     notificationManager?.notify(1, notification)
                 }
-
             }
             true
         } catch (e: Exception) {
@@ -582,6 +576,14 @@ internal class QAPrivate private constructor(
             // off the battery optimization, or send a notification to reopen the app so that the
             // foreground can start again. The only problem is that this is via the SDK and not via
             // the app so it is problematic for customization.
+            Log.e("QAPrivate", e.localizedMessage)
+            val notification = restartedRequiredNotification.createNotification(
+                context,
+                context.getString(R.string.notification_channel_id_qa)
+            )
+            val notificationManager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+            notificationManager?.notify(1, notification)
             Firebase.crashlytics.setUserId(deviceID)
             Firebase.crashlytics.setCustomKeys {
                 key("location", "QAPrivate")
