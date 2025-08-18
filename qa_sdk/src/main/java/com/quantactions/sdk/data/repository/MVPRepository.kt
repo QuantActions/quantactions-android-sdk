@@ -97,11 +97,11 @@ import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
+import jakarta.inject.Inject
 import kotlin.math.roundToInt
 
 
-class MVPRepository @Inject private constructor(
+class MVPRepository @Inject constructor(
     context: Context,
     private val preferences: ManagePref2,
     apiKey: String? = null
@@ -320,6 +320,7 @@ class MVPRepository @Inject private constructor(
         return canUsage
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun <T>getCognitiveTestResults(testType: CognitiveTest<T>): Flow<List<CognitiveTestResult<T>>> {
         val gson = Gson()
         return cognitiveTestDao.getResultsForType(testType.id).map { entities ->
@@ -1415,7 +1416,7 @@ class MVPRepository @Inject private constructor(
         val moshi = Moshi.Builder().build()
         val adapter = moshi.adapter(Any::class.java)
         val jsonStructure = adapter.fromJson(answer.qResponse)
-        val responseObject = jsonStructure as Map<String, Any>?
+        @Suppress("UNCHECKED_CAST") val responseObject = jsonStructure as Map<String, Any>?
         val date = Instant.ofEpochMilli(answer.qDate).atOffset(ZoneOffset.UTC)
             .format(DateTimeFormatter.ISO_DATE_TIME)
         return QuestionnaireResponse(

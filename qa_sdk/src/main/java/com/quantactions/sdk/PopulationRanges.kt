@@ -24,9 +24,9 @@ import java.time.LocalDate
 @JsonClass(generateAdapter = true)
 @Serializable
 class Range(
-    @Json(name="25th")
+    @param:Json(name="25th")
     val percentile25: Float,
-    @Json(name="75th")
+    @param:Json(name = "75th")
     val percentile75: Float
 )
 
@@ -42,11 +42,11 @@ class Range(
 @Serializable
 data class AgeStratifiedRange(
     val all: Range = Range(0f, 0f),
-    @Json(name="<30")
+    @param:Json(name = "<30")
     val lowerThan30: Range = Range(0f, 0f),
-    @Json(name="30-50")
+    @param:Json(name="30-50")
     val between30And50: Range = Range(0f, 0f),
-    @Json(name=">50")
+    @param:Json(name=">50")
     val greaterThan50: Range = Range(0f, 0f),
 ) {
     /** Get the lower end of the range (25% percentile) for the selected [yearOfBirth].*/

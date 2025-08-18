@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.time.Instant
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 /**
  * This is the view model for the PVT test.

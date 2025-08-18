@@ -20,9 +20,9 @@ import android.os.Build
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.work.*
-import com.google.firebase.crashlytics.ktx.crashlytics
-import com.google.firebase.crashlytics.ktx.setCustomKeys
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.crashlytics.crashlytics
+import com.google.firebase.crashlytics.setCustomKeys
+import com.google.firebase.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
 import com.hadiyarajesh.flower_core.ApiEmptyResponse
@@ -284,7 +284,7 @@ internal class QAPrivate private constructor(
         try {
             FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
                 if (!task.isSuccessful) {
-                    Timber.w("Fetching FCM registration token failed", task.exception)
+                    Timber.w("Fetching FCM registration token failed ${task.exception}")
                     preferences.getFBCode()
                 } else {
                     // Get new FCM registration token

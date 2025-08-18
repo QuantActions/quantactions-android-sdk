@@ -77,7 +77,7 @@ import timber.log.Timber
 import java.io.IOException
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 
 interface ApiService {

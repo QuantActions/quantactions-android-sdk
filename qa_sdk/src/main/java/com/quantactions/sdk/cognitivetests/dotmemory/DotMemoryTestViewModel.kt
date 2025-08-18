@@ -15,13 +15,13 @@ import androidx.lifecycle.viewModelScope
 import com.quantactions.sdk.QA
 import com.quantactions.sdk.cognitivetests.CognitiveTest
 import com.quantactions.sdk.cognitivetests.CognitiveTestResult
+import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalTime
-import javax.inject.Inject
 
 /**
  * This is the view model for the DotMemory test.

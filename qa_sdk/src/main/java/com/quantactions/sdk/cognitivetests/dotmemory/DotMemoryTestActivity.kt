@@ -140,7 +140,7 @@ class DotMemoryTestActivity : AppCompatActivity() {
 
         (0 until 25).forEach { pos ->
             val dot = View(this@DotMemoryTestActivity).apply {
-                setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background))
+                setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background, context.theme))
             }
             val params = GridLayout.LayoutParams().apply {
                 rowSpec = GridLayout.spec(pos / 5)
@@ -168,7 +168,7 @@ class DotMemoryTestActivity : AppCompatActivity() {
             val dot = View(this@DotMemoryTestActivity).apply {
                 if (positions.contains(pos)) {
                     setBackgroundResource(R.drawable.circle_shape)
-                } else setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background))
+                } else setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background, context.theme))
             }
             val params = GridLayout.LayoutParams().apply {
                 rowSpec = GridLayout.spec(pos / 5)
@@ -189,25 +189,24 @@ class DotMemoryTestActivity : AppCompatActivity() {
         }
 
         val cellSize = calculateCellSize(grid)
-        Log.d("Cell size", "place random letters $cellSize")
 
         for (i in 0 until 40) {
             val letter = TextView(this).apply {
                 text = if (positionsFs.contains(i)) "F" else "E"
-                setTextColor(resources.getColor(R.color.white))
-                setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background))
+                setTextColor(resources.getColor(R.color.white, context.theme))
+                setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background, context.theme))
                 textSize = 24f
                 gravity = android.view.Gravity.CENTER
                 tag = "unselected"
                 setOnClickListener {
                     if (tag == "unselected") {
-                        setBackgroundColor(resources.getColor(R.color.white))
-                        setTextColor(resources.getColor(R.color.brand_cognitive_tests_background))
+                        setBackgroundColor(resources.getColor(R.color.white, context.theme))
+                        setTextColor(resources.getColor(R.color.brand_cognitive_tests_background, context.theme))
                         tag = "selected"
                         selectedLetters.add(i)
                     } else {
-                        setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background))
-                        setTextColor(resources.getColor(R.color.white))
+                        setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background, context.theme))
+                        setTextColor(resources.getColor(R.color.white, context.theme))
                         tag = "unselected"
                         selectedLetters.remove(i)
                     }
@@ -232,7 +231,7 @@ class DotMemoryTestActivity : AppCompatActivity() {
 
         for (i in 0 until 25) {
             val cell = View(this).apply {
-                setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background))
+                setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background, context.theme))
                 tag = "unselected"
                 setOnClickListener {
                     if (tag == "unselected" && placedDotsCount < 3) {
@@ -241,7 +240,7 @@ class DotMemoryTestActivity : AppCompatActivity() {
                         placedDotsCount++
                         placedDots.add(i)
                     } else if (tag == "selected") {
-                        setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background))
+                        setBackgroundColor(resources.getColor(R.color.brand_cognitive_tests_background, context.theme))
                         tag = "unselected"
                         placedDotsCount--
                         placedDots.remove(i)
