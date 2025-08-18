@@ -86,7 +86,7 @@ internal class Actuator private constructor() {
 
 
     fun addView(context: Context) {
-        val wParams: WindowManager.LayoutParams =
+        @Suppress("DEPRECATION") val wParams: WindowManager.LayoutParams =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 WindowManager.LayoutParams(
                     10, 10,  //Arbitrary size

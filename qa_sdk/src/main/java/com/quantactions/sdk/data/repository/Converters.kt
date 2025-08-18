@@ -41,6 +41,7 @@ class Converters {
 
     @TypeConverter
     fun fromJson(value: String): Map<String, Any> {
+        @Suppress("UNCHECKED_CAST")
         return gson.fromJson(value, Map::class.java) as Map<String, Any>
     }
 

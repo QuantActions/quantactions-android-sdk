@@ -297,6 +297,7 @@ class ReadingsService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
         } else {
+            @Suppress("DEPRECATION")
             stopForeground(true)
         }
         stopSelf()
@@ -307,6 +308,7 @@ class ReadingsService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_DETACH)
         } else {
+            @Suppress("DEPRECATION")
             stopForeground(false)
         }
         val channelId = getString(R.string.notification_channel_id_qa)

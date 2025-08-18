@@ -49,10 +49,10 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 
-class MockRepository @Inject private constructor(
+class MockRepository @Inject constructor(
     context: Context, private val preferences: MockPref, apiKey: String? = null
 ) {
 
