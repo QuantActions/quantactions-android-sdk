@@ -31,6 +31,7 @@ import com.quantactions.sdk.data.model.JournalEntry
 import com.quantactions.sdk.data.model.JournalEntryEvent
 import com.quantactions.sdk.data.repository.MVPRoomDatabase.Companion.getDatabase
 import com.quantactions.sdk.data.stringify
+import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -49,7 +50,6 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
-import jakarta.inject.Inject
 
 
 class MockRepository @Inject constructor(
@@ -91,6 +91,9 @@ class MockRepository @Inject constructor(
     var iamParticipationId: String = BuildConfig.QA_SAMPLE_PART_ID
     private lateinit var tokenApi: TokenApi
 
+    private var wereJournalEventsCached = false
+    private var wereHealthyRangesCached = false
+
     init {
         reInit(apiKey ?: preferences.apiKey)
     }
@@ -108,6 +111,8 @@ class MockRepository @Inject constructor(
         apiService = ApiService.create(
             apiKey, tokenAuthenticator, cookieJar
         )
+        // This is not really needed but it is to test other journal/ranges calls
+        if (!wereHealthyRangesCached) cacheHealthyRanges()
     }
 
     @ExperimentalCoroutinesApi
@@ -156,13 +161,20 @@ class MockRepository @Inject constructor(
         }
     }
 
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun cacheJournalEvents() {
+    fun cacheHealthyRanges() {
+        wereHealthyRangesCached = true
         scope.launch {
             Metric.SLEEP_SCORE.cacheHealthyRanges(apiService, preferences, identityId)
             Metric.COGNITIVE_FITNESS.cacheHealthyRanges(apiService, preferences, identityId)
             Metric.SOCIAL_ENGAGEMENT.cacheHealthyRanges(apiService, preferences, identityId)
         }
+    }
+
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun cacheJournalEvents() {
         scope.launch {
 
             val filter = mutableMapOf<String, Any>()
@@ -170,6 +182,7 @@ class MockRepository @Inject constructor(
 
             when (val jEvents = apiService.getJournalEventTypes(identityId, filter.stringify())) {
                 is ApiSuccessResponse -> {
+                    wereJournalEventsCached = true
                     Timber.d("[QA API CALL]:[SUC]:Journal events were successfully fetched from API")
                     mvpDao.insertOrUpdateEvents(jEvents.body!!)
                 }
