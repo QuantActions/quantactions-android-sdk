@@ -171,10 +171,10 @@
     <string name="lesson_scores_text_3">Remember that daily fluctuations in your scores are normal. Your score trend over a period of time is what is important for you to understand your mental fitness. Additionally, your individual development is what matters the most; the graph merely orients your understanding of where your scores lie in a general population.</string>
     <string name="lesson_scores_title">How can I see my scores?</string>
     <string name="mini_onboarding_x_of_y">%d of %d</string>
-    <string name="n_days_ago">%d days ago</string>
-    <string name="n_weeks_ago">%d weeks ago</string>
-    <string name="in_n_days">In %d days</string>
-    <string name="in_n_weeks">In %d weeks</string>
+    <string name="n_days_ago">%1$d days ago</string>
+    <string name="n_weeks_ago">%1$d weeks ago</string>
+    <string name="in_n_days">In %1$d days</string>
+    <string name="in_n_weeks">In %1$d weeks</string>
     <string name="next">Next</string>
     <string name="next_step">Next step:</string>
     <string name="note">Note</string>
@@ -523,7 +523,7 @@
     <string name="you_will_have_access_to_the_full_experience_metrics">You will have access to the full experience: \n\t• **Metrics details** help you better understand\n\t• **Trends** make your development visible\n\t• **Relations** compare your scores\n\t• **Journal** links life events to data</string>
     <string name="voucher">Voucher</string>
     <string name="amazing_things_take_time">Amazing things take time!</string>
-    <string name="fresh_trends_are_brewing">Fresh trends are brewing...</string>
+    <string name="fresh_trends_are_brewing">Fresh trends are brewing…</string>
     <string name="we_ll_be_right_with_you">We’ll be right with you!</string>
     <string name="patience_is_key">Patience is key!</string>
     <string name="the_image_we_will_show_is_for_illustrative_purposes_only">The image we will show is for illustrative purposes only and does not reflect your own data. It only shows the direction of your trend.</string>

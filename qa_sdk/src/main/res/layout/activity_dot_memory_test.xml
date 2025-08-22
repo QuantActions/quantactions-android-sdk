@@ -2,6 +2,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:fitsSystemWindows="true"
     android:background="@color/brand_cognitive_tests_background">
 
     <!-- Phase 1: Presentation Phase -->
