@@ -34,14 +34,14 @@ dependencyResolutionManagement {
 ```
 
 1b. In your app-level `build.gradle`: 
-  - ensure that you have selected a minimum Android SDK of **21** 
+  - ensure that you have selected a minimum Android SDK of **23** 
     - use JAVA 17 compiler
     - enable desugaring
 
 ```groovy
 android {
   defaultConfig {
-   minSdkVersion 21
+   minSdkVersion 23
   }
   
   compileOptions {
@@ -55,14 +55,14 @@ android {
 }
   
 dependencies {
-  coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+  coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 }
 ```
        
 1c. Add the QuantActions SDK dependency to your app-level `build.gradle` file
       
 ```groovy
-implementation 'com.quantactions:quantactions-android-sdk:1.1.2'
+implementation 'com.quantactions:quantactions-android-sdk:1.1.3'
 ```
       
 and re-sync the project. Remember to check the latest SDK version in case you are reading an old version of the documentation.
@@ -86,10 +86,10 @@ Once in possession of the `api_key`, the simplest thing to do is to add your `ap
 
  ```groovy
 android {
-   compileSdkVersion 34
+   compileSdkVersion 36
    
    defaultConfig {
-      minSdkVersion 21
+      minSdkVersion 23
       buildConfigField("String", "QA_API_KEY", "\"api_key\"")
    }
 }
@@ -273,7 +273,7 @@ dependencyResolutionManagement {
 ```groovy
 android {
    defaultConfig {
-      minSdkVersion 21
+      minSdkVersion 23
       buildConfigField("String", "QA_API_KEY", "\"api_key\"")
       buildConfigField("String", "QA_COHORT_ID", "\"cohort_id\"")
    }
@@ -289,8 +289,8 @@ android {
 }
 
 dependencies {
-   coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.2'
-   implementation 'com.quantactions:quantactions-android-sdk:1.1.2'
+   coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
+   implementation 'com.quantactions:quantactions-android-sdk:1.1.3'
 }
 
 ```
