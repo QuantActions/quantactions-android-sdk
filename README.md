@@ -445,3 +445,5 @@ Get in touch [with us](mailto:development@quantactions.com) for more information
 
 ## 15. Issue tracking and contact
 Feel free to use the issue tracking of this repo to report any problem with the SDK, in case of more immediate assistance need feel free to contact us at [development@quantactions.com](mailto:development@quantactions.com)
+
+
