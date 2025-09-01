@@ -17,15 +17,19 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
 import android.os.Build
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.work.*
-import com.google.firebase.crashlytics.ktx.crashlytics
-import com.google.firebase.crashlytics.ktx.setCustomKeys
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.crashlytics.crashlytics
+import com.google.firebase.crashlytics.setCustomKeys
+import com.google.firebase.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
+import com.google.gson.Gson
 import com.hadiyarajesh.flower_core.ApiEmptyResponse
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
+import com.quantactions.sdk.cognitivetests.CognitiveTest
+import com.quantactions.sdk.cognitivetests.CognitiveTestResult
 import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
 import com.quantactions.sdk.data.entity.*
 import com.quantactions.sdk.data.model.JournalEntry
@@ -77,6 +81,7 @@ internal class QAPrivate private constructor(
     }
 
     var activityPermissionNotification: ActivityPermissionNotification = ActivityPermissionNotificationImpl()
+    var restartedRequiredNotification: RestartedRequiredNotification = RestartedRequiredNotificationImpl()
     val deviceID: String
         get() = repository.deviceID
     val identityId: String
@@ -89,13 +94,6 @@ internal class QAPrivate private constructor(
     fun isDeviceRegistered(): Boolean {
         return repository.isDeviceRegistered()
     }
-
-//    fun isDeviceRegistered(context: Context): Boolean {
-//        val keyFile = Utils.optionalKey(context)
-//        val isPresent = keyFile != null
-//        keyFile?.close()
-//        return isPresent
-//    }
 
     private fun registerDeviceAsync() {
         val registerWork = OneTimeWorkRequest.Builder(RegisterWorker::class.java)
@@ -286,7 +284,7 @@ internal class QAPrivate private constructor(
         try {
             FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
                 if (!task.isSuccessful) {
-                    Timber.w("Fetching FCM registration token failed", task.exception)
+                    Timber.w("Fetching FCM registration token failed ${task.exception}")
                     preferences.getFBCode()
                 } else {
                     // Get new FCM registration token
@@ -433,7 +431,7 @@ internal class QAPrivate private constructor(
         return repository.sendQuestionnaireResponse(resp)
     }
 
-    suspend fun getQuestionnairesList(): List<Questionnaire> {
+    suspend fun getQuestionnairesList(): List<QuestionnaireWithCohortName> {
         return repository.getQuestionnaires()
     }
 
@@ -487,12 +485,12 @@ internal class QAPrivate private constructor(
         context: Context,
         apiKey: String
     ): List<JournalEntry> {
-        val fakeRepository = MVPRepository.getInstance(
+        val mockRepository = MockRepository.getInstance(
             context,
             apiKey
         )
-        fakeRepository.cacheJournalEvents()
-        return fakeRepository.cacheJournal("f87984d2-3606-4225-b355-ceaad2304b6d")
+        mockRepository.cacheJournalEvents()
+        return mockRepository.cacheJournal()
     }
 
     @Throws(SDKNotInitialisedException::class)
@@ -571,7 +569,6 @@ internal class QAPrivate private constructor(
                         context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
                     notificationManager?.notify(1, notification)
                 }
-
             }
             true
         } catch (e: Exception) {
@@ -579,6 +576,14 @@ internal class QAPrivate private constructor(
             // off the battery optimization, or send a notification to reopen the app so that the
             // foreground can start again. The only problem is that this is via the SDK and not via
             // the app so it is problematic for customization.
+            Log.e("QAPrivate", e.localizedMessage)
+            val notification = restartedRequiredNotification.createNotification(
+                context,
+                context.getString(R.string.notification_channel_id_qa)
+            )
+            val notificationManager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+            notificationManager?.notify(1, notification)
             Firebase.crashlytics.setUserId(deviceID)
             Firebase.crashlytics.setCustomKeys {
                 key("location", "QAPrivate")
@@ -742,5 +747,27 @@ internal class QAPrivate private constructor(
     @Throws(QASDKException::class)
     suspend fun getConnectedDevices(): List<String> {
         return repository.getConnectedDevices()
+    }
+
+    fun <T>getCognitiveTestResults(testType: CognitiveTest<T>): Flow<List<CognitiveTestResult<T>>> {
+        return repository.getCognitiveTestResults(testType)
+    }
+
+    suspend fun <T>saveCognitiveTestResult(
+        testType: CognitiveTest<T>,
+        testResult: T,
+        timestamp: Long = System.currentTimeMillis(),
+        localTime: String = Instant.now().toString()
+    ) {
+        val gson = Gson()
+        val resultJson = gson.toJson(testResult)
+        val entity = CognitiveTestEntity(
+            testType = testType.id,
+            results = resultJson,
+            timestamp = timestamp,
+            localTime = localTime,
+            sync = 0
+        )
+        return repository.submitCognitiveTestResponse(testType, entity)
     }
 }

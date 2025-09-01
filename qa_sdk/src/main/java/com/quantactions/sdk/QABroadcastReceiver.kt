@@ -153,20 +153,7 @@ class QABroadcastReceiver : BroadcastReceiver() {
         qaPrivate: QAPrivate
     ) {
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (Settings.canDrawOverlays(context)) {
-                    if (isMyServiceRunning(ReadingsService::class.java, context)) {
-                        qaPrivate.makeServiceForeground(context)
-                        insertHealthRow(mvpDao, Instant.now(), batteryLevel, "RS")
-                    } else {
-                        qaPrivate.makeServiceForeground(context)
-                        insertHealthRow(mvpDao, Instant.now(), batteryLevel, "OK")
-                    }
-                } else {
-                    qaPrivate.makeServiceForeground(context)
-                    insertHealthRow(mvpDao, Instant.now(), batteryLevel, "OK")
-                }
-            } else {
+            if (Settings.canDrawOverlays(context)) {
                 if (isMyServiceRunning(ReadingsService::class.java, context)) {
                     qaPrivate.makeServiceForeground(context)
                     insertHealthRow(mvpDao, Instant.now(), batteryLevel, "RS")
@@ -174,6 +161,9 @@ class QABroadcastReceiver : BroadcastReceiver() {
                     qaPrivate.makeServiceForeground(context)
                     insertHealthRow(mvpDao, Instant.now(), batteryLevel, "OK")
                 }
+            } else {
+                qaPrivate.makeServiceForeground(context)
+                insertHealthRow(mvpDao, Instant.now(), batteryLevel, "OK")
             }
         } catch (e: Exception) {
             try {
@@ -260,7 +250,7 @@ class QABroadcastReceiver : BroadcastReceiver() {
         val mBuilder = NotificationCompat.Builder(context, channelID)
         mBuilder.setStyle(NotificationCompat.DecoratedCustomViewStyle())
         mBuilder.setSmallIcon(R.drawable.ic_equalizer_black_24dp)
-        mBuilder.color = context.resources.getColor(R.color.brand_background_icon_color)
+        mBuilder.color = context.resources.getColor(R.color.brand_background_icon_color, context.theme)
         mBuilder.setWhen(0)
         mBuilder.setOngoing(true)
 //        mBuilder.setContentText("Taps last 24h: $lastTaps\nSpeed last 24h: ${"%.2f".format(lastSpeed * 60)} taps/m")

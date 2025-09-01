@@ -8,6 +8,7 @@
  */
 package com.quantactions.sdk
 
+//import com.quantactions.sdk.QA.Companion.getInstance
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -17,14 +18,13 @@ import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-//import com.quantactions.sdk.QA.Companion.getInstance
 import com.quantactions.sdk.exceptions.SDKNotInitialisedException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.withContext
 import java.text.DateFormat
-import java.util.*
+import java.util.Date
 
 /**
  * @hide
@@ -109,7 +109,7 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
             builder.setChannelId(channelID) // Channel ID
             builder.build()
         } else {
-            val notificationBuilder = NotificationCompat.Builder(applicationContext)
+            @Suppress("DEPRECATION") val notificationBuilder = NotificationCompat.Builder(applicationContext)
                 .setContentTitle(
                     "Data Uploaded: " + DateFormat.getDateTimeInstance()
                         .format(Date())

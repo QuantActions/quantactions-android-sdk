@@ -139,19 +139,19 @@
     <string name="initial_mini_onboarding_page_4">Use unique brain health metrics to make informed decisions to improve your mental fitness and wellbeing.</string>
     <string name="onboarding">Onboarding</string>
     <string name="learn_more">Learn more</string>
-    <string name="learn_more_how_is">How is %s measured?</string>
-    <string name="learn_more_improve">How can I improve my %s?</string>
-    <string name="learn_more_what_is">What is %s?</string>
-    <string name="learn_more_why_is_important">Why is %s important?</string>
+    <string name="learn_more_how_is">How is %1$s measured?</string>
+    <string name="learn_more_improve">How can I improve my %1$s?</string>
+    <string name="learn_more_what_is">What is %1$s?</string>
+    <string name="learn_more_why_is_important">Why is %1$s important?</string>
     <string name="lesson_11_12">You will be able to see the trends of your scores in personalised graphs.</string>
     <string name="lesson_13">To keep track of how lifestyle changes impact your mental fitness,\nyou can add short notes in the\napp journal.</string>
     <string name="lesson_1_text_1">Using your scores and your notes, you will be able to track, understand, and learn how to manage your mental fitness.</string>
     <string name="lesson_2_4">(Lessons 2–4)</string>
     <string name="lesson_5_7">(Lessons 5–7)</string>
     <string name="lesson_8_10">(Lessons 8–10)</string>
-    <string name="lesson_III_placeholder">Lesson %d - %s III</string>
-    <string name="lesson_II_placeholder">Lesson %d - %s II</string>
-    <string name="lesson_I_placeholder">Lesson %d - %s I</string>
+    <string name="lesson_III_placeholder">Lesson %1$d - %2$s III</string>
+    <string name="lesson_II_placeholder">Lesson %1$d - %2$s II</string>
+    <string name="lesson_I_placeholder">Lesson %1$d - %2$s I</string>
     <string name="lesson_journal_calendar_view">Calendar view</string>
     <string name="lesson_journal_good_to_know">In all 14 days and 6 weeks graphs of the app, you may see dots under some days which indicates that you have entered notes for those days. You can click on one of these dots and the Note will be displayed in a popup so you don’t have to go to the Journal to see it.</string>
     <string name="lesson_journal_list_view">List view</string>
@@ -171,10 +171,10 @@
     <string name="lesson_scores_text_3">Remember that daily fluctuations in your scores are normal. Your score trend over a period of time is what is important for you to understand your mental fitness. Additionally, your individual development is what matters the most; the graph merely orients your understanding of where your scores lie in a general population.</string>
     <string name="lesson_scores_title">How can I see my scores?</string>
     <string name="mini_onboarding_x_of_y">%d of %d</string>
-    <string name="n_days_ago">%d days ago</string>
-    <string name="n_weeks_ago">%d weeks ago</string>
-    <string name="in_n_days">In %d days</string>
-    <string name="in_n_weeks">In %d weeks</string>
+    <string name="n_days_ago">%1$d days ago</string>
+    <string name="n_weeks_ago">%1$d weeks ago</string>
+    <string name="in_n_days">In %1$d days</string>
+    <string name="in_n_weeks">In %1$d weeks</string>
     <string name="next">Next</string>
     <string name="next_step">Next step:</string>
     <string name="note">Note</string>
@@ -188,10 +188,10 @@
     <string name="notification_daily_update">Daily Update</string>
     <string name="notification_daily_update_text">All today’s scores are ready. You can see them in the app</string>
     <string name="notification_id" translatable="false">Notification_ID</string>
-    <string name="notification_changed_significantly">Your %s score has changed significantly. Would you like to add a note about any specific event?</string>
+    <string name="notification_changed_significantly">Your %1$s score has changed significantly. Would you like to add a note about any specific event?</string>
     <string name="notification_monthly_update">Monthly Update</string>
     <string name="notification_monthly_update_text">Check out your score trends over the past month!</string>
-    <string name="notification_ready_to_see_your_score">Ready to see your %s score?</string>
+    <string name="notification_ready_to_see_your_score">Ready to see your %1$s score?</string>
     <string name="notification_see_other_scores">See your scores</string>
     <string name="notification_see_all_scores">See all scores</string>
     <string name="notification_see_score_relations">See your score relations</string>
@@ -264,15 +264,15 @@
         \nIf the app is already installed on your additional device, start the app onboarding on this device. Select \'Pair device\' on the profile page and scan the QR code above. The device will be paired automatically.</string>
     <string name="score">Score</string>
     <string name="settings_decouple">If you want to unpair/deactivate a device, perform one of the following options on the phone where you no longer want to use the app:\n\n1. Stop data collection and delete data via main settings screen\n\n 2. Uninstall the app</string>
-    <string name="settings_email" translatable="false">Email: %s</string>
+    <string name="settings_email" translatable="false">Email: %1$s</string>
     <string name="label_feedback">Give Feedback</string>
     <string name="device_pairing">Device Pairing</string>
     <string name="label_notifications">Notifications</string>
     <string name="label_personal_information">Personal Information</string>
     <string name="settings_row_terms_of_service">Terms of Service</string>
     <string name="settings_share_data_with_employer">Share data with employer</string>
-    <string name="settings_version" translatable="false">v %s</string>
-    <string name="settings_website">Website: %s</string>
+    <string name="settings_version" translatable="false">v %1$s</string>
+    <string name="settings_website">Website: %1$s</string>
     <string name="sex_age_info">Why do we ask for this info?\nThis information is used to show your data in relation to a group with similar age and gender.\nWe further analyse this data to learn and measure human behavior with the goal to improve our products for you and adapt them to group-specific needs.\n\nHow do we handle this info?\nYour personal information is voluntary and stays completely private, secure and anonymous.\nThis information will be processed and stored in anonymised form only without any link to your person. This information will not be used for a discriminatory purpose.</string>
     <string name="share_profile_data">Would you like to share some profile data with us?</string>
     <string name="snackbar_all_your_metric_are_in">All your scores are in!</string>
@@ -414,9 +414,9 @@
     <string name="terms_conditions">Terms &amp; Conditions</string>
     <string name="terms_conditions_short">T&amp;C</string>
     <string name="get_started">Get started</string>
-    <string name="it_expires_on">It expires on %s</string>
-    <string name="renews">Renews %s</string>
-    <string name="expires">Expires %s</string>
+    <string name="it_expires_on">It expires on %1$s</string>
+    <string name="renews">Renews %1$s</string>
+    <string name="expires">Expires %1$s</string>
     <string name="annual">Annual</string>
     <string name="half_year">Half-year</string>
     <string name="your_mental_fitness_indicators">Your mental fitness indicators</string>
@@ -434,14 +434,14 @@
     <string name="sub_state_box_in_trial">Your trial period is coming to an end soon. \n\nIf you\'ve been enjoying our app and want to continue, now is the perfect time to subscribe. Unlock all the amazing features of our app by subscribing today in the Settings.</string>
     <string name="sub_state_box_expired">Your subscription has expired.\n\nYour subscription has expired. But don\'t worry, you can easily subscribe again and regain access to all the amazing features of our app. Subscribe now in the Settings to enjoy our app to the fullest again.</string>
     <string name="sub_state_box_no_sub">Unlock the full experience by subscribing now in the Settings.\n\t• Get access to more indicators, helping you better understand your progress\n\t• See trends that make your development visible\n\t• Link your life events to your data for even deeper insights with our Journal\nDon\'t miss out on these amazing features and  start enjoying our app to the fullest.</string>
-    <string name="sub_state_box_expiring">Your subscription expires on [%s].\n\nDon\'t miss out on all the amazing features of our app. Renew your subscription now in the Settings. to continue enjoying our app to the fullest.</string>
+    <string name="sub_state_box_expiring">Your subscription expires on [%1$s].\n\nDon\'t miss out on all the amazing features of our app. Renew your subscription now in the Settings. to continue enjoying our app to the fullest.</string>
     <string name="tooltip_circular_score">Your score is computed on a scale of 0–100. The score also tells you where you stand compared to other people, including those who are not healthy. For instance, if your score is 75, it means that you are doing better than 75% of the population.\n\nScores are divided into three categories: \n0–33: low\n34–66: medium\n67–100: high</string>
     <string name="to_cancel_google_sub">To cancel your subscription, click on the link and you will be redirected to the Google Play Store. If you cancel your subscription, a free plan with limited features will automatically start on to_cancel_google_sub.</string>
     <string name="cancel_your_subscription">cancel your subscription</string>
-    <string name="after_expiration_info_voucher">After expiry of your plan, a free plan with limited features will automatically start on %s.\n\nWe will show you all subscription options here one week before the expiry date.</string>
-    <string name="participation_id">Participation ID: %s</string>
-    <string name="identity" translatable="false">ID: %s</string>
-    <string name="password_col">Password: %s</string>
+    <string name="after_expiration_info_voucher">After expiry of your plan, a free plan with limited features will automatically start on %1$s.\n\nWe will show you all subscription options here one week before the expiry date.</string>
+    <string name="participation_id">Participation ID: %1$s</string>
+    <string name="identity" translatable="false">ID: %1$s</string>
+    <string name="password_col">Password: %1$s</string>
     <string name="password_plain">Password</string>
     <string name="your_data_your_choice">Your Data, Your Choice\nPlease be assured that all data we collect and store is completely anonymous and has no link to your identity.\nYour decision to retain your data with us greatly supports our research for early brain disease detection.\nThank you for your valuable contribution!</string>
     <string name="data_collection">Data collection</string>
@@ -468,7 +468,7 @@
     <string name="uptrend">Uptrend</string>
     <string name="sleep_duration">SLEEP DURATION</string>
     <string name="action_time">ACTION TIME</string>
-    <string name="stable">%sstable%s</string>
+    <string name="stable">%1$sstable%2$s</string>
     <string name="faster">%1$s faster</string>
     <string name="slower">%1$s slower</string>
     <string name="in_its_usual_range">in its usual range</string>
@@ -523,7 +523,7 @@
     <string name="you_will_have_access_to_the_full_experience_metrics">You will have access to the full experience: \n\t• **Metrics details** help you better understand\n\t• **Trends** make your development visible\n\t• **Relations** compare your scores\n\t• **Journal** links life events to data</string>
     <string name="voucher">Voucher</string>
     <string name="amazing_things_take_time">Amazing things take time!</string>
-    <string name="fresh_trends_are_brewing">Fresh trends are brewing...</string>
+    <string name="fresh_trends_are_brewing">Fresh trends are brewing…</string>
     <string name="we_ll_be_right_with_you">We’ll be right with you!</string>
     <string name="patience_is_key">Patience is key!</string>
     <string name="the_image_we_will_show_is_for_illustrative_purposes_only">The image we will show is for illustrative purposes only and does not reflect your own data. It only shows the direction of your trend.</string>

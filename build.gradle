@@ -12,18 +12,18 @@ buildscript {
     repositories {
         mavenCentral()
         maven {
-            url "https://plugins.gradle.org/m2/"
+            url = "https://plugins.gradle.org/m2/"
         }
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.5.1'
+        classpath 'com.android.tools.build:gradle:8.12.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0"
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:1.9.20"
-        classpath "org.jetbrains.dokka:android-documentation-plugin:1.7.20"
-        classpath "org.jetbrains.kotlin:kotlin-serialization:2.0.0"
-        classpath 'com.google.dagger:hilt-android-gradle-plugin:2.48'
-        classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:2.0.0"
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:2.0.0"
+        classpath "org.jetbrains.dokka:android-documentation-plugin:2.0.0"
+        classpath "org.jetbrains.kotlin:kotlin-serialization:2.2.10"
+        classpath 'com.google.dagger:hilt-android-gradle-plugin:2.57'
+        classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:2.2.10"
     }
 
     ext {
@@ -34,7 +34,8 @@ buildscript {
 }
 
 plugins {
-    id 'com.google.devtools.ksp' version '2.0.0-1.0.22' apply false
+    id 'com.google.devtools.ksp' version '2.2.10-2.0.2' apply false
+    id 'com.google.dagger.hilt.android' version '2.57' apply false
 }
 
 apply plugin: "org.jetbrains.dokka"
@@ -45,7 +46,7 @@ allprojects {
         mavenCentral()
         google()
         maven {
-            url "https://plugins.gradle.org/m2/"
+            url = "https://plugins.gradle.org/m2/"
         }
     }
 }
@@ -77,7 +78,7 @@ subprojects {
     }
 
     dependencies {
-        dokkaHtmlPlugin('org.jetbrains.dokka:android-documentation-plugin:1.7.20')
+        dokkaHtmlPlugin('org.jetbrains.dokka:android-documentation-plugin:2.0.0')
     }
 }
 

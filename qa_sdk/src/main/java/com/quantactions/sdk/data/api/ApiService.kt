@@ -77,7 +77,7 @@ import timber.log.Timber
 import java.io.IOException
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 
 interface ApiService {
@@ -325,6 +325,7 @@ interface ApiService {
         val description: String,
         val language: String,
         val definition: Map<String, @Contextual  Any>,
+        val completionTimeMinutes: Int?,
     )
 
     @POST("flows/identities/{identityId}/links")
@@ -385,6 +386,31 @@ interface ApiService {
         @Body withdrawBody: WithdrawBody
     ): ApiResponse<StudyRegistrationResponse>
 
+    /**
+     * This endpoint pushes a cognitive test result to the backend. The result is a JSON object
+     *
+     * @return ID of the save test result
+     * */
+    @POST("flows/identities/{identityId}/cognitivetests")
+    suspend fun submitCognitiveTestResponse(
+        @Path("identityId") identityId: String,
+        @Body response: CognitiveTestResponseBody
+    ): ApiResponse<IdResponse>
+
+    @Serializable
+    data class IdResponse(
+        val id: String,
+    )
+
+    @JsonClass(generateAdapter = true)
+    @Serializable
+    data class CognitiveTestResponseBody(
+        val testType: String,
+        val localTime: String,
+        val timestamp: Long,
+        @Contextual
+        val results: Any
+    )
 
     @JsonClass(generateAdapter = true)
     @Serializable
@@ -445,7 +471,8 @@ interface ApiService {
         var privacyPolicy: String,
         var privacyPolicyDate: String,
         var premiumFeaturesTtlInDays: Int?,
-        var created: String
+        var created: String,
+        var enableCognitiveTests: Boolean?,
     )
 
 

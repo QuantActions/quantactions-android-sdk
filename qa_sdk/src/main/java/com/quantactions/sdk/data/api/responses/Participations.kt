@@ -26,6 +26,7 @@ class Questionnaire {
     var definition: String? = null
     var created: String? = null
     var modified: String? = null
+    var completionTimeMinutes: Int? = null
 }
 
 /**
@@ -58,6 +59,7 @@ class Study {
     var userId: String? = null
     var questionnaires: List<Questionnaire>? = null
     var premiumFeaturesTTL: Int? = null
+    var enableCognitiveTests: Boolean? = false
 }
 
 

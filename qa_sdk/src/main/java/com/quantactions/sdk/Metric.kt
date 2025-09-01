@@ -45,9 +45,14 @@ sealed class Metric<P : TimestampedEntity, T>(
 ) : CanReturnCompiledTimeSeries<P, T> {
 
     /**
-     * A series of detailed information for each night detected. In particular this series gives
-     * information about bed time, wake up time and interruptions of sleep.
-     * See [com.quantactions.sdk.data.model.SleepSummary] for more information.
+     * A series of detailed information for each night detected.
+     *
+     * In particular this series gives information about bed time, wake up time and interruptions
+     * of sleep.
+     * See [com.quantactions.sdk.data.model.SleepSummary] for more information on the information
+     * contained in the metric and [this publication](https://www.nature.com/articles/s41746-019-0147-4)
+     * for more information on how sleep in inferred from smartphone interactions.
+     *
      */
     @Keep
     data object SLEEP_SUMMARY : Metric<SleepSummaryEntity, SleepSummary>(
@@ -149,7 +154,7 @@ sealed class Metric<P : TimestampedEntity, T>(
 
         override suspend fun cacheHealthyRanges(
             apiService: ApiService,
-            managePref2: ManagePref2,
+            managePref2: GenericPreferences,
             identityId: String
         ) {
             TODO("Not yet defined for this metric")
@@ -269,7 +274,7 @@ sealed class Metric<P : TimestampedEntity, T>(
 
         override suspend fun cacheHealthyRanges(
             apiService: ApiService,
-            managePref2: ManagePref2,
+            managePref2: GenericPreferences,
             identityId: String
         ) {
             TODO("Not yet defined for this metric")
@@ -277,16 +282,23 @@ sealed class Metric<P : TimestampedEntity, T>(
     }
 
     /**
-     * Behavioral Age is a comprehensive measure of your cognitive health, showing how "young" or
-     * "old" your behavior appears based on your digital activity. Unlike chronological age,
-     * which just counts the years you've lived, Behavioral Age considers how your behavior and
+     * Behavioral Age is a comprehensive measure of your cognitive health.
+     *
+     * It shows how "young" or "old" your behavior appears based on your digital activity. Unlike chronological age,
+     * which just counts the years you have lived, Behavioral Age considers how your behavior and
      * cognition change over time.
      *
-     * It’s normal to have days where you feel mentally younger or older, but when you face
+     * It is normal to have days where you feel mentally younger or older, but when you face
      * diseases or significant life events—like losing a loved one or dealing with neurological
      * conditions such as stroke or epilepsy—your Behavioral Age can accelerate, widening the
      * gap between your chronological age and your Behavioral Age. This measure offers a
      * comprehensive view of your mental fitness and tracks changes in your cognitive function.
+     *
+     * For more information checkout the scientific literature:
+     * - [Age-related behavioral resilience in smartphone touchscreen interaction dynamics](https://www.pnas.org/doi/10.1073/pnas.2311865121)
+     * - [A model of healthy aging based on smartphone interactions reveals advanced behavioral age in neurological disease](https://doi.org/10.1016/j.isci.2022.104792)
+     * - [Temporal clusters of age-related behavioral alterations captured in smartphone touchscreen interactions](https://doi.org/10.1016/j.isci.2022.104791)
+     *
      */
     @Keep
     object BEHAVIOURAL_AGE : DoubleMetricV2(
@@ -297,8 +309,8 @@ sealed class Metric<P : TimestampedEntity, T>(
     )
 
     /**
-     * Action time refers to the amount of time it takes for you to decide and complete a task on
-     * your smartphone.
+     * Action time (a.k.a. Proxy CRT) refers to the amount of time it takes for you to decide and
+     * complete a task on your smartphone.
      *
      * Action time is the time it typically takes you to execute simple actions, such as inputting
      * text characters, browsing or navigating between apps. The speed and efficiency with which you
@@ -312,6 +324,11 @@ sealed class Metric<P : TimestampedEntity, T>(
      * can help you monitor your progress during rehabilitation if you have suffered an injury or
      * illness that has affected your performance. So, take a moment to track your performance and
      * keep an eye on your health.
+     *
+     * Action time is reported in milliseconds and was developed as a proxy metric to the Choice
+     * Reaction Time (CRT) test, a widely used cognitive assessment tool that measures processing speed.
+     * The model that predicts action time from smartphone behaviour was trained and validate on
+     * ~700 individuals that have undergone multiple rounds of CRT testing.
      */
     @Keep
     object ACTION_SPEED : DoubleMetricV2(
@@ -322,8 +339,10 @@ sealed class Metric<P : TimestampedEntity, T>(
     )
 
     /**
-     * This metric is reported in milliseconds and represents the time efficiency of the user in
-     * typing any kind of text on their smartphone.
+     * Typing speed is the time efficiency of the user in typing any kind of text on their smartphone.
+     *
+     * This metric is reported in milliseconds and represents the 25th percentile of the inter tap
+     * interval distribution across all typing behaviour.
      */
     @Keep
     object TYPING_SPEED : DoubleMetricV2(
@@ -473,7 +492,8 @@ sealed class Metric<P : TimestampedEntity, T>(
     }
 
     /**
-     * **Social Engagement is the process of engaging in digital activities in a social group. Engaging in social relationships benefits brain health.**
+    * **Social Engagement is the process of engaging in digital activities in a social group. Engaging in social relationships benefits brain health.**
+    *
     * While it has been long known that social interactions are good for you, digital social engagement is a new indicator of brain health. Recent studies have linked smartphone social engagement with the production of dopamine—the hormone that helps us feel pleasure as part of the brain’s reward system. Here are some examples of smartphone social interactions:
     *
     * - Text messaging
@@ -521,7 +541,7 @@ sealed class Metric<P : TimestampedEntity, T>(
 
         override suspend fun cacheHealthyRanges(
             apiService: ApiService,
-            managePref2: ManagePref2,
+            managePref2: GenericPreferences,
             identityId: String
         ) {
             val filter = prepareFilterCode(code)
@@ -674,7 +694,7 @@ interface CanReturnCompiledTimeSeries<P : TimestampedEntity, T> {
 
     @Keep
     suspend fun cacheHealthyRanges(apiService: ApiService,
-                                   managePref2: ManagePref2,
+                                   managePref2: GenericPreferences,
                            identityId: String)
 
     @Keep

@@ -12,6 +12,8 @@
 package com.quantactions.sdk
 
 import android.content.Context
+import com.quantactions.sdk.ManagePref2.Companion.HEALTHY_RANGES
+import kotlinx.serialization.json.Json
 
 
 /**
@@ -54,6 +56,21 @@ class MockPref private constructor(context: Context) : GenericPreferences {
         accessToken?.let{ editor.putString(ACCESS_TOKEN, accessToken) }
         refreshToken?.let{ editor.putString(REFRESH_TOKEN, refreshToken) }
         editor.apply()
+    }
+
+    override fun saveHealthyRanges(code: String, ranges: PopulationRange) {
+        val editor = sharedPref.edit()
+        editor.putString("${HEALTHY_RANGES}_$code", Json.encodeToString(PopulationRange.serializer(), ranges))
+        editor.apply()
+    }
+
+    override fun getHealthyRanges(code: String): PopulationRange {
+        val ranges = sharedPref.getString("${HEALTHY_RANGES}_$code", null)
+        return if (null != ranges) {
+            Json.decodeFromString(PopulationRange.serializer(), ranges)
+        } else {
+            PopulationRange()
+        }
     }
 
 

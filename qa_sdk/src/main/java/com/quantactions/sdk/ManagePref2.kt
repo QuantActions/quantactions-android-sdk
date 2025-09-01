@@ -18,6 +18,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.serialization.json.Json
@@ -38,89 +39,89 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
     var apiKey: String
         get() = sharedPref.getString(API_KEY, "")!!
         set(newVal) {
-            val editor = sharedPref.edit()
-            editor.putString(API_KEY, newVal)
-            editor.apply()
+            sharedPref.edit {
+                putString(API_KEY, newVal)
+            }
         }
 
     var deviceSpecificationsId: String
         get() = sharedPref.getString(DEVICE_SPECS, "")!!
         set(newVal) {
-            val editor = sharedPref.edit()
-            editor.putString(DEVICE_SPECS, newVal)
-            editor.apply()
+            sharedPref.edit {
+                putString(DEVICE_SPECS, newVal)
+            }
         }
 
     var isDataCollectionPaused: Boolean
         get() = sharedPref.getBoolean(IS_DATA_COLLECTION_PAUSED, false)
         set(newVal) {
-            val editor = sharedPref.edit()
-            editor.putBoolean(IS_DATA_COLLECTION_PAUSED, newVal)
-            editor.apply()
+            sharedPref.edit {
+                putBoolean(IS_DATA_COLLECTION_PAUSED, newVal)
+            }
         }
 
     var oldToNewDBMigrationDone: Boolean
         get() = sharedPref.getBoolean(OLD_TO_NEW_DB_MIGRATION_DONE, true)
         set(newVal) {
-            val editor = sharedPref.edit()
-            editor.putBoolean(OLD_TO_NEW_DB_MIGRATION_DONE, newVal)
-            editor.apply()
+            sharedPref.edit {
+                putBoolean(OLD_TO_NEW_DB_MIGRATION_DONE, newVal)
+            }
         }
 
     var oldToNewAPIMigrationDone: Boolean
         get() = sharedPref.getBoolean(OLD_TO_NEW_API_MIGRATION_DONE, true)
         set(newVal) {
-            val editor = sharedPref.edit()
-            editor.putBoolean(OLD_TO_NEW_API_MIGRATION_DONE, newVal)
-            editor.apply()
+            sharedPref.edit {
+                putBoolean(OLD_TO_NEW_API_MIGRATION_DONE, newVal)
+            }
         }
 
     override var gender: QA.Gender
         get() = QA.Gender.fromInt(sharedPref.getInt(GENDER, 0)) ?: QA.Gender.UNKNOWN
         set(newVal) {
-            val editor = sharedPref.edit()
-            editor.putInt(GENDER, newVal.id)
-            editor.apply()
+            sharedPref.edit {
+                putInt(GENDER, newVal.id)
+            }
         }
 
     override var yearOfBirth: Int
         get() = sharedPref.getInt(YEAR_OF_BIRTH, 0)
         set(newVal) {
-            val editor = sharedPref.edit()
-            editor.putInt(YEAR_OF_BIRTH, newVal)
-            editor.apply()
+            sharedPref.edit {
+                putInt(YEAR_OF_BIRTH, newVal)
+            }
         }
 
     override var selfDeclaredHealthy: Boolean
         get() = sharedPref.getBoolean(SELF_DECLARED_HEALTHY, false)
         set(newVal) {
-            val editor = sharedPref.edit()
-            editor.putBoolean(SELF_DECLARED_HEALTHY, newVal)
-            editor.apply()
+            sharedPref.edit {
+                putBoolean(SELF_DECLARED_HEALTHY, newVal)
+            }
         }
 
     var shouldRestartDataCollection: Boolean
         get() = sharedPref.getBoolean(SHOULD_RESTART_DATA_COLLECTION, true)
         set(newVal) {
-            val editor = sharedPref.edit()
-            editor.putBoolean(SHOULD_RESTART_DATA_COLLECTION, newVal)
-            editor.apply()
+            sharedPref.edit {
+                putBoolean(SHOULD_RESTART_DATA_COLLECTION, newVal)
+            }
         }
 
     var deviceID: String
         get() = sharedPref.getString(DEVICE_ID, "")!!
         set(newVal) {
-            val editor = sharedPref.edit()
-            editor.putString(DEVICE_ID, newVal)
-            editor.apply()
+            sharedPref.edit {
+                putString(DEVICE_ID, newVal)
+            }
         }
 
     override var identityId: String
         get() = sharedPref.getString(IAM_IDENTITY_ID, "")!!
         set(newVal) {
-            val editor = sharedPref.edit()
-            editor.putString(IAM_IDENTITY_ID, newVal)
-            editor.apply()
+            sharedPref.edit {
+                putString(IAM_IDENTITY_ID, newVal)
+            }
         }
 
     val date: Int
@@ -134,33 +135,33 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
     var isDeviceRegistered: Boolean
         get() = sharedPref.getBoolean(REGISTERED_STATUS, false)
         set(newVal) {
-            val editor = sharedPref.edit()
-            editor.putBoolean(REGISTERED_STATUS, newVal)
-            editor.apply()
+            sharedPref.edit {
+                putBoolean(REGISTERED_STATUS, newVal)
+            }
         }
 
     override var areCredentialsRegistered: Boolean
         get() = sharedPref.getBoolean(CREDENTIALS_STATUS, false)
         set(newVal) {
-            val editor = sharedPref.edit()
-            editor.putBoolean(CREDENTIALS_STATUS, newVal)
-            editor.apply()
+            sharedPref.edit {
+                putBoolean(CREDENTIALS_STATUS, newVal)
+            }
         }
 
     override var isOauthActivated: Boolean
         get() = sharedPref.getBoolean(OAUTH_STATUS, false)
         set(newVal) {
-            val editor = sharedPref.edit()
-            editor.putBoolean(OAUTH_STATUS, newVal)
-            editor.apply()
+            sharedPref.edit {
+                putBoolean(OAUTH_STATUS, newVal)
+            }
         }
 
     override var password: String?
         get() = sharedPref.getString(PASSWORD, null)
         set(newVal) {
-            val editor = sharedPref.edit()
-            editor.putString(PASSWORD, newVal)
-            editor.apply()
+            sharedPref.edit {
+                putString(PASSWORD, newVal)
+            }
         }
 
     override val accessToken: String?
@@ -170,10 +171,10 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
         get() = sharedPref.getString(REFRESH_TOKEN, null)
 
     override fun saveAccessTokens(accessToken: String?, refreshToken: String?) {
-        val editor = sharedPref.edit()
-        accessToken?.let{ editor.putString(ACCESS_TOKEN, accessToken) }
-        refreshToken?.let{ editor.putString(REFRESH_TOKEN, refreshToken) }
-        editor.apply()
+        sharedPref.edit {
+            accessToken?.let { putString(ACCESS_TOKEN, accessToken) }
+            refreshToken?.let { putString(REFRESH_TOKEN, refreshToken) }
+        }
     }
 
     fun getDebugMode(): Boolean {
@@ -181,9 +182,9 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
     }
 
     fun setDebugMode(status: Boolean) {
-        val editor = sharedPref.edit()
-        editor.putBoolean(DEBUG_MODE, status)
-        editor.apply()
+        sharedPref.edit {
+            putBoolean(DEBUG_MODE, status)
+        }
     }
 
     fun getPendingFirebaseToken(): Boolean {
@@ -191,9 +192,9 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
     }
 
     fun setPendingFirebaseToken(status: Boolean) {
-        val editor = sharedPref.edit()
-        editor.putBoolean(PENDING_FB, status)
-        editor.apply()
+        sharedPref.edit {
+            putBoolean(PENDING_FB, status)
+        }
     }
 
     fun getHasFinishedOnboarding(): Boolean {
@@ -201,15 +202,15 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
     }
 
     fun setHasFinishedOnboarding(status: Boolean) {
-        val editor = sharedPref.edit()
-        editor.putBoolean(ONBOARDING_FINISHED, status)
-        editor.apply()
+        sharedPref.edit {
+            putBoolean(ONBOARDING_FINISHED, status)
+        }
     }
 
     fun setGPSResolution(resolution: Int) {
-        val editor = sharedPref.edit()
-        editor.putInt(GPS_RESOLUTION, resolution)
-        editor.apply()
+        sharedPref.edit {
+            putInt(GPS_RESOLUTION, resolution)
+        }
     }
 
     fun getVerbose(): Int {
@@ -217,9 +218,9 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
     }
 
     fun setVerbose(verbose: Int) {
-        val editor = sharedPref.edit()
-        editor.putInt(SAVED_VERBOSE, verbose)
-        editor.apply()
+        sharedPref.edit {
+            putInt(SAVED_VERBOSE, verbose)
+        }
     }
 
     fun getCheckIn(): Boolean {
@@ -227,9 +228,9 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
     }
 
     internal fun setCheckIn(checkIn: Boolean) {
-        val editor = sharedPref.edit()
-        editor.putBoolean(SAVED_CHECK_IN_STATUS, checkIn)
-        editor.apply()
+        sharedPref.edit {
+            putBoolean(SAVED_CHECK_IN_STATUS, checkIn)
+        }
     }
 
     fun getSavedPermissions(): String {
@@ -237,9 +238,9 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
     }
 
     internal fun setSavedPermissions(context: Context){
-        val editor = sharedPref.edit()
-        editor.putString(SAVED_PERM, getPermissionsStatus(context))
-        editor.apply()
+        sharedPref.edit {
+            putString(SAVED_PERM, getPermissionsStatus(context))
+        }
     }
 
     fun getSavedAppsCount(): Int {
@@ -247,9 +248,9 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
     }
 
     internal fun setSavedAppsCount() {
-        val editor = sharedPref.edit()
-        editor.putInt(SAVED_APP_COUNT, getAppCount())
-        editor.apply()
+        sharedPref.edit {
+            putInt(SAVED_APP_COUNT, getAppCount())
+        }
     }
 
     fun getSavedDate(): Int {
@@ -257,15 +258,15 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
     }
 
     internal fun setSavedDate() {
-        val editor = sharedPref.edit()
-        editor.putInt(SAVED_DATE, date)
-        editor.apply()
+        sharedPref.edit {
+            putInt(SAVED_DATE, date)
+        }
     }
 
     internal fun setCenterPending(centerPending: Boolean) {
-        val editor = sharedPref.edit()
-        editor.putBoolean(CENTER_PENDING, centerPending)
-        editor.apply()
+        sharedPref.edit {
+            putBoolean(CENTER_PENDING, centerPending)
+        }
     }
 
     fun getCenterPending(): Boolean {
@@ -277,9 +278,9 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
     }
 
     internal fun setDrawNeeded(draw: Boolean){
-        val editor = sharedPref.edit()
-        editor.putBoolean(DRAW_NEEDED, draw)
-        editor.apply()
+        sharedPref.edit {
+            putBoolean(DRAW_NEEDED, draw)
+        }
     }
 
     internal fun getContactsNeeded(): Boolean {
@@ -287,9 +288,9 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
     }
 
     internal fun setContactsNeeded(contacts: Boolean) {
-        val editor = sharedPref.edit()
-        editor.putBoolean(CONTACTS_NEEDED, contacts)
-        editor.apply()
+        sharedPref.edit {
+            putBoolean(CONTACTS_NEEDED, contacts)
+        }
     }
 
     internal fun getAppIdNeeded(): Boolean {
@@ -297,9 +298,9 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
     }
 
     internal fun setAppIdNeeded(appId: Boolean){
-        val editor = sharedPref.edit()
-        editor.putBoolean(APP_ID_NEEDED, appId)
-        editor.apply()
+        sharedPref.edit {
+            putBoolean(APP_ID_NEEDED, appId)
+        }
     }
 
     internal fun getLocationNeeded(): Boolean {
@@ -307,15 +308,15 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
     }
 
     internal fun setLocationNeeded(location: Boolean) {
-        val editor = sharedPref.edit()
-        editor.putBoolean(LOCATION_NEEDED, location)
-        editor.apply()
+        sharedPref.edit {
+            putBoolean(LOCATION_NEEDED, location)
+        }
     }
 
     internal fun setPendingSignUp(signUp: String) {
-        val editor = sharedPref.edit()
-        editor.putString(PENDING_SIGN_UP, signUp)
-        editor.apply()
+        sharedPref.edit {
+            putString(PENDING_SIGN_UP, signUp)
+        }
     }
 
     internal fun getPendingSignUp(): String {
@@ -330,13 +331,10 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
 
     fun getAppCount(): Int {
 
-        var count = 0
         val cursor = sqLiteDatabase.query(LookUp.TABLE_APP_CODE, null, null, null, null, null, null)
 
-        if (null != cursor) {
-            count = cursor.count
-            cursor.close()
-        }
+        val count = cursor.count
+        cursor.close()
         return count
     }
 
@@ -345,9 +343,9 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
     }
 
     fun setAuthCode(authCode: String){
-        val editor = sharedPref.edit()
-        editor.putString(AUTH_CODE, authCode)
-        editor.apply()
+        sharedPref.edit {
+            putString(AUTH_CODE, authCode)
+        }
     }
 
     fun getFBCode(): String {
@@ -355,9 +353,9 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
     }
 
     fun setFBCode(fbCode: String){
-        val editor = sharedPref.edit()
-        editor.putString(FB_CODE, fbCode)
-        editor.apply()
+        sharedPref.edit {
+            putString(FB_CODE, fbCode)
+        }
     }
 
     fun canActivity(context: Context): Boolean {
@@ -369,9 +367,7 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
     }
 
     fun canDraw(context: Context): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Settings.canDrawOverlays(context)
-        } else true
+        return Settings.canDrawOverlays(context)
     }
 
     fun canUsage(context: Context): Boolean {
@@ -391,13 +387,16 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
         }
     }
 
-    fun saveHealthyRanges(code: String, ranges: PopulationRange) {
-        val editor = sharedPref.edit()
-        editor.putString("${HEALTHY_RANGES}_$code", Json.encodeToString(PopulationRange.serializer(), ranges))
-        editor.apply()
+    override fun saveHealthyRanges(code: String, ranges: PopulationRange) {
+        sharedPref.edit {
+            putString(
+                "${HEALTHY_RANGES}_$code",
+                Json.encodeToString(PopulationRange.serializer(), ranges)
+            )
+        }
     }
 
-    fun getHealthyRanges(code: String): PopulationRange {
+    override fun getHealthyRanges(code: String): PopulationRange {
         val ranges = sharedPref.getString("${HEALTHY_RANGES}_$code", null)
         return if (null != ranges) {
             Json.decodeFromString(PopulationRange.serializer(), ranges)

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ /********************************************************************************
+  ~ Copyright (C) QuantActions AG - All Rights Reserved
+  ~ Unauthorized copying of this file, via any medium is strictly prohibited
+  ~ Proprietary and confidential
+  ~ Written by Enea Ceolini <enea.ceolini@quantactions.com>, August 2024
+  ~ *********************************************************************************/
+  -->
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/baseline_bolt_24_pressed" android:state_pressed="true" />
+    <item android:drawable="@drawable/baseline_bolt_24" /> <!-- Default state -->
+</selector>

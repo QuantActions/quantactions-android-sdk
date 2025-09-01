@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -188,7 +188,7 @@ fun ColoredTitle(
     title: String,
     color: Color,
 ) {
-    Divider(color = Color.Transparent, thickness = 8.dp)
+    HorizontalDivider(thickness = 8.dp, color = Color.Transparent)
     Column(
         modifier = Modifier
             .background(color)
@@ -202,5 +202,5 @@ fun ColoredTitle(
             textAlign = TextAlign.Center
         )
     }
-    Divider(color = Color.Transparent, thickness = 8.dp)
+    HorizontalDivider(thickness = 8.dp, color = Color.Transparent)
 }

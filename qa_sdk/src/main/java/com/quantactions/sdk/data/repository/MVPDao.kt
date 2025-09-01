@@ -15,7 +15,6 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.RoomWarnings
 import com.quantactions.sdk.data.entity.ActivityTransitionEntity
 import com.quantactions.sdk.data.entity.CodeOfApp
 import com.quantactions.sdk.data.entity.Cohort
@@ -25,6 +24,7 @@ import com.quantactions.sdk.data.entity.JournalEntryJoinsJournalEventEntity
 import com.quantactions.sdk.data.entity.JournalEventEntity
 import com.quantactions.sdk.data.entity.Questionnaire
 import com.quantactions.sdk.data.entity.QuestionnaireResponseEntity
+import com.quantactions.sdk.data.entity.QuestionnaireWithCohortName
 import com.quantactions.sdk.data.entity.SleepSummaryEntity
 import com.quantactions.sdk.data.entity.StatisticEntity
 import com.quantactions.sdk.data.entity.StatisticStringEntity
@@ -94,9 +94,8 @@ interface MVPDao {
     fun updateDeviceHealthParsedSyncStatus(starts: List<Long>)
 
     // QUESTIONNAIRES
-    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Query("SELECT q.*, s.studyTitle FROM questionnaires q INNER JOIN studies s on q.qStudy = s.studyId ORDER BY s.studyTitle ASC;")
-    fun getQuestionnaires(): List<Questionnaire>
+    fun getQuestionnaires(): List<QuestionnaireWithCohortName>
 
     @Query("SELECT * FROM questionnaire_responses")
     fun getQuestionnaireResponses(): List<QuestionnaireResponseEntity>
@@ -132,7 +131,8 @@ interface MVPDao {
             "LEFT JOIN (SELECT strftime('%d - %m - %Y', datetime(timestamp, 'unixepoch', 'localtime')) AS t, value\n" +
             "FROM stat_table where stat = '003-001-001-002' ORDER by timestamp desc) sleep_score ON t == strftime('%d - %m - %Y', datetime(jen.created / 1000, 'unixepoch', 'localtime'))\n" +
             "LEFT JOIN (SELECT * from stat_table where stat = '003-001-001-003') st_cog ON strftime('%d - %m - %Y', datetime(st_cog.timestamp, 'unixepoch', 'localtime')) == strftime('%d - %m - %Y', datetime(jen.created / 1000, 'unixepoch', 'localtime'))\n" +
-            "LEFT JOIN (SELECT * from stat_table where stat = '003-001-001-004') st_se ON strftime('%d - %m - %Y', datetime(st_se.timestamp, 'unixepoch', 'localtime')) == strftime('%d - %m - %Y', datetime(jen.created / 1000, 'unixepoch', 'localtime')) ORDER by jen.created desc\n;")
+            "LEFT JOIN (SELECT * from stat_table where stat = '003-001-001-004') st_se ON strftime('%d - %m - %Y', datetime(st_se.timestamp, 'unixepoch', 'localtime')) == strftime('%d - %m - %Y', datetime(jen.created / 1000, 'unixepoch', 'localtime')) " +
+            "ORDER by jen.created desc\n;")
     fun getJournal(): Flow<List<ResolvedJournalEntries>>
 
     @Query("SELECT * from journal_entry_joins_journal_event where journal_entry_id = :journalEntryId")
@@ -159,10 +159,15 @@ interface MVPDao {
     @Query("SELECT * from journal_entry where id = :id")
     fun getEntry(id: String): JournalEntryEntity?
 
-    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
-    @Query("SELECT jjj.id as standalone_event_id, jjj.journal_event_id, jjj.journal_entry_id, jjj.rating, jen.created, jen.note, jev.public_name, jev.icon_name, jen.id as standalone_id FROM journal_entry jen\n" +
-            "            LEFT JOIN journal_entry_joins_journal_event jjj  ON jjj.journal_entry_id = jen.id\n" +
-            "            LEFT JOIN journal_event jev ON jjj.journal_event_id = jev.id WHERE jen.deleted=0 AND jen.id=:journalEntryId ORDER by jen.created desc;")
+
+    @Query("SELECT jjj.id as standalone_event_id, jjj.journal_event_id, jjj.journal_entry_id, jjj.rating, jen.created, jen.note, jev.public_name, jev.icon_name, jen.id as standalone_id, sleep_score.value as sleep_score_value, st_cog.value as cog_value, st_se.value as social_eng_value FROM (SELECT * from journal_entry where deleted=0) jen  LEFT JOIN journal_entry_joins_journal_event jjj  ON jjj.journal_entry_id = jen.id\n" +
+            "LEFT JOIN journal_event jev ON jjj.journal_event_id = jev.id \n" +
+            "LEFT JOIN (SELECT strftime('%d - %m - %Y', datetime(timestamp, 'unixepoch', 'localtime')) AS t, value\n" +
+            "FROM stat_table where stat = '003-001-001-002' ORDER by timestamp desc) sleep_score ON t == strftime('%d - %m - %Y', datetime(jen.created / 1000, 'unixepoch', 'localtime'))\n" +
+            "LEFT JOIN (SELECT * from stat_table where stat = '003-001-001-003') st_cog ON strftime('%d - %m - %Y', datetime(st_cog.timestamp, 'unixepoch', 'localtime')) == strftime('%d - %m - %Y', datetime(jen.created / 1000, 'unixepoch', 'localtime'))\n" +
+            "LEFT JOIN (SELECT * from stat_table where stat = '003-001-001-004') st_se ON strftime('%d - %m - %Y', datetime(st_se.timestamp, 'unixepoch', 'localtime')) == strftime('%d - %m - %Y', datetime(jen.created / 1000, 'unixepoch', 'localtime')) " +
+            "WHERE jen.deleted=0 AND jen.id=:journalEntryId " +
+            "ORDER by jen.created desc\n;")
     fun getResolvedEventsFromEntry(journalEntryId: String): List<ResolvedJournalEntries>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

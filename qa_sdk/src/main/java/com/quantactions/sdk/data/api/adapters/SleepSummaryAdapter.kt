@@ -14,7 +14,6 @@ import com.quantactions.sdk.data.entity.SleepSummaryEntity
 import com.quantactions.sdk.data.entity.StatisticEntity
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.ToJson
-import timber.log.Timber
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -36,7 +35,7 @@ class SleepSummaryAdapter {
 fun prepareOneMonthOfSleepMetric(stat: StatisticResponse): List<SleepSummaryEntity> {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 
-    val ret = stat.metrics.data.map {
+    @Suppress("UNCHECKED_CAST") val ret = stat.metrics.data.map {
         val ld = LocalDateTime.parse(it["date"]!! as String, formatter)
         val localZoneId = it["time-zone"]!! as String
         val oldZdt = ZonedDateTime.of(ld, ZoneId.of("UTC"))

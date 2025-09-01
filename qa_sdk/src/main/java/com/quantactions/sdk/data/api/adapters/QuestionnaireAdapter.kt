@@ -39,7 +39,9 @@ class QuestionnaireAdapter {
             val s = devPart.participation?.study!!
 
             val cohort = Cohort(s.id!!, s.privacyPolicy, s.title, s.dataPattern, s.gpsResolution,
-                s.canWithdraw, s.syncOnScreenOff, s.perimeterCheck, s.permAppId, s.permDrawOver, s.permLocation, s.permContact)
+                s.canWithdraw, s.syncOnScreenOff, s.perimeterCheck, s.permAppId, s.permDrawOver,
+                s.permLocation,
+                s.permContact, s.enableCognitiveTests ?: false)
 
             val questionnaireEntities: MutableList<Questionnaire> = mutableListOf()
 
@@ -49,7 +51,10 @@ class QuestionnaireAdapter {
                 questionnaireEntities.add(
                     Questionnaire(s.id + ":" + questionnaire.id,
                         questionnaire.title!!,
-                        questionnaire.description!!, questionnaire.id!!, s.id!!, questionnaire.definition!!)
+                        questionnaire.description!!,
+                        questionnaire.id!!, s.id!!,
+                        questionnaire.definition!!,
+                        questionnaire.completionTimeMinutes ?: 5)
                 )
             }
 

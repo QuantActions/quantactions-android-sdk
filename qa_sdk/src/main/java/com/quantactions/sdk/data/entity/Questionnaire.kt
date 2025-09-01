@@ -12,18 +12,20 @@ package com.quantactions.sdk.data.entity
 import androidx.annotation.Keep
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.PrimaryKey
 import com.squareup.moshi.JsonClass
 
 /**
  * Class containing all information about a questionnaire that the user can fill in.
  */
 @Keep
-@Entity(tableName = "questionnaires")
+@Entity(
+    tableName = "questionnaires",
+    primaryKeys = ["id", "qStudy"]
+)
 @JsonClass(generateAdapter = true)
 data class Questionnaire(
     /** UUID of the questionnaire */
-    @PrimaryKey
+    @Keep
     val id: String,
 
     /** Name of the questionnaire */
@@ -49,5 +51,10 @@ data class Questionnaire(
     /** Body of the questionnaire in JSON format */
     @Keep
     @ColumnInfo(name = "qBody")
-    val questionnaireBody: String
+    val questionnaireBody: String,
+
+    /** Completion time in minutes */
+    @Keep
+    @ColumnInfo(name = "completionTimeMinutes")
+    val completionTimeMinutes: Int
 )

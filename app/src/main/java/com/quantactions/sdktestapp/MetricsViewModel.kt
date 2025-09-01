@@ -20,6 +20,7 @@ import com.quantactions.sdk.Metric
 import com.quantactions.sdk.QA
 import com.quantactions.sdk.TimeSeries
 import com.quantactions.sdk.Trend
+import com.quantactions.sdk.cognitivetests.CognitiveTest
 import com.quantactions.sdk.data.entity.TimestampedEntity
 import com.quantactions.sdktestapp.utils.ScoreState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,7 +31,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 
 /**
@@ -136,6 +137,10 @@ open class MetricsViewModel @Inject constructor(
         Trend.SOCIAL_TAPS,
         Trend.TYPING_SPEED,
     )
+    
+    fun startPVT() {
+        qa.startCognitiveTest(getApplication<Application>().applicationContext, CognitiveTest.PVT)
+    }
 
     private val preparation by lazy {
         // Initialize the SDK

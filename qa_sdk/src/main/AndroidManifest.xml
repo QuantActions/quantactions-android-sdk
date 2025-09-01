@@ -40,6 +40,12 @@
 
     <application>
 
+        <activity android:name=".cognitivetests.pvt.PVTActivity">
+        </activity>
+
+        <activity android:name=".cognitivetests.dotmemory.DotMemoryTestActivity">
+        </activity>
+
 <!--        <service-->
 <!--            android:name=".ReadingsService"-->
 <!--            android:exported="true"-->

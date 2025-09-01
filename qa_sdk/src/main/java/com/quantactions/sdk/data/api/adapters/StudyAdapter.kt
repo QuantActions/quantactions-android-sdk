@@ -67,7 +67,8 @@ class StudyAdapter {
                 s.permAppId,
                 s.permDrawOver,
                 s.permLocation,
-                s.permContact
+                s.permContact,
+                s.enableCognitiveTests ?: false
             )
 
 
@@ -81,7 +82,8 @@ class StudyAdapter {
                         questionnaire.description!!,
                         questionnaire.id!!,
                         s.id!!,
-                        questionnaire.definition!!
+                        questionnaire.definition!!,
+                        questionnaire.completionTimeMinutes ?: 5
                     )
                 )
             }

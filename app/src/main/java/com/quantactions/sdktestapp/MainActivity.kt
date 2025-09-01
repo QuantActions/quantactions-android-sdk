@@ -66,6 +66,10 @@ class MainActivity : ComponentActivity() {
                     selectedChart = it
                 }
 
+                PVTButton {
+                    metricsViewModel.startPVT()
+                }
+
                 Components(
                     cognitiveFitness = cognitiveFitnessState,
                     cognitiveFitnessTrend = cognitiveFitnessTrendState,
