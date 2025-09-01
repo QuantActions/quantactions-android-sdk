@@ -12,6 +12,9 @@ package com.quantactions.sdk.cognitivetests.pvt
 import com.squareup.moshi.JsonClass
 import kotlinx.serialization.Serializable
 
+/**
+ * @hide
+ */
 @JsonClass(generateAdapter = true)
 @Serializable
 data class PVTResponse(

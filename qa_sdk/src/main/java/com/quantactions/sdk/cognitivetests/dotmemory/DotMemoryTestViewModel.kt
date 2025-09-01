@@ -26,8 +26,8 @@ import java.time.LocalTime
 /**
  * This is the view model for the DotMemory test.
  * @param application Android application
+ * @hide
  * */
-
 open class DotMemoryTestViewModel @Inject constructor(
     application: Application,
 ) : AndroidViewModel(application) {

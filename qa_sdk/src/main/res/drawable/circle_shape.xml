@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ /********************************************************************************
+  ~ Copyright (C) QuantActions AG - All Rights Reserved
+  ~ Unauthorized copying of this file, via any medium is strictly prohibited
+  ~ Proprietary and confidential
+  ~ Written by Enea Ceolini <enea.ceolini@quantactions.com>, August 2024
+  ~ *********************************************************************************/
+  -->
+
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 <!--    <item>-->
 <!--        <shape android:shape="rectangle">-->

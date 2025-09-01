@@ -15,6 +15,7 @@ import androidx.lifecycle.viewModelScope
 import com.quantactions.sdk.QA
 import com.quantactions.sdk.cognitivetests.CognitiveTest
 import com.quantactions.sdk.cognitivetests.CognitiveTestResult
+import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,13 +23,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.time.Instant
-import jakarta.inject.Inject
 
 /**
  * This is the view model for the PVT test.
  * @param application Android application
+ * @hide
  * */
-
 open class PVTViewModel @Inject constructor(
     application: Application,
 ) : AndroidViewModel(application) {
