@@ -10,7 +10,9 @@
 package com.quantactions.sdk.cognitivetests.dotmemory
 
 import com.squareup.moshi.JsonClass
-
+/**
+ * @hide
+ */
 @JsonClass(generateAdapter = true)
 data class DotMemoryTestResponse(
     val timeTaken: List<Long>,

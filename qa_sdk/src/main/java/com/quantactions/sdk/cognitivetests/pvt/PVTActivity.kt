@@ -32,6 +32,9 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.random.Random
 
+/**
+ * @hide
+ */
 class PVTActivity : AppCompatActivity() {
 
     private lateinit var timerTextView: TextView

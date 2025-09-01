@@ -96,6 +96,12 @@ sealed class Trend<P : TimestampedEntity, T> (
         "003-003-003-004", // for now this is screen time trend but it should be in taps
     )
 
+    /**
+     * The mental fitness dynamics shows the most recent changes in your mental fitness indicators,
+     * including sleep and cognitive fitness. We look at the last week's data to see if you are
+     * trending up, stable, or down overall.
+     *
+     */
     @Keep
     object THE_WAVE : BasicTrendObject(
         "the_wave_trend",
