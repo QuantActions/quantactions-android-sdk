@@ -13,10 +13,9 @@ package com.quantactions.sdk
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
-import android.os.Build
 import android.provider.Settings
 import androidx.annotation.Keep
+import androidx.core.net.toUri
 import androidx.work.WorkManager
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
@@ -27,15 +26,20 @@ import com.quantactions.sdk.cognitivetests.CognitiveTestResult
 import com.quantactions.sdk.cognitivetests.dotmemory.DotMemoryTestActivity
 import com.quantactions.sdk.cognitivetests.pvt.PVTActivity
 import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
-import com.quantactions.sdk.data.entity.*
+import com.quantactions.sdk.data.entity.CodeOfApp
+import com.quantactions.sdk.data.entity.Cohort
+import com.quantactions.sdk.data.entity.JournalEventEntity
+import com.quantactions.sdk.data.entity.Questionnaire
+import com.quantactions.sdk.data.entity.QuestionnaireWithCohortName
+import com.quantactions.sdk.data.entity.TimestampedEntity
 import com.quantactions.sdk.data.model.JournalEntry
+import com.quantactions.sdk.data.repository.TapDataParsed
 import com.quantactions.sdk.exceptions.QASDKException
 import com.quantactions.sdk.exceptions.SDKNotInitialisedException
 import kotlinx.coroutines.flow.Flow
 import timber.log.Timber
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import java.util.*
 
 /**
  * This is the main element one needs to use to access all the functionality of the QA SDK.
@@ -176,6 +180,14 @@ class QA private constructor(
         MONTH(30)
     }
 
+    /** Container for taps and apps */
+    data class TapsAndApps(
+        /** List of taps */
+        val taps: List<TapDataParsed>,
+        /** List of apps */
+        val apps: List<CodeOfApp>
+    )
+
     /**
      * Enumeration class containing the available Genders for the registration of the device.
      * */
@@ -311,15 +323,13 @@ class QA private constructor(
      */
     fun requestOverlayPermission(context: Context): Int {
         if (!canDraw(context)) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                (context as Activity).startActivityForResult(
-                    Intent(
-                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:" + context.getPackageName())
-                    ), QAStrings.QA_PERMISSION_REQUEST_OVERLAY
-                )
-                return QAStrings.QA_PERMISSION_REQUEST_OVERLAY
-            }
+            (context as Activity).startActivityForResult(
+                Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    ("package:" + context.packageName).toUri()
+                ), QAStrings.QA_PERMISSION_REQUEST_OVERLAY
+            )
+            return QAStrings.QA_PERMISSION_REQUEST_OVERLAY
         }
         return QAStrings.QA_ALREADY_GRANTED
     }
@@ -375,18 +385,30 @@ class QA private constructor(
      * @return The list of studies the device is subscribed to
      * @see Cohort
      */
-    suspend fun getCohortList(): List<Cohort> {
+    fun getCohortList(): List<Cohort> {
         return qaPrivate.getStudyList()
     }
 
+    /**
+     * Retrieves the list of subscriptions the device is currently registered for.
+     * @param studyId optional studyId to filter the subscriptions
+     * @return The list of subscriptions the device is subscribed to
+     * @see Subscription
+     */
     suspend fun subscriptions(studyId: String? = null): List<Subscription> {
         return qaPrivate.subscription(studyId)
     }
 
+    /**
+     * Retrieves the list of devices linked to the current identity.
+     * @return The list of devices linked to the current identity
+     * @see Subscription
+     */
     @Throws(QASDKException::class)
     suspend fun getConnectedDevices(): List<String> {
         return qaPrivate.getConnectedDevices()
     }
+
     /**
      * Saves simple text note.
      * @param text simple text
@@ -400,10 +422,22 @@ class QA private constructor(
      * Please also [QATaps] shows the provided result structure.
      * Alpha feature, try setting flag as the number of days you would like to gat back.
      * @param flag from [QA.Flag]
-     * @return last taps
+     * @return last taps (see [QATaps])
      */
     fun getLastTaps(flag: Flag): QATaps {
         return qaPrivate.getLastTaps(flag)
+    }
+
+    /** Retrieves taps and apps in a certain time window.
+     * @param startTimestamp start of the time window in UNIX timestamp (ms)
+     * @param stopTimestamp end of the time window in UNIX timestamp (ms)
+     * @return taps and apps in the time window (see [TapsAndApps])
+     */
+    fun getTapsAndAppsInTimeWindow(
+        startTimestamp: Long,
+        stopTimestamp: Long,
+    ): TapsAndApps {
+        return qaPrivate.getTapsAndAppsInTimeWindow(startTimestamp, stopTimestamp)
     }
 
     /**

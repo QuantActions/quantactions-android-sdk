@@ -1624,6 +1624,14 @@ class MVPRepository @Inject constructor(
         return mvpDao.getLatestTaps(rollBackDate)
     }
 
+    fun getTapsInTimeWindow(startTimestamp: Long, stopTimestamp: Long): List<TapDataParsed> {
+        return mvpDao.getTapsInTimeWindow(startTimestamp, stopTimestamp)
+    }
+
+    fun getAppCodesByIds(ids: List<Int>): List<CodeOfApp> {
+        return mvpDao.getAppCodesByIds(ids)
+    }
+
     suspend fun submitQuestionnaireAnswer(
         studyId: String,
         questionnaireId: String,

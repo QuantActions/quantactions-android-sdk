@@ -19,10 +19,15 @@ import android.database.Cursor
 import android.os.Build
 import android.util.Log
 import androidx.core.content.ContextCompat
-import androidx.work.*
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequest
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkManager
+import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
 import com.google.firebase.crashlytics.setCustomKeys
-import com.google.firebase.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
 import com.hadiyarajesh.flower_core.ApiEmptyResponse
@@ -31,9 +36,17 @@ import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.quantactions.sdk.cognitivetests.CognitiveTest
 import com.quantactions.sdk.cognitivetests.CognitiveTestResult
 import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
-import com.quantactions.sdk.data.entity.*
+import com.quantactions.sdk.data.entity.CodeOfApp
+import com.quantactions.sdk.data.entity.CognitiveTestEntity
+import com.quantactions.sdk.data.entity.Cohort
+import com.quantactions.sdk.data.entity.HourlyTapsEntity
+import com.quantactions.sdk.data.entity.JournalEventEntity
+import com.quantactions.sdk.data.entity.QuestionnaireResponseEntity
+import com.quantactions.sdk.data.entity.QuestionnaireWithCohortName
+import com.quantactions.sdk.data.entity.TimestampedEntity
 import com.quantactions.sdk.data.model.JournalEntry
-import com.quantactions.sdk.data.repository.*
+import com.quantactions.sdk.data.repository.MVPRepository
+import com.quantactions.sdk.data.repository.MockRepository
 import com.quantactions.sdk.exceptions.QASDKException
 import com.quantactions.sdk.exceptions.SDKNotInitialisedException
 import com.quantactions.sdk.workers.RegisterWorker
@@ -47,7 +60,9 @@ import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 /**
@@ -408,7 +423,37 @@ internal class QAPrivate private constructor(
             speed.toSortedMap().toList().reversed().map { it.second })
     }
 
-    suspend fun getStudyList(): List<Cohort> {
+    /**
+     * Get taps in a precise time window
+     * @param startTimestamp start of the time window in milliseconds since epoch
+     * @param stopTimestamp end of the time window in milliseconds since epoch
+     * @return object containing the list of taps and the list of apps
+     * @throws SDKNotInitialisedException if the SDK is not initialised
+     * @throws QASDKException if there is an error retrieving the data
+     */
+    fun getTapsAndAppsInTimeWindow(
+        startTimestamp: Long,
+        stopTimestamp: Long,
+    ): QA.TapsAndApps {
+
+        // Retrieve taps in the time window
+        val taps = repository.getTapsInTimeWindow(startTimestamp, stopTimestamp)
+
+        // Extract all unique app IDs from the retrieved taps
+        val ids = mutableSetOf<Int>()
+        taps.forEach { session ->
+            session.appIds0.literalToIntList().map { ids.add(it) }
+        }
+
+        Timber.d("[Retrieved ${taps.size} tap sessions with app IDs: $ids]")
+
+        // Retrieve app codes for the extracted IDs
+        val apps = repository.getAppCodesByIds(ids.toList())
+
+        return QA.TapsAndApps(taps, apps)
+    }
+
+    fun getStudyList(): List<Cohort> {
         return repository.getStudies()
     }
 
