@@ -104,6 +104,10 @@ class QA private constructor(
         qaPrivate.activityPermissionNotification = activityPermissionNotification
     }
 
+    fun hasFeature(feature: String): Boolean {
+        return qaPrivate.hasFeature(feature)
+    }
+
     /**
      * Pause the data collection.
      * @param context Android application context

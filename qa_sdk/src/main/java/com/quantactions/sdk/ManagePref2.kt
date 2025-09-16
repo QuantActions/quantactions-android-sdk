@@ -405,6 +405,14 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
         }
     }
 
+    override var capabilitiesToken: String?
+        get() = sharedPref.getString(CAPABILITIES_TOKEN, null)
+        set(newVal) {
+            sharedPref.edit {
+                putString(CAPABILITIES_TOKEN, newVal)
+            }
+        }
+
     companion object : SingletonHolder<ManagePref2, Context>(::ManagePref2){
         const val API_KEY                        = "api_key"
         const val APP_ID_NEEDED                  = "app_id_needed"

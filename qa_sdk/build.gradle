@@ -167,6 +167,9 @@ dependencies {
     // Dependency Injection
     implementation "com.google.dagger:hilt-android:2.57" // Check for latest version
     ksp "com.google.dagger:hilt-compiler:2.57"
+
+    // JWT handling
+    implementation 'com.auth0.android:jwtdecode:2.0.2'
 }
 
 

@@ -478,6 +478,15 @@ interface ApiService {
         var enableCognitiveTests: Boolean?,
     )
 
+    @JsonClass(generateAdapter = true)
+    @Serializable
+    data class CapabilitiesResponse(
+        val token: String,
+        val expiresIn: Long
+    )
+
+    @POST("auth/capabilities")
+    suspend fun getCapabilities(): CapabilitiesResponse
 
 
     @JsonClass(generateAdapter = true)

@@ -26,6 +26,7 @@ import com.hadiyarajesh.flower_core.dbBoundResource
 import com.hadiyarajesh.flower_core.flow.dbBoundResourceFlow
 import com.quantactions.sdk.BasicInfo
 import com.quantactions.sdk.CanReturnCompiledTimeSeries
+import com.quantactions.sdk.CapabilitiesManager
 import com.quantactions.sdk.GeneratePassword
 import com.quantactions.sdk.ManagePref2
 import com.quantactions.sdk.Metric
@@ -177,6 +178,7 @@ class MVPRepository @Inject constructor(
     private var iamParticipationId: String = ""
     private var cachedApiKey: String = ""
     private lateinit var tokenApi: TokenApi
+    private lateinit var capabilitiesManager: CapabilitiesManager
 
     private val Boolean.intValue
         get() = if (this) 1 else 0
@@ -260,11 +262,13 @@ class MVPRepository @Inject constructor(
         cachedApiKey = apiKey
         val cookieJar = ApiService.UvCookieJar(preferences, "TokenApi")
         tokenApi = TokenApi.buildTokenApi(apiKey, cookieJar)
-        val tokenAuthenticator = TokenAuthenticator(tokenApi, preferences)
+        capabilitiesManager = CapabilitiesManager(preferences)
+        val tokenAuthenticator = TokenAuthenticator(tokenApi, preferences, capabilitiesManager)
         apiService = ApiService.create(
             apiKey,
             tokenAuthenticator,
-            cookieJar
+            cookieJar,
+            capabilitiesManager
         )
 
         if (preferences.isOauthActivated) {
