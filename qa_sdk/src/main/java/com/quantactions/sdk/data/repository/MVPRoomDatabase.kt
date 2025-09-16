@@ -33,8 +33,7 @@ import com.quantactions.sdk.data.entity.SleepSummaryEntity
 import com.quantactions.sdk.data.entity.StatisticEntity
 import com.quantactions.sdk.data.entity.StatisticStringEntity
 import com.quantactions.sdk.data.entity.TrendEntity
-import net.sqlcipher.database.SQLiteDatabase.getBytes
-import net.sqlcipher.database.SupportFactory
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 
 
 // Annotates class to be a Room Database with tables (entities)
@@ -89,7 +88,7 @@ abstract class MVPRoomDatabase : RoomDatabase() {
                             SQLCipherUtils.encrypt(
                                 context,
                                 DB_NAME,
-                                BuildConfig.QA_UUID.toCharArray()
+                                BuildConfig.QA_UUID
                             )
                         }
                     }
@@ -127,7 +126,8 @@ abstract class MVPRoomDatabase : RoomDatabase() {
 
                     // Adding encryption of DB if not debug
                     if (!BuildConfig.DEBUG) {
-                        val factory = SupportFactory(getBytes(BuildConfig.QA_UUID.toCharArray()))
+                        val factory =
+                            SupportOpenHelperFactory(BuildConfig.QA_UUID.toByteArray())
                         builder.openHelperFactory(factory)
                     }
 
