@@ -57,6 +57,7 @@ import com.quantactions.sdk.data.entity.QuestionnaireResponseEntity
 import com.quantactions.sdk.data.entity.QuestionnaireWithCohortName
 import com.quantactions.sdk.data.entity.TimestampedEntity
 import com.quantactions.sdk.data.model.AppToPush
+import com.quantactions.sdk.data.model.AppWithCategory
 import com.quantactions.sdk.data.model.DevicePatch
 import com.quantactions.sdk.data.model.DeviceRegistration
 import com.quantactions.sdk.data.model.DeviceSpecifications
@@ -75,6 +76,7 @@ import com.quantactions.sdk.data.stringify
 import com.quantactions.sdk.exceptions.QASDKException
 import com.quantactions.sdk.workers.SignUpForStudyWorker
 import com.squareup.moshi.Moshi
+import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -97,7 +99,6 @@ import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import jakarta.inject.Inject
 import kotlin.math.roundToInt
 
 
@@ -1373,7 +1374,7 @@ class MVPRepository @Inject constructor(
     // test -> testUpdateAppList
     suspend fun updateAppList(
         listOfApps: List<AppToPush>
-    ): ApiResponse<List<AppToPush>> {
+    ): ApiResponse<List<AppWithCategory>> {
         return apiService.updateAppList(identityId, deviceID, listOfApps)
     }
 
@@ -1534,8 +1535,8 @@ class MVPRepository @Inject constructor(
         return mvpDao.getPendingAppCodes()
     }
 
-    fun updateCodeOfAppStatus(appId: Int, syncStatus: Int) {
-        mvpDao.updateCodeOfAppStatus(appId, syncStatus)
+    fun updateCodeOfApp(appName: String, syncStatus: Int, category: String?) {
+        mvpDao.updateCodeOfApp(appName, syncStatus, category)
     }
 
     fun deleteWrongHealthSessions(idsToDelete: List<String>) {

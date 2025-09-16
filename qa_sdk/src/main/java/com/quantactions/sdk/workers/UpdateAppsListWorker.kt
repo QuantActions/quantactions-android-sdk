@@ -47,8 +47,8 @@ class UpdateAppsListWorker(context: Context, params: WorkerParameters) :
                 }
 
                 is ApiSuccessResponse -> {
-                    pendingAppCodes.forEach { app ->
-                        repository.updateCodeOfAppStatus(app.id, 1)
+                    response2.body?.forEach { app ->
+                        repository.updateCodeOfApp(app.`package`, 1, app.categoryMain)
                     }
                     Result.success()
                 }

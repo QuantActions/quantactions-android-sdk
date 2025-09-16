@@ -222,8 +222,8 @@ interface MVPDao {
     @Query("SELECT * from code_of_app")
     fun getListOfApps(): List<CodeOfApp>
 
-    @Query("UPDATE code_of_app SET sync=:syncStatus WHERE id=:appId")
-    fun updateCodeOfAppStatus(appId: Int, syncStatus: Int)
+    @Query("UPDATE code_of_app SET sync=:syncStatus, category=:category WHERE app_name=:appName")
+    fun updateCodeOfApp(appName: String, syncStatus: Int, category: String?)
 
     @Query("SELECT * FROM hourly_taps WHERE date_tap >= :rollBackDate AND date_tap < :endDate")
     fun getTapsForStats(rollBackDate: String, endDate: String): List<HourlyTapsEntity>
