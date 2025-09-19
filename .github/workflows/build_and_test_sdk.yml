@@ -46,7 +46,7 @@ jobs:
             test assembleDebug assembleDebugAndroidTest
 
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: app-apk
           path: '**/*.apk'
@@ -73,7 +73,7 @@ jobs:
         run: gsutil cp gs://test-lab-x186ifk5q10q4-k8d32juhknhic/test_sdk_results/Pixel3-30-en-portrait/test_result_1.xml ./test_result_sdk_1.xml
 
       - name: Publish Test Results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: '**/test_result_*.xml'

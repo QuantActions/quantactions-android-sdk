@@ -10,11 +10,11 @@
 package com.quantactions.sdk.data.repository
 
 import android.content.Context
-import android.text.Editable
-import net.sqlcipher.database.SQLiteDatabase
+import net.zetetic.database.sqlcipher.SQLiteDatabase
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.nio.charset.Charset
 
 
 object SQLCipherUtils {
@@ -22,17 +22,17 @@ object SQLCipherUtils {
      * Determine whether or not this database appears to be encrypted, based
      * on whether we can open it without a passphrase.
      *
-     * @param ctxt a Context
+     * @param context a Context
      * @param dbName the name of the database, as used with Room, SQLiteOpenHelper,
      * etc.
      * @return the detected state of the database
      */
     fun getDatabaseState(
-        ctxt: Context,
+        context: Context,
         dbName: String?
     ): State {
-        SQLiteDatabase.loadLibs(ctxt)
-        return getDatabaseState(ctxt.getDatabasePath(dbName))
+        System.loadLibrary("sqlcipher")
+        return getDatabaseState(context.getDatabasePath(dbName))
     }
 
     /**
@@ -51,12 +51,12 @@ object SQLCipherUtils {
             var db: SQLiteDatabase? = null
             return try {
                 db = SQLiteDatabase.openDatabase(
-                    dbPath.absolutePath, "",
+                    dbPath.absolutePath,
                     null, SQLiteDatabase.OPEN_READONLY
                 )
                 db.version
                 State.UNENCRYPTED
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 State.ENCRYPTED
             } finally {
                 db?.close()
@@ -64,7 +64,7 @@ object SQLCipherUtils {
         }
         return State.DOES_NOT_EXIST
     }
-
+    
     /**
      * Replaces this database with a version encrypted with the supplied
      * passphrase, deleting the original. Do not call this while the database
@@ -75,35 +75,7 @@ object SQLCipherUtils {
      * passphrase. If not, please set all bytes of the passphrase to 0 or something
      * to clear out the passphrase.
      *
-     * @param ctxt a Context
-     * @param dbName the name of the database, as used with Room, SQLiteOpenHelper,
-     * etc.
-     * @param editor the passphrase, such as obtained by calling getText() on an
-     * EditText
-     * @throws IOException
-     */
-    @Throws(IOException::class)
-    fun encrypt(
-        ctxt: Context,
-        dbName: String?,
-        editor: Editable
-    ) {
-        val passphrase = CharArray(editor.length)
-        editor.getChars(0, editor.length, passphrase, 0)
-        encrypt(ctxt, dbName, passphrase)
-    }
-
-    /**
-     * Replaces this database with a version encrypted with the supplied
-     * passphrase, deleting the original. Do not call this while the database
-     * is open, which includes during any Room migrations.
-     *
-     * The passphrase is untouched in this call. If you are going to turn around
-     * and use it with SafeHelperFactory.fromUser(), fromUser() will clear the
-     * passphrase. If not, please set all bytes of the passphrase to 0 or something
-     * to clear out the passphrase.
-     *
-     * @param ctxt a Context
+     * @param context a Context
      * @param dbName the name of the database, as used with Room, SQLiteOpenHelper,
      * etc.
      * @param passphrase the passphrase from the user
@@ -111,14 +83,14 @@ object SQLCipherUtils {
      */
     @Throws(IOException::class)
     fun encrypt(
-        ctxt: Context,
+        context: Context,
         dbName: String?,
-        passphrase: CharArray?
+        passphrase: String?
     ) {
         encrypt(
-            ctxt,
-            ctxt.getDatabasePath(dbName),
-            SQLiteDatabase.getBytes(passphrase)
+            context,
+            context.getDatabasePath(dbName),
+            passphrase?.toByteArray(Charset.forName("UTF-8"))
         )
     }
 
@@ -132,80 +104,27 @@ object SQLCipherUtils {
      * passphrase. If not, please set all bytes of the passphrase to 0 or something
      * to clear out the passphrase.
      *
-     * @param ctxt a Context
-     * @param dbName the name of the database, as used with Room, SQLiteOpenHelper,
-     * etc.
-     * @param passphrase the passphrase
-     * @throws IOException
-     */
-    @Throws(IOException::class)
-    fun encrypt(
-        ctxt: Context,
-        dbName: String?,
-        passphrase: ByteArray?
-    ) {
-        encrypt(ctxt, ctxt.getDatabasePath(dbName), passphrase)
-    }
-
-    /**
-     * Replaces this database with a version encrypted with the supplied
-     * passphrase, deleting the original. Do not call this while the database
-     * is open, which includes during any Room migrations.
-     *
-     * The passphrase is untouched in this call. If you are going to turn around
-     * and use it with SafeHelperFactory.fromUser(), fromUser() will clear the
-     * passphrase. If not, please set all bytes of the passphrase to 0 or something
-     * to clear out the passphrase.
-     *
-     * @param ctxt a Context
+     * @param context a Context
      * @param originalFile a File pointing to the database
      * @param passphrase the passphrase from the user
      * @throws IOException
      */
     @Throws(IOException::class)
     fun encrypt(
-        ctxt: Context,
-        originalFile: File,
-        passphrase: CharArray?
-    ) {
-        encrypt(
-            ctxt,
-            originalFile,
-            SQLiteDatabase.getBytes(passphrase)
-        )
-    }
-
-    /**
-     * Replaces this database with a version encrypted with the supplied
-     * passphrase, deleting the original. Do not call this while the database
-     * is open, which includes during any Room migrations.
-     *
-     * The passphrase is untouched in this call. If you are going to turn around
-     * and use it with SafeHelperFactory.fromUser(), fromUser() will clear the
-     * passphrase. If not, please set all bytes of the passphrase to 0 or something
-     * to clear out the passphrase.
-     *
-     * @param ctxt a Context
-     * @param originalFile a File pointing to the database
-     * @param passphrase the passphrase from the user
-     * @throws IOException
-     */
-    @Throws(IOException::class)
-    fun encrypt(
-        ctxt: Context,
+        context: Context,
         originalFile: File,
         passphrase: ByteArray?
     ) {
-        SQLiteDatabase.loadLibs(ctxt)
+        System.loadLibrary("sqlcipher")
         if (originalFile.exists()) {
             val newFile = File.createTempFile(
                 "sqlcipherutils", "tmp",
-                ctxt.cacheDir
+                context.cacheDir
             )
             var db =
                 SQLiteDatabase.openDatabase(
                     originalFile.absolutePath,
-                    "", null, SQLiteDatabase.OPEN_READWRITE
+                    null, SQLiteDatabase.OPEN_READWRITE
                 )
             val version = db.version
             db.close()
@@ -221,90 +140,6 @@ object SQLCipherUtils {
             db.rawExecSQL("DETACH DATABASE plaintext")
             db.version = version
             st.close()
-            db.close()
-            originalFile.delete()
-            newFile.renameTo(originalFile)
-        } else {
-            throw FileNotFoundException(originalFile.absolutePath + " not found")
-        }
-    }
-
-    /**
-     * Replaces this database with a decrypted version, deleting the original
-     * encrypted database. Do not call this while the database is open, which
-     * includes during any Room migrations.
-     *
-     * The passphrase is untouched in this call. Please set all bytes of the
-     * passphrase to 0 or something to clear out the passphrase if you are done
-     * with it.
-     *
-     * @param ctxt a Context
-     * @param originalFile a File pointing to the encrypted database
-     * @param passphrase the passphrase from the user for the encrypted database
-     * @throws IOException
-     */
-    @Throws(IOException::class)
-    fun decrypt(
-        ctxt: Context,
-        originalFile: File,
-        passphrase: CharArray?
-    ) {
-        decrypt(
-            ctxt,
-            originalFile,
-            SQLiteDatabase.getBytes(passphrase)
-        )
-    }
-
-    /**
-     * Replaces this database with a decrypted version, deleting the original
-     * encrypted database. Do not call this while the database is open, which
-     * includes during any Room migrations.
-     *
-     * The passphrase is untouched in this call. Please set all bytes of the
-     * passphrase to 0 or something to clear out the passphrase if you are done
-     * with it.
-     *
-     * @param ctxt a Context
-     * @param originalFile a File pointing to the encrypted database
-     * @param passphrase the passphrase from the user for the encrypted database
-     * @throws IOException
-     */
-    @Throws(IOException::class)
-    fun decrypt(
-        ctxt: Context,
-        originalFile: File,
-        passphrase: ByteArray?
-    ) {
-        SQLiteDatabase.loadLibs(ctxt)
-        if (originalFile.exists()) {
-            val newFile = File.createTempFile(
-                "sqlcipherutils", "tmp",
-                ctxt.cacheDir
-            )
-            var db =
-                SQLiteDatabase.openDatabase(
-                    originalFile.absolutePath,
-                    passphrase,
-                    null,
-                    SQLiteDatabase.OPEN_READWRITE,
-                    null,
-                    null
-                )
-            val st =
-                db.compileStatement("ATTACH DATABASE ? AS plaintext KEY ''")
-            st.bindString(1, newFile.absolutePath)
-            st.execute()
-            db.rawExecSQL("SELECT sqlcipher_export('plaintext')")
-            db.rawExecSQL("DETACH DATABASE plaintext")
-            val version = db.version
-            st.close()
-            db.close()
-            db = SQLiteDatabase.openDatabase(
-                newFile.absolutePath, "",
-                null, SQLiteDatabase.OPEN_READWRITE
-            )
-            db.version = version
             db.close()
             originalFile.delete()
             newFile.renameTo(originalFile)
