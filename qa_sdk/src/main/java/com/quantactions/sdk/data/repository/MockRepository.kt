@@ -66,7 +66,7 @@ class MockRepository @Inject constructor(
 
         fun getInstance(context: Context, apiKey: String? = null): MockRepository {
             val preferences = MockPref.getInstance(context)
-            val capabilitiesManager = CapabilitiesManager(preferences)
+            val capabilitiesManager = CapabilitiesManager(context, preferences)
             synchronized(this) {
                 var instance = INSTANCE
                 if (instance == null) {

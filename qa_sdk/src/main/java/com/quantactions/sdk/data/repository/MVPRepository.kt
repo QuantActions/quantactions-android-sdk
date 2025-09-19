@@ -118,7 +118,7 @@ class MVPRepository @Inject constructor(
 
         fun getInstance(context: Context, apiKey: String? = null): MVPRepository {
             val preferences = ManagePref2.getInstance(context)
-            val capabilitiesManager = CapabilitiesManager(preferences)
+            val capabilitiesManager = CapabilitiesManager(context, preferences)
             synchronized(this) {
                 var instance = INSTANCE
                 if (instance == null) {
@@ -1798,9 +1798,8 @@ class MVPRepository @Inject constructor(
     }
 
     fun loadAndFetchCapabilities() {
-        capabilitiesManager.loadCapabilities()
         CoroutineScope(Dispatchers.IO).launch {
-            capabilitiesManager.fetchCapabilities(tokenApi)
+            capabilitiesManager.fetchAndStoreCapabilities(tokenApi)
         }
 
         capabilitiesManager.getCapabilities()?.let{
