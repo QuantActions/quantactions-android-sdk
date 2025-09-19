@@ -52,7 +52,6 @@ import com.quantactions.sdk.exceptions.SDKNotInitialisedException
 import com.quantactions.sdk.workers.RegisterWorker
 import com.quantactions.sdk.workers.UpdateDeviceWorker
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -73,7 +72,6 @@ import java.util.concurrent.TimeUnit
 internal class QAPrivate private constructor(
     private var repository: MVPRepository,
     private val preferences: ManagePref2,
-    private val capabilitiesManager: CapabilitiesManager,
     private var firebaseToken: String? = null
 ) {
 
@@ -86,11 +84,9 @@ internal class QAPrivate private constructor(
                 var instance = INSTANCE
                 if (instance == null) {
                     val preferences = ManagePref2.getInstance(context)
-                    val capabilitiesManager = CapabilitiesManager(preferences)
                     instance = QAPrivate(
                         MVPRepository.getInstance(context),
                         preferences,
-                        capabilitiesManager = capabilitiesManager
                     )
                     INSTANCE = instance
                 }
@@ -136,11 +132,6 @@ internal class QAPrivate private constructor(
         identityId: String? = null,
         password: String? = null
     ): Boolean {
-
-        capabilitiesManager.loadCapabilities()
-        CoroutineScope(Dispatchers.IO).launch {
-            capabilitiesManager.fetchCapabilities(repository.apiService)
-        }
 
         preferences.apiKey = authCode
         // I refresh the repository instance cause before the api was invalid
@@ -193,19 +184,12 @@ internal class QAPrivate private constructor(
     }
 
     private fun checkAndRunService(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (repository.canDraw(context)) {
-                makeServiceForeground(context)
-                Timber.i("Service NOT running, launching")
-            } else {
-                Timber.i("Overlay not granted, try to launch anyway")
-                makeServiceForeground(context)
-            }
-        } else {
+        if (repository.canDraw(context)) {
             makeServiceForeground(context)
-            if (ManagePref2.getInstance(context)
-                    .getVerbose() > 0
-            ) Timber.i("Service NOT running, launching!")
+            Timber.i("Service NOT running, launching")
+        } else {
+            Timber.i("Overlay not granted, try to launch anyway")
+            makeServiceForeground(context)
         }
     }
 
@@ -252,11 +236,6 @@ internal class QAPrivate private constructor(
             }
 
             is ApiErrorResponse -> {
-                if (response.httpStatusCode == 401 || response.httpStatusCode == 403) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        capabilitiesManager.refreshCapabilities(repository.apiService)
-                    }
-                }
                 Timber.e("Register spec and device error ${response.errorMessage}")
                 registerDeviceAsync()
                 throw QASDKException("Device registration failed, retrying later")
@@ -284,11 +263,6 @@ internal class QAPrivate private constructor(
             }
 
             is ApiErrorResponse -> {
-                if (response2.httpStatusCode == 401 || response2.httpStatusCode == 403) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        capabilitiesManager.refreshCapabilities(repository.apiService)
-                    }
-                }
                 Timber.e(response2.errorMessage)
                 throw QASDKException("Device registration failed, this should, never happen")
             }
@@ -304,26 +278,18 @@ internal class QAPrivate private constructor(
     }
 
     suspend fun linkIdentities(idToLink: String): Boolean {
-        return when (val response = repository.linkIdentities(idToLink)) {
+        return when (repository.linkIdentities(idToLink)) {
             is ApiSuccessResponse, is ApiEmptyResponse -> {
                 true
             }
             is ApiErrorResponse -> {
-                if (response.httpStatusCode == 401 || response.httpStatusCode == 403) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        capabilitiesManager.refreshCapabilities(repository.apiService)
-                    }
-                }
-                false
-            }
-            else -> {
                 false
             }
         }
     }
 
     fun hasFeature(feature: String): Boolean {
-        return capabilitiesManager.hasFeature(feature)
+        return repository.hasFeature(feature)
     }
 
     fun getFirebaseToken(): String? {
@@ -466,6 +432,10 @@ internal class QAPrivate private constructor(
         startTimestamp: Long,
         stopTimestamp: Long,
     ): QA.TapsAndApps {
+
+        if (!hasFeature("raw")){
+            throw QASDKException("You do not have access to `raw` feature. Get in contact with QuantActions to enable it for your project.")
+        }
 
         // Retrieve taps in the time window
         val taps = repository.getTapsInTimeWindow(startTimestamp, stopTimestamp)

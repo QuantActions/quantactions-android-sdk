@@ -18,6 +18,7 @@ import com.hadiyarajesh.flower_core.ApiResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.hadiyarajesh.flower_retrofit.FlowerCallAdapterFactory
 import com.quantactions.sdk.BuildConfig
+import com.quantactions.sdk.CapabilitiesManager
 import com.quantactions.sdk.GenericPreferences
 import com.quantactions.sdk.data.api.adapters.QuestionnaireAdapter
 import com.quantactions.sdk.data.api.adapters.SleepSummaryAdapter
@@ -485,10 +486,6 @@ interface ApiService {
         val expiresIn: Long
     )
 
-    @POST("auth/capabilities")
-    suspend fun getCapabilities(): CapabilitiesResponse
-
-
     @JsonClass(generateAdapter = true)
     @Serializable
     data class IdentityPatch(
@@ -608,7 +605,8 @@ interface ApiService {
 
 class TokenAuthenticator @Inject constructor(
     private val tokenApi: TokenApi,
-    private val preferences: GenericPreferences
+    private val preferences: GenericPreferences,
+    private val capabilitiesManager: CapabilitiesManager
 ) : Authenticator {
 
     override fun authenticate(route: Route?, response: okhttp3.Response): Request {
@@ -660,6 +658,9 @@ class TokenAuthenticator @Inject constructor(
             if (!preferences.isOauthActivated) {
                 tokenApi.enableOauth(getBasicAuthHeader(preferences))
             }
+
+            // I should take the chance to refresh the capabilities token as well
+            capabilitiesManager.refreshCapabilities(tokenApi)
 
             val iamEntityJWT: ApiResponse<Void> =
                 if (preferences.accessToken == null) login() else refreshToken()

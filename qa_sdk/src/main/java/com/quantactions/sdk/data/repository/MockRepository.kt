@@ -17,6 +17,7 @@ import com.hadiyarajesh.flower_core.Resource
 import com.hadiyarajesh.flower_core.networkResource
 import com.quantactions.sdk.BuildConfig
 import com.quantactions.sdk.CanReturnCompiledTimeSeries
+import com.quantactions.sdk.CapabilitiesManager
 import com.quantactions.sdk.Metric
 import com.quantactions.sdk.MockPref
 import com.quantactions.sdk.TimeSeries
@@ -53,7 +54,10 @@ import java.util.Locale
 
 
 class MockRepository @Inject constructor(
-    context: Context, private val preferences: MockPref, apiKey: String? = null
+    context: Context,
+    private val preferences: MockPref,
+    private val capabilitiesManager: CapabilitiesManager,
+    apiKey: String? = null
 ) {
 
     companion object {
@@ -62,11 +66,15 @@ class MockRepository @Inject constructor(
 
         fun getInstance(context: Context, apiKey: String? = null): MockRepository {
             val preferences = MockPref.getInstance(context)
+            val capabilitiesManager = CapabilitiesManager(preferences)
             synchronized(this) {
                 var instance = INSTANCE
                 if (instance == null) {
                     instance = MockRepository(
-                        context, preferences, apiKey ?: preferences.apiKey
+                        context,
+                        preferences,
+                        capabilitiesManager,
+                        apiKey ?: preferences.apiKey
                     )
                     INSTANCE = instance
                 }
@@ -107,7 +115,7 @@ class MockRepository @Inject constructor(
     fun reInit(apiKey: String) {
         val cookieJar = ApiService.UvCookieJar(preferences, "TokenApi")
         tokenApi = TokenApi.buildTokenApi(apiKey, cookieJar)
-        val tokenAuthenticator = TokenAuthenticator(tokenApi, preferences)
+        val tokenAuthenticator = TokenAuthenticator(tokenApi, preferences, capabilitiesManager)
         apiService = ApiService.create(
             apiKey, tokenAuthenticator, cookieJar
         )

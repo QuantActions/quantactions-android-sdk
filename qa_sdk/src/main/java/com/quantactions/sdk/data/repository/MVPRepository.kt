@@ -106,6 +106,7 @@ import kotlin.math.roundToInt
 class MVPRepository @Inject constructor(
     context: Context,
     private val preferences: ManagePref2,
+    private val capabilitiesManager: CapabilitiesManager,
     apiKey: String? = null
 ) {
 
@@ -117,12 +118,14 @@ class MVPRepository @Inject constructor(
 
         fun getInstance(context: Context, apiKey: String? = null): MVPRepository {
             val preferences = ManagePref2.getInstance(context)
+            val capabilitiesManager = CapabilitiesManager(preferences)
             synchronized(this) {
                 var instance = INSTANCE
                 if (instance == null) {
                     instance = MVPRepository(
                         context,
                         preferences,
+                        capabilitiesManager,
                         apiKey ?: preferences.apiKey
                     )
                     INSTANCE = instance
@@ -178,7 +181,6 @@ class MVPRepository @Inject constructor(
     private var iamParticipationId: String = ""
     private var cachedApiKey: String = ""
     private lateinit var tokenApi: TokenApi
-    private lateinit var capabilitiesManager: CapabilitiesManager
 
     private val Boolean.intValue
         get() = if (this) 1 else 0
@@ -262,14 +264,14 @@ class MVPRepository @Inject constructor(
         cachedApiKey = apiKey
         val cookieJar = ApiService.UvCookieJar(preferences, "TokenApi")
         tokenApi = TokenApi.buildTokenApi(apiKey, cookieJar)
-        capabilitiesManager = CapabilitiesManager(preferences)
         val tokenAuthenticator = TokenAuthenticator(tokenApi, preferences, capabilitiesManager)
         apiService = ApiService.create(
             apiKey,
             tokenAuthenticator,
-            cookieJar,
-            capabilitiesManager
+            cookieJar
         )
+
+        loadAndFetchCapabilities()
 
         if (preferences.isOauthActivated) {
             if (iamParticipationId == "" && !wasPartIdRequested) {
@@ -1793,6 +1795,21 @@ class MVPRepository @Inject constructor(
 
     fun deleteLocalStudies() {
         mvpDao.deleteStudies()
+    }
+
+    fun loadAndFetchCapabilities() {
+        capabilitiesManager.loadCapabilities()
+        CoroutineScope(Dispatchers.IO).launch {
+            capabilitiesManager.fetchCapabilities(tokenApi)
+        }
+
+        capabilitiesManager.getCapabilities()?.let{
+            Timber.d("Capabilities loaded: $it")
+        }
+    }
+
+    fun hasFeature(feature: String): Boolean {
+        return capabilitiesManager.hasFeature(feature)
     }
 
     private val bearer

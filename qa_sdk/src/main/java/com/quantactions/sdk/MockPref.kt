@@ -29,6 +29,8 @@ class MockPref private constructor(context: Context) : GenericPreferences {
 
     override var selfDeclaredHealthy: Boolean = true
 
+    override var capabilitiesToken: String? = null
+
     var apiKey: String
         get() = sharedPref.getString(API_KEY, "")!!
         set(newVal) {

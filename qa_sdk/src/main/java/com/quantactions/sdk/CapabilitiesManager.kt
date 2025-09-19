@@ -1,8 +1,7 @@
 package com.quantactions.sdk
 
-import android.content.Context
 import com.auth0.android.jwt.JWT
-import com.quantactions.sdk.data.api.ApiService
+import com.quantactions.sdk.data.api.TokenApi
 import timber.log.Timber
 
 class CapabilitiesManager(private val preferences: GenericPreferences) {
@@ -42,9 +41,9 @@ class CapabilitiesManager(private val preferences: GenericPreferences) {
         }
     }
 
-    suspend fun fetchCapabilities(apiService: ApiService) {
+    suspend fun fetchCapabilities(tokenApi: TokenApi) {
         try {
-            val response = apiService.getCapabilities()
+            val response = tokenApi.getCapabilities()
             val token = response.token
             // TODO: needs to be checked
 //            val decodedToken = verifyToken(token)
@@ -56,10 +55,11 @@ class CapabilitiesManager(private val preferences: GenericPreferences) {
         }
     }
 
-    suspend fun refreshCapabilities(apiService: ApiService) {
+    suspend fun refreshCapabilities(tokenApi: TokenApi) {
         features = null
         preferences.capabilitiesToken = null
-        fetchCapabilities(apiService)
+        fetchCapabilities(tokenApi)
+        loadCapabilities()
     }
 
     private fun verifyToken(token: String): JWT {

@@ -449,5 +449,6 @@ class ManagePref2 private constructor(context: Context) : GenericPreferences {
         const val DEVICE_SPECS                   = "device_specs"
         const val OLD_TO_NEW_API_MIGRATION_DONE  = "old_to_new_api_migration_done"
         const val HEALTHY_RANGES                 = "healthy_ranges"
+        const val CAPABILITIES_TOKEN             = "capabilities_token"
     }
 }
