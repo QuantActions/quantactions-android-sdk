@@ -38,4 +38,7 @@ data class CodeOfApp(
     /** Is synced */
     @ColumnInfo(name = "sync")
     val sync: Int,
+
+    @ColumnInfo(name = "category")
+    val category: String? = null,
 )

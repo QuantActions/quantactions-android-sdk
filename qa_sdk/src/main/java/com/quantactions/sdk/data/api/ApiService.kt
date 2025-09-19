@@ -24,13 +24,16 @@ import com.quantactions.sdk.data.api.adapters.SleepSummaryAdapter
 import com.quantactions.sdk.data.api.adapters.StatisticAdapter
 import com.quantactions.sdk.data.api.adapters.StatisticStringAdapter
 import com.quantactions.sdk.data.api.adapters.TrendAdapter
-import com.quantactions.sdk.data.api.responses.*
+import com.quantactions.sdk.data.api.responses.HealthyRangesResponse
+import com.quantactions.sdk.data.api.responses.JournalEntriesResponse
+import com.quantactions.sdk.data.api.responses.RegistrationResponse
 import com.quantactions.sdk.data.entity.JournalEventEntity
 import com.quantactions.sdk.data.entity.SleepSummaryEntity
 import com.quantactions.sdk.data.entity.StatisticEntity
 import com.quantactions.sdk.data.entity.StatisticStringEntity
 import com.quantactions.sdk.data.entity.TrendEntity
 import com.quantactions.sdk.data.model.AppToPush
+import com.quantactions.sdk.data.model.AppWithCategory
 import com.quantactions.sdk.data.model.DevicePatch
 import com.quantactions.sdk.data.model.DeviceRegistration
 import com.quantactions.sdk.data.model.DeviceResponse
@@ -50,6 +53,7 @@ import com.quantactions.sdk.data.repository.TapDataBody
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Contextual
@@ -77,7 +81,6 @@ import timber.log.Timber
 import java.io.IOException
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
-import jakarta.inject.Inject
 
 
 interface ApiService {
@@ -218,7 +221,7 @@ interface ApiService {
         @Path("identityId") identityId: String,
         @Path("deviceId") deviceId: String,
         @Body appsList: List<AppToPush>
-    ): ApiResponse<List<AppToPush>>
+    ): ApiResponse<List<AppWithCategory>>
 
     /**
      * Submits a simple text note to the backend.

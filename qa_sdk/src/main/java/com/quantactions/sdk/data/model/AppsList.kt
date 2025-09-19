@@ -21,3 +21,14 @@ data class AppToPush(
     val `package`: String,
     val installationId: Int?,
 )
+
+/**
+ * @suppress
+ */
+@Keep
+@JsonClass(generateAdapter = true)
+data class AppWithCategory(
+    val `package`: String,
+    val installationId: Int?,
+    val categoryMain: String? = null,
+)
