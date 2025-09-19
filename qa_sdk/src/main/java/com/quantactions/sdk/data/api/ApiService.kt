@@ -558,7 +558,7 @@ interface ApiService {
         @Synchronized
         override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
             cookies.forEach {
-                Timber.i("[$context] Saving cookie: ${it.name}")
+                Timber.d("[$context] Saving cookie: ${it.name}")
                 if (it.name == "accessToken") preferences.saveAccessTokens(
                     accessToken = it.value,
                 )
@@ -579,7 +579,7 @@ interface ApiService {
         override fun loadForRequest(url: HttpUrl): List<Cookie> {
             if (cookies.isEmpty()) {
                 preferences.accessToken?.let {
-                    Timber.i("[$context] Loading access token for request")
+                    Timber.d("[$context] Loading access token for request")
                     cookies.add(
                         createNonPersistentCookie(
                             "accessToken",
@@ -588,7 +588,7 @@ interface ApiService {
                     )
                 }
                 preferences.refreshToken?.let {
-                    Timber.i("Loading refresh token for request")
+                    Timber.d("Loading refresh token for request")
                     cookies.add(
                         createNonPersistentCookie(
                             "refreshToken",

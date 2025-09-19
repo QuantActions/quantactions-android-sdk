@@ -188,7 +188,7 @@ class MVPRepository @Inject constructor(
     suspend fun checkRegisteredStatus(): Boolean {
 
         if (preferences.areCredentialsRegistered && preferences.isOauthActivated) {
-            Timber.i("Identity is registered -> I continue")
+            Timber.d("Identity is registered -> I continue")
             return true
         }
 
@@ -1235,8 +1235,8 @@ class MVPRepository @Inject constructor(
                         getQuestionnaires(participation.studyId!!)
                     }
 
-                    Timber.i("ParticipationIds: ${studyRegistrationResponse.map { it.id }}")
-                    Timber.i("Tokens: ${studyRegistrationResponse.map { it.token }}")
+                    Timber.d("ParticipationIds: ${studyRegistrationResponse.map { it.id }}")
+                    Timber.d("Tokens: ${studyRegistrationResponse.map { it.token }}")
                     iamParticipationId = studyRegistrationResponse[0].id
                     latch.countDown()
 
@@ -1304,7 +1304,7 @@ class MVPRepository @Inject constructor(
 
         when (apiResponse) {
             is ApiSuccessResponse, is ApiEmptyResponse -> {
-                Timber.i("ReSub success")
+                Timber.d("ReSub success")
             }
 
             is ApiErrorResponse -> {

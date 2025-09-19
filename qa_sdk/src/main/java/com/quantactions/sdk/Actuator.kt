@@ -125,20 +125,20 @@ internal class Actuator private constructor() {
                 if (Settings.canDrawOverlays(context)) {
                     handler.post { wm.addView(layerView, wParams) }
                     added = true
-                    Timber.i("Adding view")
-                    Log.i("Actuator", "Adding view")
+                    Timber.d("Adding view")
+                    Log.d("Actuator", "Adding view")
                 } else {
                     added = false
                 }
             } else {
                 handler.post { wm.addView(layerView, wParams) }
                 added = true
-                Log.i("Actuator", "Adding view")
-                Timber.i("Adding view")
+                Log.d("Actuator", "Adding view")
+                Timber.d("Adding view")
             }
         } else {
-            Timber.i("View already added")
-            Log.i("Actuator", "View already added")
+            Timber.d("View already added")
+            Log.d("Actuator", "View already added")
         }
     }
 
@@ -152,8 +152,8 @@ internal class Actuator private constructor() {
                     layerView = null
                 }
                 added = false
-                Timber.i("Removing view")
-                Log.i("Actuator", "Removing view")
+                Timber.d("Removing view")
+                Log.d("Actuator", "Removing view")
             }
         } catch (e: Exception) {
             try {

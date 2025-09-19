@@ -186,9 +186,9 @@ internal class QAPrivate private constructor(
     private fun checkAndRunService(context: Context) {
         if (repository.canDraw(context)) {
             makeServiceForeground(context)
-            Timber.i("Service NOT running, launching")
+            Timber.d("Service NOT running, launching")
         } else {
-            Timber.i("Overlay not granted, try to launch anyway")
+            Timber.d("Overlay not granted, try to launch anyway")
             makeServiceForeground(context)
         }
     }
@@ -446,7 +446,7 @@ internal class QAPrivate private constructor(
             session.appIds0.literalToIntList().map { ids.add(it) }
         }
 
-        Timber.d("[Retrieved ${taps.size} tap sessions with app IDs: $ids]")
+        Timber.d("Retrieved ${taps.size} tap sessions with app IDs: $ids")
 
         // Retrieve app codes for the extracted IDs
         val apps = repository.getAppCodesByIds(ids.toList())
