@@ -1535,6 +1535,10 @@ class MVPRepository @Inject constructor(
         return mvpDao.getPendingAppCodes()
     }
 
+    fun getAppsWithPendingCategory() : List<CodeOfApp> {
+        return mvpDao.getAppsWithPendingCategory()
+    }
+
     fun updateCodeOfApp(appName: String, syncStatus: Int, category: String?) {
         mvpDao.updateCodeOfApp(appName, syncStatus, category)
     }

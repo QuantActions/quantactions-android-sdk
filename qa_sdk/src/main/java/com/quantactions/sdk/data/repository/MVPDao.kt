@@ -219,6 +219,9 @@ interface MVPDao {
     @Query("SELECT * from code_of_app WHERE sync=0")
     fun getPendingAppCodes(): List<CodeOfApp>
 
+    @Query("SELECT * from code_of_app WHERE category is NULL")
+    fun getAppsWithPendingCategory(): List<CodeOfApp>
+
     @Query("SELECT * from code_of_app")
     fun getListOfApps(): List<CodeOfApp>
 

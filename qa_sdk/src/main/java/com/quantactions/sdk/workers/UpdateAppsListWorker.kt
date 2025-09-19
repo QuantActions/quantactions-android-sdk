@@ -50,13 +50,45 @@ class UpdateAppsListWorker(context: Context, params: WorkerParameters) :
                     response2.body?.forEach { app ->
                         repository.updateCodeOfApp(app.`package`, 1, app.categoryMain)
                     }
+                    updateAppCategories()
                     Result.success()
                 }
             }
 
-
         } else {
+            updateAppCategories()
             Result.success()
+        }
+    }
+
+    suspend fun updateAppCategories() {
+        // Also try to update categories of apps that were not pending but might have changed
+        val appsWithPendingCategory = repository.getAppsWithPendingCategory()
+
+        val pendingAppList = appsWithPendingCategory.map { entry ->
+            AppToPush(
+                entry.appName,
+                entry.id,
+            )
+        }
+
+        Timber.d("Trying to update categories of $pendingAppList")
+
+        when (val response3 = repository.updateAppList(pendingAppList)) {
+            is ApiErrorResponse -> {
+                Timber.w(response3.errorMessage)
+            }
+
+            is ApiEmptyResponse -> {
+                Timber.w("Empty response when updating categories")
+            }
+
+            is ApiSuccessResponse -> {
+                response3.body?.forEach { app ->
+                    Timber.d("Category of ${app.`package`} updated to ${app.categoryMain}")
+                    repository.updateCodeOfApp(app.`package`, 1, app.categoryMain)
+                }
+            }
         }
     }
 }
