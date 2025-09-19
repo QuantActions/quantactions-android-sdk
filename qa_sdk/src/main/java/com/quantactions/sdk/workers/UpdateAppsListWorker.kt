@@ -65,30 +65,35 @@ class UpdateAppsListWorker(context: Context, params: WorkerParameters) :
         // Also try to update categories of apps that were not pending but might have changed
         val appsWithPendingCategory = repository.getAppsWithPendingCategory()
 
-        val pendingAppList = appsWithPendingCategory.map { entry ->
-            AppToPush(
-                entry.appName,
-                entry.id,
-            )
-        }
+        if (appsWithPendingCategory.isNotEmpty()) {
 
-        Timber.d("Trying to update categories of $pendingAppList")
-
-        when (val response3 = repository.updateAppList(pendingAppList)) {
-            is ApiErrorResponse -> {
-                Timber.w(response3.errorMessage)
+            val pendingAppList = appsWithPendingCategory.map { entry ->
+                AppToPush(
+                    entry.appName,
+                    entry.id,
+                )
             }
 
-            is ApiEmptyResponse -> {
-                Timber.w("Empty response when updating categories")
-            }
+            Timber.d("Trying to update categories of $pendingAppList")
 
-            is ApiSuccessResponse -> {
-                response3.body?.forEach { app ->
-                    Timber.d("Category of ${app.`package`} updated to ${app.categoryMain}")
-                    repository.updateCodeOfApp(app.`package`, 1, app.categoryMain)
+            when (val response3 = repository.updateAppList(pendingAppList)) {
+                is ApiErrorResponse -> {
+                    Timber.w(response3.errorMessage)
+                }
+
+                is ApiEmptyResponse -> {
+                    Timber.w("Empty response when updating categories")
+                }
+
+                is ApiSuccessResponse -> {
+                    response3.body?.forEach { app ->
+                        Timber.d("Category of ${app.`package`} updated to ${app.categoryMain}")
+                        repository.updateCodeOfApp(app.`package`, 1, app.categoryMain)
+                    }
                 }
             }
+        } else {
+            Timber.d("No apps with pending category to update")
         }
     }
 }
