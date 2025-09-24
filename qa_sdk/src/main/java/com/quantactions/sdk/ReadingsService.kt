@@ -14,6 +14,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
@@ -29,6 +30,9 @@ import com.google.android.gms.location.ActivityRecognition
 import com.google.android.gms.location.ActivityTransition
 import com.google.android.gms.location.ActivityTransitionRequest
 import com.google.android.gms.location.DetectedActivity
+import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
+import com.google.firebase.crashlytics.setCustomKeys
 import com.quantactions.sdk.QA.Companion.getInstance
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -49,6 +53,8 @@ class ReadingsService : Service() {
     private lateinit var actuator: Actuator
     private val job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + job)
+    var restartedRequiredNotification: RestartedRequiredNotification = RestartedRequiredNotificationImpl()
+    private lateinit var qa: QA
 
     override fun onCreate() {
 
@@ -58,34 +64,58 @@ class ReadingsService : Service() {
         mReceiver = QABroadcastReceiver()
         registerReceiver(mReceiver, filter)
         actuator = Actuator.getInstance(this@ReadingsService)
-        getInstance(this@ReadingsService).updater.updateNotification()
+        qa = getInstance(this@ReadingsService)
+        qa.updater.updateNotification()
 
-        // Necessary for handling foreground task
-        ContextCompat.startForegroundService(
-            applicationContext,
-            Intent(applicationContext, ReadingsService::class.java)
-        )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channelId = createNotificationChannel()
-            // This is necessary for handleMessage error on Samsung, does not really happen to other phones
-            startForeground(
-                QAStrings.QA_FOREGROUND_SERVICE_ID, getInstance(this@ReadingsService).updater.createNotification(
-                    applicationContext, channelId
-                )
+        try {
+            // Necessary for handling foreground task
+            ContextCompat.startForegroundService(
+                applicationContext,
+                Intent(applicationContext, ReadingsService::class.java)
             )
-        }
-
-        val result: Int =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION)
-            } else {
-                PackageManager.PERMISSION_GRANTED
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channelId = createNotificationChannel()
+                // This is necessary for handleMessage error on Samsung, does not really happen to other phones
+                startForeground(
+                    QAStrings.QA_FOREGROUND_SERVICE_ID,
+                    getInstance(this@ReadingsService).updater.createNotification(
+                        applicationContext, channelId
+                    )
+                )
             }
-        if (result == PackageManager.PERMISSION_GRANTED) {
-            setupActivityRecognition()
+
+            val result: Int =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION)
+                } else {
+                    PackageManager.PERMISSION_GRANTED
+                }
+            if (result == PackageManager.PERMISSION_GRANTED) {
+                setupActivityRecognition()
+            }
+        } catch (e: Exception) {
+            // This means that the foreground service cannot be started from background, either turn
+            // off the battery optimization, or send a notification to reopen the app so that the
+            // foreground can start again. The only problem is that this is via the SDK and not via
+            // the app so it is problematic for customization.
+            Log.e("QAReadingService", e.localizedMessage)
+            val notification = restartedRequiredNotification.createNotification(
+                this@ReadingsService,
+                this@ReadingsService.getString(R.string.notification_channel_id_qa)
+            )
+            val notificationManager =
+                this@ReadingsService.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+            notificationManager?.notify(1, notification)
+            Firebase.crashlytics.setUserId(qa.deviceID)
+            Firebase.crashlytics.setCustomKeys {
+                key("location", "ReadingService")
+                key("method", "onCreate")
+                key("canDraw", qa.canDraw(this@ReadingsService))
+                key("canUsage", qa.canUsage(this@ReadingsService))
+            }
+            Firebase.crashlytics.recordException(e)
+            false
         }
-
-
     }
 
     private fun setupActivityRecognition() {
@@ -207,11 +237,8 @@ class ReadingsService : Service() {
         }
 
         // Check if is added view
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (Settings.canDrawOverlays(applicationContext)) addView()
-            //This function is launched when an On/Off event is triggered
-        }
-
+        if (Settings.canDrawOverlays(applicationContext)) addView()
+        // This function is launched when an On/Off event is triggered
         if (null != intent) {
             val screenOff: Boolean
             if (intent.hasExtra("screen_state")) {
