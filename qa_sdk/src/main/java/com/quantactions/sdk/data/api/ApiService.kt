@@ -18,6 +18,7 @@ import com.hadiyarajesh.flower_core.ApiResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.hadiyarajesh.flower_retrofit.FlowerCallAdapterFactory
 import com.quantactions.sdk.BuildConfig
+import com.quantactions.sdk.CapabilitiesManager
 import com.quantactions.sdk.GenericPreferences
 import com.quantactions.sdk.data.api.adapters.QuestionnaireAdapter
 import com.quantactions.sdk.data.api.adapters.SleepSummaryAdapter
@@ -478,7 +479,12 @@ interface ApiService {
         var enableCognitiveTests: Boolean?,
     )
 
-
+    @JsonClass(generateAdapter = true)
+    @Serializable
+    data class CapabilitiesResponse(
+        val token: String,
+        val expiresIn: Long
+    )
 
     @JsonClass(generateAdapter = true)
     @Serializable
@@ -552,7 +558,7 @@ interface ApiService {
         @Synchronized
         override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
             cookies.forEach {
-                Timber.i("[$context] Saving cookie: ${it.name}")
+                Timber.d("[$context] Saving cookie: ${it.name}")
                 if (it.name == "accessToken") preferences.saveAccessTokens(
                     accessToken = it.value,
                 )
@@ -573,7 +579,7 @@ interface ApiService {
         override fun loadForRequest(url: HttpUrl): List<Cookie> {
             if (cookies.isEmpty()) {
                 preferences.accessToken?.let {
-                    Timber.i("[$context] Loading access token for request")
+                    Timber.d("[$context] Loading access token for request")
                     cookies.add(
                         createNonPersistentCookie(
                             "accessToken",
@@ -582,7 +588,7 @@ interface ApiService {
                     )
                 }
                 preferences.refreshToken?.let {
-                    Timber.i("Loading refresh token for request")
+                    Timber.d("Loading refresh token for request")
                     cookies.add(
                         createNonPersistentCookie(
                             "refreshToken",
@@ -599,10 +605,11 @@ interface ApiService {
 
 class TokenAuthenticator @Inject constructor(
     private val tokenApi: TokenApi,
-    private val preferences: GenericPreferences
+    private val preferences: GenericPreferences,
+    private val capabilitiesManager: CapabilitiesManager
 ) : Authenticator {
 
-    override fun authenticate(route: Route?, response: okhttp3.Response): Request {
+    override fun authenticate(route: Route?, response: Response): Request {
 
         Timber.e("Got a 401 [${route}] : $response")
 
@@ -651,6 +658,9 @@ class TokenAuthenticator @Inject constructor(
             if (!preferences.isOauthActivated) {
                 tokenApi.enableOauth(getBasicAuthHeader(preferences))
             }
+
+            // I should take the chance to refresh the capabilities token as well
+            capabilitiesManager.refreshCapabilities(tokenApi)
 
             val iamEntityJWT: ApiResponse<Void> =
                 if (preferences.accessToken == null) login() else refreshToken()

@@ -73,7 +73,7 @@ class DetectedActivityReceiver : BroadcastReceiver(), CoroutineScope {
                         event.transitionType, 0)
 
                     launch(Dispatchers.IO) { mapDao.insertOrUpdateActivityTransition(action)
-                        Timber.i("Action: $action")
+                        Timber.d("Action: $action")
                     }
 
                 }

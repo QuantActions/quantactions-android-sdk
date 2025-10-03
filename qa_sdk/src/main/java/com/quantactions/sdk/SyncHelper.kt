@@ -94,7 +94,7 @@ internal class SyncHelper(context: Context) {
                         .build()
                 )
             } else {
-                Timber.i("No pending questionnaires -> not running")
+                Timber.d("No pending questionnaires -> not running")
             }
 
             // pending cog test
@@ -108,7 +108,7 @@ internal class SyncHelper(context: Context) {
                         .build()
                 )
             } else {
-                Timber.i("No pending cog tests -> not running")
+                Timber.d("No pending cog tests -> not running")
             }
 
             // pending journal entries
@@ -123,7 +123,7 @@ internal class SyncHelper(context: Context) {
                         .build()
                 )
             } else {
-                Timber.i("No pending journal entries -> not running")
+                Timber.d("No pending journal entries -> not running")
             }
 
             // update list of apps

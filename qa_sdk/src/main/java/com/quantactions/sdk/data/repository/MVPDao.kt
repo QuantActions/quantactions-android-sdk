@@ -245,4 +245,15 @@ interface MVPDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdateActivityTransition(action: ActivityTransitionEntity)
 
+    // Get taps precisely
+    @Query("SELECT * FROM taps_table WHERE\n" +
+            "    (start >= :startTimestamp AND start <= :stopTimestamp) OR    " +
+            "    (stop >= :startTimestamp AND stop <= :stopTimestamp) OR\n" +
+            "    (start <= :startTimestamp AND stop >= :stopTimestamp);\n")
+    fun getTapsInTimeWindow(startTimestamp: Long, stopTimestamp: Long): List<TapDataParsed>
+
+    // get app codes precisely
+    @Query("SELECT * FROM code_of_app WHERE id in (:ids)")
+    fun getAppCodesByIds(ids: List<Int>): List<CodeOfApp>
+
 }

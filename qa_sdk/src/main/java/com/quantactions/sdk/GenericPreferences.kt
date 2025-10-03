@@ -39,4 +39,5 @@ interface GenericPreferences {
 
     fun getHealthyRanges(code: String): PopulationRange
 
+    var capabilitiesToken: String?
 }

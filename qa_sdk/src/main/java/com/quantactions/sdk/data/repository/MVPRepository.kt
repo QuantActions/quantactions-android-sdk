@@ -26,6 +26,7 @@ import com.hadiyarajesh.flower_core.dbBoundResource
 import com.hadiyarajesh.flower_core.flow.dbBoundResourceFlow
 import com.quantactions.sdk.BasicInfo
 import com.quantactions.sdk.CanReturnCompiledTimeSeries
+import com.quantactions.sdk.CapabilitiesManager
 import com.quantactions.sdk.GeneratePassword
 import com.quantactions.sdk.ManagePref2
 import com.quantactions.sdk.Metric
@@ -105,6 +106,7 @@ import kotlin.math.roundToInt
 class MVPRepository @Inject constructor(
     context: Context,
     private val preferences: ManagePref2,
+    private val capabilitiesManager: CapabilitiesManager,
     apiKey: String? = null
 ) {
 
@@ -116,12 +118,14 @@ class MVPRepository @Inject constructor(
 
         fun getInstance(context: Context, apiKey: String? = null): MVPRepository {
             val preferences = ManagePref2.getInstance(context)
+            val capabilitiesManager = CapabilitiesManager(context, preferences)
             synchronized(this) {
                 var instance = INSTANCE
                 if (instance == null) {
                     instance = MVPRepository(
                         context,
                         preferences,
+                        capabilitiesManager,
                         apiKey ?: preferences.apiKey
                     )
                     INSTANCE = instance
@@ -184,7 +188,7 @@ class MVPRepository @Inject constructor(
     suspend fun checkRegisteredStatus(): Boolean {
 
         if (preferences.areCredentialsRegistered && preferences.isOauthActivated) {
-            Timber.i("Identity is registered -> I continue")
+            Timber.d("Identity is registered -> I continue")
             return true
         }
 
@@ -260,12 +264,14 @@ class MVPRepository @Inject constructor(
         cachedApiKey = apiKey
         val cookieJar = ApiService.UvCookieJar(preferences, "TokenApi")
         tokenApi = TokenApi.buildTokenApi(apiKey, cookieJar)
-        val tokenAuthenticator = TokenAuthenticator(tokenApi, preferences)
+        val tokenAuthenticator = TokenAuthenticator(tokenApi, preferences, capabilitiesManager)
         apiService = ApiService.create(
             apiKey,
             tokenAuthenticator,
             cookieJar
         )
+
+        loadAndFetchCapabilities()
 
         if (preferences.isOauthActivated) {
             if (iamParticipationId == "" && !wasPartIdRequested) {
@@ -1229,8 +1235,8 @@ class MVPRepository @Inject constructor(
                         getQuestionnaires(participation.studyId!!)
                     }
 
-                    Timber.i("ParticipationIds: ${studyRegistrationResponse.map { it.id }}")
-                    Timber.i("Tokens: ${studyRegistrationResponse.map { it.token }}")
+                    Timber.d("ParticipationIds: ${studyRegistrationResponse.map { it.id }}")
+                    Timber.d("Tokens: ${studyRegistrationResponse.map { it.token }}")
                     iamParticipationId = studyRegistrationResponse[0].id
                     latch.countDown()
 
@@ -1298,7 +1304,7 @@ class MVPRepository @Inject constructor(
 
         when (apiResponse) {
             is ApiSuccessResponse, is ApiEmptyResponse -> {
-                Timber.i("ReSub success")
+                Timber.d("ReSub success")
             }
 
             is ApiErrorResponse -> {
@@ -1624,6 +1630,14 @@ class MVPRepository @Inject constructor(
         return mvpDao.getLatestTaps(rollBackDate)
     }
 
+    fun getTapsInTimeWindow(startTimestamp: Long, stopTimestamp: Long): List<TapDataParsed> {
+        return mvpDao.getTapsInTimeWindow(startTimestamp, stopTimestamp)
+    }
+
+    fun getAppCodesByIds(ids: List<Int>): List<CodeOfApp> {
+        return mvpDao.getAppCodesByIds(ids)
+    }
+
     suspend fun submitQuestionnaireAnswer(
         studyId: String,
         questionnaireId: String,
@@ -1781,6 +1795,20 @@ class MVPRepository @Inject constructor(
 
     fun deleteLocalStudies() {
         mvpDao.deleteStudies()
+    }
+
+    fun loadAndFetchCapabilities() {
+        CoroutineScope(Dispatchers.IO).launch {
+            capabilitiesManager.fetchAndStoreCapabilities(tokenApi)
+        }
+
+        capabilitiesManager.getCapabilities()?.let{
+            Timber.d("Capabilities loaded: $it")
+        }
+    }
+
+    fun hasFeature(feature: String): Boolean {
+        return capabilitiesManager.hasFeature(feature)
     }
 
     private val bearer

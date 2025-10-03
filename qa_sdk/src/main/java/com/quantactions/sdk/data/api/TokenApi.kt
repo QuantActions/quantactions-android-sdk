@@ -12,6 +12,7 @@ package com.quantactions.sdk.data.api
 import com.hadiyarajesh.flower_core.ApiResponse
 import com.hadiyarajesh.flower_retrofit.FlowerCallAdapterFactory
 import com.quantactions.sdk.BuildConfig
+import com.quantactions.sdk.data.api.ApiService.CapabilitiesResponse
 import com.squareup.moshi.JsonClass
 import kotlinx.serialization.Serializable
 import okhttp3.CookieJar
@@ -50,6 +51,9 @@ interface TokenApi {
     suspend fun enableOauth(
         @HeaderMap headers: Map<String, String>,
     ): ApiResponse<Void>
+
+    @GET("flows/capabilities")
+    suspend fun getCapabilities(): ApiResponse<CapabilitiesResponse>
 
     @JsonClass(generateAdapter = true)
     @Serializable

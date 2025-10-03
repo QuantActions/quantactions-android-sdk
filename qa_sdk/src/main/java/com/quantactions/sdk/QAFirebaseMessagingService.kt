@@ -56,7 +56,7 @@ open class QAFirebaseMessagingService : FirebaseMessagingService() {
         val ioScope = CoroutineScope(Dispatchers.IO + Job())
         val qa = QAPrivate.getInstance(applicationContext)
         if (remoteMessage.data.isNotEmpty()) {
-            Timber.i(getString(R.string.TAG), "Message data payload: " + remoteMessage.data)
+            Timber.d("Message data payload: " + remoteMessage.data)
             val data: Map<*, *> = remoteMessage.data
             val handler = Handler(Looper.getMainLooper())
             try {
@@ -108,19 +108,19 @@ open class QAFirebaseMessagingService : FirebaseMessagingService() {
                                 "TapCounter has a newer version! Please update the App in the PlayStore in order to have all the latest features!",
                                 QAStrings.NOTIFY_UPDATE
                             )
-                            Timber.i(getString(R.string.TAG), "Ask for update: SUCCESS!")
+                            Timber.d("Ask for update: SUCCESS!")
                         }
                         "fillQuest" -> sendNotification(
                             j.getString("message"),
                             QAStrings.NOTIFY_QUESTIONNAIRE
                         )
                         "verbose-on" -> {
-                            Timber.d("REMOTE OPTS", "VERBOSE 1000")
+                            Timber.d("REMOTE OPTS VERBOSE 1000")
 //                            qa.setVerboseLevel(applicationContext, QAStrings.VERBOSE_HIGH)
 //                            qa.log(applicationContext, "Turning on HIGH verbose")
                         }
                         "verbose-off" -> {
-                            Timber.d("REMOTE OPTS", "VERBOSE 1")
+                            Timber.d("REMOTE OPTS VERBOSE 1")
 //                            qa.setVerboseLevel(applicationContext, QAStrings.VERBOSE_LOW)
 //                            qa.log(applicationContext, "Turning off HIGH verbose")
                         }
@@ -148,7 +148,7 @@ open class QAFirebaseMessagingService : FirebaseMessagingService() {
     open fun sendNotification(messageBody: String, code: Int) {
         if (ManagePref2.getInstance(applicationContext)
                 .getVerbose() > 0
-        ) Timber.i(getString(R.string.TAG), "Received: $messageBody")
+        ) Timber.d(getString(R.string.TAG), "Received: $messageBody")
     }
 
     companion object {
