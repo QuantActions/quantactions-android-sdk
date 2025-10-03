@@ -52,8 +52,8 @@ interface TokenApi {
         @HeaderMap headers: Map<String, String>,
     ): ApiResponse<Void>
 
-    @POST("flows/capabilities")
-    suspend fun getCapabilities(): CapabilitiesResponse
+    @GET("flows/capabilities")
+    suspend fun getCapabilities(): ApiResponse<CapabilitiesResponse>
 
     @JsonClass(generateAdapter = true)
     @Serializable

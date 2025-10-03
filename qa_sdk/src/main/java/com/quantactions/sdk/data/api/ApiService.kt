@@ -609,7 +609,7 @@ class TokenAuthenticator @Inject constructor(
     private val capabilitiesManager: CapabilitiesManager
 ) : Authenticator {
 
-    override fun authenticate(route: Route?, response: okhttp3.Response): Request {
+    override fun authenticate(route: Route?, response: Response): Request {
 
         Timber.e("Got a 401 [${route}] : $response")
 

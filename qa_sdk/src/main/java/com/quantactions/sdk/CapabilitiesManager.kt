@@ -5,6 +5,9 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
+import com.hadiyarajesh.flower_core.ApiEmptyResponse
+import com.hadiyarajesh.flower_core.ApiErrorResponse
+import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.quantactions.sdk.data.api.TokenApi
 import timber.log.Timber
 import java.io.InputStreamReader
@@ -43,6 +46,12 @@ class CapabilitiesManager(
         return currentDecodedJWT?.getClaim("features")?.asList(String::class.java)
     }
 
+    private fun clearCapabilities() {
+        preferences.capabilitiesToken = null
+        currentDecodedJWT = null
+        Timber.d("Cleared stored capabilities token and in-memory data.")
+    }
+
     private fun loadCapabilitiesFromStorage() {
         val tokenString = preferences.capabilitiesToken
         if (tokenString != null) {
@@ -51,14 +60,14 @@ class CapabilitiesManager(
 
                 if (decodedToken.expiresAt == null || decodedToken.expiresAt.time < System.currentTimeMillis() - (6 * 60 * 60 * 1000)) {
                     Timber.w("Capabilities token has expired or is about to expire (within 6 hours).")
-//                    clearCapabilities()
+                    clearCapabilities()
                 } else {
                     currentDecodedJWT = decodedToken
                     Timber.d("Capabilities loaded successfully. Features: ${getCapabilities()}")
                 }
             } catch (e: SecurityException) {
                 Timber.e(e, "Stored capabilities token is invalid.")
-//                clearCapabilities()
+                clearCapabilities()
             }
         } else {
             Timber.d("No capabilities token found in preferences.")
@@ -67,25 +76,29 @@ class CapabilitiesManager(
     }
 
     suspend fun fetchAndStoreCapabilities(tokenApi: TokenApi) {
-        try {
             Timber.d("Fetching new capabilities token...")
-            val response = tokenApi.getCapabilities()
-            val tokenString = response.token
+            when(val response = tokenApi.getCapabilities()) {
+                is ApiSuccessResponse  -> {
+                    val tokenString = response.body!!.token
 
-            val decodedToken = verifyAndDecodeToken(tokenString)
+                    val decodedToken = verifyAndDecodeToken(tokenString)
 
-            preferences.capabilitiesToken = tokenString
-            currentDecodedJWT = decodedToken
-            Timber.d("New capabilities token fetched, verified, and stored. Features: ${getCapabilities()}")
-
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to fetch or verify new capabilities token: ${e.message}")
-        }
+                    preferences.capabilitiesToken = tokenString
+                    currentDecodedJWT = decodedToken
+                    Timber.d("New capabilities token fetched, verified, and stored. Features: ${getCapabilities()}")
+                }
+                is ApiErrorResponse -> {
+                    Timber.e("Failed to fetch capabilities token: ${response.errorMessage}")
+                }
+                is ApiEmptyResponse -> {
+                    Timber.e("Failed to fetch capabilities token: Empty response")
+                }
+            }
     }
 
     suspend fun refreshCapabilities(tokenApi: TokenApi) {
         Timber.d("Refreshing capabilities...")
-//        clearCapabilities()
+        clearCapabilities()
         fetchAndStoreCapabilities(tokenApi)
     }
 
