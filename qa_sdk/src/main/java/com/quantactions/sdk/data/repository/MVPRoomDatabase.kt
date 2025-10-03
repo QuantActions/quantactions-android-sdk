@@ -33,6 +33,7 @@ import com.quantactions.sdk.data.entity.SleepSummaryEntity
 import com.quantactions.sdk.data.entity.StatisticEntity
 import com.quantactions.sdk.data.entity.StatisticStringEntity
 import com.quantactions.sdk.data.entity.TrendEntity
+import com.quantactions.sdk.data.model.TapDataParsed
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 
 

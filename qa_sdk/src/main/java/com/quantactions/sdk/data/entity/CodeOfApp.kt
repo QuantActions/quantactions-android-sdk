@@ -21,7 +21,6 @@ import com.squareup.moshi.JsonClass
  * When subscribing to a study with a participation ID or a study ID, the call will return an
  * object of this class which contains all information related to the study including necessary
  * permissions and privacy policy.
- * @suppress
  */
 @Entity(tableName = "code_of_app")
 @JsonClass(generateAdapter = true)

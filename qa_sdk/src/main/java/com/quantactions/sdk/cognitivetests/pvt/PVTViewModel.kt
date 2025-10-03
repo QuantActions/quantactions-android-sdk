@@ -27,7 +27,7 @@ import java.time.Instant
 /**
  * This is the view model for the PVT test.
  * @param application Android application
- * @hide
+ * @Suppress("Dokka")
  * */
 open class PVTViewModel @Inject constructor(
     application: Application,

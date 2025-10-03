@@ -31,7 +31,7 @@ import com.quantactions.sdk.data.entity.CodeOfApp
 import com.quantactions.sdk.data.entity.HourlyTapsEntity
 import com.quantactions.sdk.data.repository.MVPDao
 import com.quantactions.sdk.data.repository.MVPRoomDatabase.Companion.getDatabase
-import com.quantactions.sdk.data.repository.TapDataParsed
+import com.quantactions.sdk.data.model.TapDataParsed
 import kotlinx.coroutines.DelicateCoroutinesApi
 import timber.log.Timber
 import java.text.SimpleDateFormat

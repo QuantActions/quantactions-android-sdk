@@ -73,57 +73,57 @@ dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
     implementation 'androidx.core:core-ktx:1.17.0'
     implementation 'androidx.appcompat:appcompat:1.7.1'
-    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'com.google.android.material:material:1.13.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
     androidTestImplementation 'androidx.test.ext:junit:1.3.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
     implementation 'androidx.core:core-ktx:1.17.0'
     implementation 'androidx.appcompat:appcompat:1.7.1'
-    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'com.google.android.material:material:1.13.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
     androidTestImplementation 'androidx.test.ext:junit:1.3.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.9.2'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.9.4'
     implementation 'com.jakewharton.timber:timber:5.0.1'
     implementation 'io.github.hadiyarajesh.flower-retrofit:flower-retrofit:3.1.0'
     implementation 'com.google.accompanist:accompanist-flowlayout:0.36.0'
-    implementation 'androidx.compose.ui:ui-tooling-preview:1.9.0'
-    implementation "androidx.compose.ui:ui-tooling:1.9.0"
-    implementation "androidx.compose.ui:ui-viewbinding:1.9.0"
-    implementation 'androidx.compose.ui:ui:1.9.0'
+    implementation 'androidx.compose.ui:ui-tooling-preview:1.9.2'
+    implementation "androidx.compose.ui:ui-tooling:1.9.2"
+    implementation "androidx.compose.ui:ui-viewbinding:1.9.2"
+    implementation 'androidx.compose.ui:ui:1.9.2'
     implementation 'com.google.accompanist:accompanist-navigation-animation:0.36.0'
-    implementation "androidx.navigation:navigation-compose:2.9.3"
+    implementation "androidx.navigation:navigation-compose:2.9.5"
     implementation 'com.google.accompanist:accompanist-swiperefresh:0.36.0'
     implementation 'com.google.accompanist:accompanist-pager-indicators:0.36.0'
     implementation 'com.google.accompanist:accompanist-pager:0.36.0'
     implementation 'com.google.accompanist:accompanist-systemuicontroller:0.36.0'
-    implementation 'androidx.activity:activity-compose:1.10.1'
-    implementation 'androidx.compose.material3:material3:1.3.2'
+    implementation 'androidx.activity:activity-compose:1.11.0'
+    implementation 'androidx.compose.material3:material3:1.4.0'
     implementation 'androidx.core:core-ktx:1.17.0'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.9.2'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.9.4'
     implementation 'androidx.preference:preference-ktx:1.2.1'
     implementation 'com.google.accompanist:accompanist-permissions:0.37.3'
     implementation 'com.jakewharton.timber:timber:5.0.1'
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.9.0'
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.9.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
     androidTestImplementation 'androidx.test.ext:junit:1.3.0'
-    debugImplementation 'androidx.compose.ui:ui-test-manifest:1.9.0'
-    debugImplementation 'androidx.compose.ui:ui-tooling:1.9.0'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest:1.9.2'
+    debugImplementation 'androidx.compose.ui:ui-tooling:1.9.2'
     implementation "androidx.compose.material:material-icons-extended:1.7.8"
     implementation "io.github.hadiyarajesh.flower-retrofit:flower-retrofit:3.1.0"
 
     // DI
-    implementation 'com.google.dagger:hilt-android:2.57'
-    kapt 'com.google.dagger:hilt-compiler:2.57'
+    implementation 'com.google.dagger:hilt-android:2.57.2'
+    kapt 'com.google.dagger:hilt-compiler:2.57.2'
 
     // numpy
     implementation "org.nield:kotlin-statistics:1.2.1"
 
     implementation project(path: ':qa_sdk')
 
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.9.2'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.2'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.9.4'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4'
 
     dokkaHtmlPlugin('org.jetbrains.dokka:android-documentation-plugin:2.0.0')
 
@@ -131,15 +131,10 @@ dependencies {
     implementation 'com.jakewharton.timber:timber:5.0.1'
 }
 
-
-dokkaHtmlPartial.configure {
-    dokkaSourceSets {
-        named("main") {
-            noAndroidSdkLink.set(false)
-        }
-        configureEach {
-            moduleName.set("Example App")
-            includes.from("module.md")
-        }
+dokka {
+    moduleName.set("Example App")
+    dokkaSourceSets.named("main") {
+        includes.from("module.md")
+        enableAndroidDocumentationLink.set(false)
     }
 }

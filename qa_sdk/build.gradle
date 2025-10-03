@@ -174,88 +174,74 @@ dependencies {
 }
 
 
-dokkaHtmlPartial.configure {
-    dokkaSourceSets {
-        configureEach {
-            moduleName.set("SDK")
-            includes.from("module.md")
-            noAndroidSdkLink.set(false)
-            includeNonPublic.set(false)
-            skipEmptyPackages.set(true)
-            reportUndocumented.set(false)
-            skipDeprecated.set(true)
-            suppressInheritedMembers.set(true)
-            perPackageOption {
-                matchingRegex.set(".*\\.SyncWorker*") // will match all .internal packages and sub-packages
-                suppress.set(true)
-            }
-            perPackageOption {
-                matchingRegex.set(""".*adapters*""") // will match all .internal packages and sub-packages
-                suppress.set(true)
-            }
-            perPackageOption {
-                matchingRegex.set(""".*workers*""") // will match all .internal packages and sub-packages
-                suppress.set(true)
-            }
-            perPackageOption {
-                matchingRegex.set(""".*model*""") // will match all .internal packages and sub-packages
-                suppress.set(true)
-            }
-            perPackageOption {
-                matchingRegex.set(""".*repository*""") // will match all .internal packages and sub-packages
-                suppress.set(true)
-            }
-            perPackageOption {
-                matchingRegex.set(""".*api*""") // will match all .internal packages and sub-packages
-                suppress.set(true)
-            }
-            perPackageOption {
-                matchingRegex.set(""".RelaunchWorker""") // will match all .internal packages and sub-packages
-                suppress.set(true)
+dokka {
+    moduleName.set("SDK")
+    // Suppressing everything, then selectively enable just one source set
+    dokkaSourceSets.configureEach {
+        suppress.set(true)
+    }
+    dokkaSourceSets.named("main") {
+        suppress.set(false)
+
+        // prevent autowiring of generated trees
+        sourceRoots.setFrom(
+                file("src/main/kotlin"),
+                file("src/main/java")
+        )
+
+        suppressGeneratedFiles.set(true)
+
+        includes.from("module.md")
+
+        enableAndroidDocumentationLink.set(false)
+        skipEmptyPackages.set(true)
+        reportUndocumented.set(false)
+        skipDeprecated.set(true)
+
+        // includeNonPublic.set(false)
+
+        // Package-level suppression:
+        perPackageOption {
+            matchingRegex.set(""".*\\.adapters(\\..*)?\$""")
+            suppress.set(true)
+        }
+        perPackageOption {
+            matchingRegex.set(""".*\\.workers(\\..*)?\$""")
+            suppress.set(true)
+        }
+        perPackageOption {
+            matchingRegex.set(""".*\\.repository(\\..*)?\$""")
+            suppress.set(true)
+        }
+        perPackageOption {
+            matchingRegex.set(""".*\\.api(\\..*)?\$""")
+            suppress.set(true)
+        }
+
+        // If SyncWorker, PVT, RelaunchWorker are CLASSES (not packages), package filters won’t catch them.
+        // Either move them under a dedicated package you suppress, or mark them @Suppress("Dokka") in code,
+        // or use visibility/annotations to exclude them.
+    }
+
+    // 3) Publication config (HTML). Keep publication-only knobs here.
+    dokkaPublications.html {
+        suppressInheritedMembers.set(true)
+        failOnWarning.set(false)
+        outputDirectory.set(layout.projectDirectory.dir("../docs"))
+
+        // v2-style plugin config nesting
+        pluginsConfiguration {
+            html {
+                customAssets.from(
+                        layout.projectDirectory.dir("../docs-assets").file("logo-icon.svg")
+                )
+                customStyleSheets.from(layout.projectDirectory.dir("../docs-assets").file("logo-style.css"))
+                footerMessage.set("Made with ❤️ at QuantActions")
             }
         }
     }
 }
 
-dokkaHtml.configure {
-    outputDirectory.set(file("../docs"))
-    dokkaSourceSets {
-        configureEach {
-            moduleName.set("SDK")
-            includes.from("module.md")
-            noAndroidSdkLink.set(false)
-            includeNonPublic.set(false)
-            skipEmptyPackages.set(true)
-            reportUndocumented.set(false)
-            skipDeprecated.set(true)
-            suppressInheritedMembers.set(true)
-            perPackageOption {
-                matchingRegex.set(".*\\.SyncWorker*") // will match all .internal packages and sub-packages
-                suppress.set(true)
-            }
-            perPackageOption {
-                matchingRegex.set(""".*adapters*""") // will match all .internal packages and sub-packages
-                suppress.set(true)
-            }
-            perPackageOption {
-                matchingRegex.set(""".*workers*""") // will match all .internal packages and sub-packages
-                suppress.set(true)
-            }
-            perPackageOption {
-                matchingRegex.set(""".*repository*""") // will match all .internal packages and sub-packages
-                suppress.set(true)
-            }
-            perPackageOption {
-                matchingRegex.set(""".*api*""") // will match all .internal packages and sub-packages
-                suppress.set(true)
-            }
-            perPackageOption {
-                matchingRegex.set(""".RelaunchWorker""") // will match all .internal packages and sub-packages
-                suppress.set(true)
-            }
-        }
-    }
-}
 
 tasks.register('javadoc', Javadoc) {
     excludes = ['**/*.kt'] // < ---- Exclude all kotlin files from javadoc file.

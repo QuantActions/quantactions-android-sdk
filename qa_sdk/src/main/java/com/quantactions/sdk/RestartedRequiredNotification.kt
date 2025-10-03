@@ -18,14 +18,28 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import timber.log.Timber
 
+/**
+ * Interface for creating notifications to inform the user that a restart is required.
+ * Implement this interface to customize the notification that will be shown to the user
+ * when a restart is needed.
+ * @see RestartedRequiredNotificationImpl
+ */
 interface RestartedRequiredNotification {
 
     fun createNotification(context: Context, channelID: String): Notification
 }
 
+/**
+ * Default implementation of RestartedRequiredNotification.
+ */
 open class RestartedRequiredNotificationImpl : RestartedRequiredNotification {
 
-
+    /**
+     *  It creates a notification that opens the main activity of the app when tapped.
+     *  @param context Android context
+     *  @param channelID Notification channel ID
+     *  @return Notification
+     */
     override fun createNotification(
         context: Context,
         channelID: String,
@@ -41,10 +55,9 @@ open class RestartedRequiredNotificationImpl : RestartedRequiredNotification {
                 Timber.tag("CREATE NOT").e("Main activity is null")
             } else {
                 Timber.tag("CREATE NOT")
-                    .d("Open activity with package name " + context.packageName + " / class name " + mainActivity)
+                    .d("Open activity with package name ${context.packageName} / class name $mainActivity")
                 intent.addCategory(Intent.CATEGORY_LAUNCHER)
-                intent.setComponent(ComponentName(context.packageName, mainActivity))
-                // optional: intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.component = ComponentName(context.packageName, mainActivity)
             }
         }
 
@@ -52,8 +65,7 @@ open class RestartedRequiredNotificationImpl : RestartedRequiredNotification {
         mBuilder.setStyle(NotificationCompat.DecoratedCustomViewStyle())
         mBuilder.setSmallIcon(R.drawable.ic_equalizer_black_24dp)
         mBuilder.color = ContextCompat.getColor(
-            context,
-            R.color.brand_background_icon_color
+            context, R.color.brand_background_icon_color
         )
         mBuilder.setWhen(0)
         mBuilder.setContentTitle(context.getString(R.string.qa_sdk_notification_title_action_required_restart_needed))

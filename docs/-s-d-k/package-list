@@ -1,6 +1,12 @@
 $dokka.format:html-v1
 $dokka.linkExtension:html
 $dokka.location:com.quantactions.sdk.data.entity////PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.entity/index.html
+$dokka.location:com.quantactions.sdk.data.entity/CodeOfApp///PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.entity/-code-of-app/index.html
+$dokka.location:com.quantactions.sdk.data.entity/CodeOfApp/CodeOfApp/#kotlin.Int#kotlin.String#kotlin.Int#kotlin.String?/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.entity/-code-of-app/-code-of-app.html
+$dokka.location:com.quantactions.sdk.data.entity/CodeOfApp/appName/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.entity/-code-of-app/app-name.html
+$dokka.location:com.quantactions.sdk.data.entity/CodeOfApp/category/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.entity/-code-of-app/category.html
+$dokka.location:com.quantactions.sdk.data.entity/CodeOfApp/id/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.entity/-code-of-app/id.html
+$dokka.location:com.quantactions.sdk.data.entity/CodeOfApp/sync/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.entity/-code-of-app/sync.html
 $dokka.location:com.quantactions.sdk.data.entity/CognitiveTestEntity.Companion///PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.entity/-cognitive-test-entity/-companion/index.html
 $dokka.location:com.quantactions.sdk.data.entity/CognitiveTestEntity.Companion/toBody/#com.quantactions.sdk.data.entity.CognitiveTestEntity#com.quantactions.sdk.cognitivetests.CognitiveTest[TypeParam(bounds=[kotlin.Any?])]/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.entity/-cognitive-test-entity/-companion/to-body.html
 $dokka.location:com.quantactions.sdk.data.entity/CognitiveTestEntity///PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.entity/-cognitive-test-entity/index.html
@@ -73,6 +79,21 @@ $dokka.location:com.quantactions.sdk.data.model/SleepSummary/isEmpty/#/PointingT
 $dokka.location:com.quantactions.sdk.data.model/SleepSummary/serialize/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-sleep-summary/serialize.html
 $dokka.location:com.quantactions.sdk.data.model/SleepSummary/sleepEnd/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-sleep-summary/sleep-end.html
 $dokka.location:com.quantactions.sdk.data.model/SleepSummary/sleepStart/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-sleep-summary/sleep-start.html
+$dokka.location:com.quantactions.sdk.data.model/TapDataParsed///PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-tap-data-parsed/index.html
+$dokka.location:com.quantactions.sdk.data.model/TapDataParsed/TapDataParsed/#kotlin.Int#kotlin.String#kotlin.Long#kotlin.Long#kotlin.String#kotlin.String#kotlin.String#kotlin.String#kotlin.Long#kotlin.Long#kotlin.String#kotlin.String#kotlin.Int/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-tap-data-parsed/-tap-data-parsed.html
+$dokka.location:com.quantactions.sdk.data.model/TapDataParsed/appIds0/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-tap-data-parsed/app-ids0.html
+$dokka.location:com.quantactions.sdk.data.model/TapDataParsed/appIds1/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-tap-data-parsed/app-ids1.html
+$dokka.location:com.quantactions.sdk.data.model/TapDataParsed/appIds2/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-tap-data-parsed/app-ids2.html
+$dokka.location:com.quantactions.sdk.data.model/TapDataParsed/id/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-tap-data-parsed/id.html
+$dokka.location:com.quantactions.sdk.data.model/TapDataParsed/inCharge/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-tap-data-parsed/in-charge.html
+$dokka.location:com.quantactions.sdk.data.model/TapDataParsed/lengthSession/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-tap-data-parsed/length-session.html
+$dokka.location:com.quantactions.sdk.data.model/TapDataParsed/orientations/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-tap-data-parsed/orientations.html
+$dokka.location:com.quantactions.sdk.data.model/TapDataParsed/start/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-tap-data-parsed/start.html
+$dokka.location:com.quantactions.sdk.data.model/TapDataParsed/stop/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-tap-data-parsed/stop.html
+$dokka.location:com.quantactions.sdk.data.model/TapDataParsed/sync/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-tap-data-parsed/sync.html
+$dokka.location:com.quantactions.sdk.data.model/TapDataParsed/taps/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-tap-data-parsed/taps.html
+$dokka.location:com.quantactions.sdk.data.model/TapDataParsed/tapsSession/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-tap-data-parsed/taps-session.html
+$dokka.location:com.quantactions.sdk.data.model/TapDataParsed/timeZone/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-tap-data-parsed/time-zone.html
 $dokka.location:com.quantactions.sdk.data.model/TrendHolder///PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-trend-holder/index.html
 $dokka.location:com.quantactions.sdk.data.model/TrendHolder/TrendHolder/#kotlin.Double#kotlin.Double#kotlin.Double#kotlin.Double#kotlin.Double#kotlin.Double#kotlin.Double#kotlin.Double#kotlin.Double/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-trend-holder/-trend-holder.html
 $dokka.location:com.quantactions.sdk.data.model/TrendHolder/difference1Year/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk.data.model/-trend-holder/difference1-year.html
@@ -107,12 +128,6 @@ $dokka.location:com.quantactions.sdk/DataCollectionNotification///PointingToDecl
 $dokka.location:com.quantactions.sdk/DataCollectionNotification/createNotification/#android.content.Context#kotlin.String/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-data-collection-notification/create-notification.html
 $dokka.location:com.quantactions.sdk/DataCollectionNotification/qa/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-data-collection-notification/qa.html
 $dokka.location:com.quantactions.sdk/DataCollectionNotification/updateNotification/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-data-collection-notification/update-notification.html
-$dokka.location:com.quantactions.sdk/DetectedActivityReceiver.Companion///PointingToDeclaration/-s-d-k/com.quantactions.sdk/-detected-activity-receiver/-companion/index.html
-$dokka.location:com.quantactions.sdk/DetectedActivityReceiver.Companion/INTENT_ACTION/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-detected-activity-receiver/-companion/-i-n-t-e-n-t_-a-c-t-i-o-n.html
-$dokka.location:com.quantactions.sdk/DetectedActivityReceiver///PointingToDeclaration/-s-d-k/com.quantactions.sdk/-detected-activity-receiver/index.html
-$dokka.location:com.quantactions.sdk/DetectedActivityReceiver/DetectedActivityReceiver/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-detected-activity-receiver/-detected-activity-receiver.html
-$dokka.location:com.quantactions.sdk/DetectedActivityReceiver/coroutineContext/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-detected-activity-receiver/coroutine-context.html
-$dokka.location:com.quantactions.sdk/DetectedActivityReceiver/onReceive/#android.content.Context?#android.content.Intent/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-detected-activity-receiver/on-receive.html
 $dokka.location:com.quantactions.sdk/Metric.ACTION_SPEED///PointingToDeclaration/-s-d-k/com.quantactions.sdk/-metric/-a-c-t-i-o-n_-s-p-e-e-d/index.html
 $dokka.location:com.quantactions.sdk/Metric.BEHAVIOURAL_AGE///PointingToDeclaration/-s-d-k/com.quantactions.sdk/-metric/-b-e-h-a-v-i-o-u-r-a-l_-a-g-e/index.html
 $dokka.location:com.quantactions.sdk/Metric.COGNITIVE_FITNESS///PointingToDeclaration/-s-d-k/com.quantactions.sdk/-metric/-c-o-g-n-i-t-i-v-e_-f-i-t-n-e-s-s/index.html
@@ -182,6 +197,10 @@ $dokka.location:com.quantactions.sdk/QA.Gender/entries/#/PointingToDeclaration/
 $dokka.location:com.quantactions.sdk/QA.Gender/id/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-q-a/-gender/id.html
 $dokka.location:com.quantactions.sdk/QA.Gender/valueOf/#kotlin.String/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-q-a/-gender/value-of.html
 $dokka.location:com.quantactions.sdk/QA.Gender/values/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-q-a/-gender/values.html
+$dokka.location:com.quantactions.sdk/QA.TapsAndApps///PointingToDeclaration/-s-d-k/com.quantactions.sdk/-q-a/-taps-and-apps/index.html
+$dokka.location:com.quantactions.sdk/QA.TapsAndApps/TapsAndApps/#kotlin.collections.List[com.quantactions.sdk.data.model.TapDataParsed]#kotlin.collections.List[com.quantactions.sdk.data.entity.CodeOfApp]/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-q-a/-taps-and-apps/-taps-and-apps.html
+$dokka.location:com.quantactions.sdk/QA.TapsAndApps/apps/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-q-a/-taps-and-apps/apps.html
+$dokka.location:com.quantactions.sdk/QA.TapsAndApps/taps/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-q-a/-taps-and-apps/taps.html
 $dokka.location:com.quantactions.sdk/QA///PointingToDeclaration/-s-d-k/com.quantactions.sdk/-q-a/index.html
 $dokka.location:com.quantactions.sdk/QA/basicInfo/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-q-a/basic-info.html
 $dokka.location:com.quantactions.sdk/QA/canActivity/#android.content.Context/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-q-a/can-activity.html
@@ -199,6 +218,8 @@ $dokka.location:com.quantactions.sdk/QA/getLastTaps/#com.quantactions.sdk.QA.Fla
 $dokka.location:com.quantactions.sdk/QA/getMetric/#com.quantactions.sdk.Metric[TypeParam(bounds=[com.quantactions.sdk.data.entity.TimestampedEntity]),TypeParam(bounds=[kotlin.Any?])]#kotlin.Long#kotlin.Long#kotlin.Boolean/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-q-a/get-metric.html
 $dokka.location:com.quantactions.sdk/QA/getMetricSample/#android.content.Context#kotlin.String#com.quantactions.sdk.Metric[TypeParam(bounds=[com.quantactions.sdk.data.entity.TimestampedEntity]),TypeParam(bounds=[kotlin.Any?])]#kotlin.Long#kotlin.Long/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-q-a/get-metric-sample.html
 $dokka.location:com.quantactions.sdk/QA/getQuestionnairesList/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-q-a/get-questionnaires-list.html
+$dokka.location:com.quantactions.sdk/QA/getTapsAndAppsInTimeWindow/#kotlin.Long#kotlin.Long/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-q-a/get-taps-and-apps-in-time-window.html
+$dokka.location:com.quantactions.sdk/QA/hasFeature/#kotlin.String/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-q-a/has-feature.html
 $dokka.location:com.quantactions.sdk/QA/identityId/#/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-q-a/identity-id.html
 $dokka.location:com.quantactions.sdk/QA/init/#android.content.Context#kotlin.String#com.quantactions.sdk.BasicInfo#kotlin.String?#kotlin.String?/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-q-a/init.html
 $dokka.location:com.quantactions.sdk/QA/isDataCollectionRunning/#android.content.Context/PointingToDeclaration/-s-d-k/com.quantactions.sdk/-q-a/is-data-collection-running.html

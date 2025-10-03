@@ -98,7 +98,7 @@ class ReadingsService : Service() {
             // off the battery optimization, or send a notification to reopen the app so that the
             // foreground can start again. The only problem is that this is via the SDK and not via
             // the app so it is problematic for customization.
-            Log.e("QAReadingService", e.localizedMessage)
+            Log.d("QAReadingService", "${e.localizedMessage}")
             val notification = restartedRequiredNotification.createNotification(
                 this@ReadingsService,
                 this@ReadingsService.getString(R.string.notification_channel_id_qa)

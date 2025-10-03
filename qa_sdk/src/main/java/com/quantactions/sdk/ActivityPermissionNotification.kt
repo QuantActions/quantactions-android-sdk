@@ -18,14 +18,28 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import timber.log.Timber
 
+/**
+ * Interface for creating notifications to request activity permissions.
+ * Implement this interface to customize the notification that will be shown to the user
+ * when the app needs an activity permission.
+ * @see ActivityPermissionNotificationImpl
+ */
 interface ActivityPermissionNotification {
 
     fun createNotification(context: Context, channelID: String): Notification
 }
 
+/**
+ * Default implementation of ActivityPermissionNotification.
+ */
 open class ActivityPermissionNotificationImpl : ActivityPermissionNotification {
 
-
+    /**
+     *  It creates a notification that opens the main activity of the app when tapped.
+     *  @param context Android context
+     *  @param channelID Notification channel ID
+     *  @return Notification
+     */
     override fun createNotification(
         context: Context,
         channelID: String,
@@ -41,10 +55,9 @@ open class ActivityPermissionNotificationImpl : ActivityPermissionNotification {
                 Timber.tag("CREATE NOT").e("Main activity is null")
             } else {
                 Timber.tag("CREATE NOT")
-                    .d("Open activity with package name " + context.packageName + " / class name " + mainActivity)
+                    .d("Open activity with package name ${context.packageName} / class name $mainActivity")
                 intent.addCategory(Intent.CATEGORY_LAUNCHER)
-                intent.setComponent(ComponentName(context.packageName, mainActivity))
-                // optional: intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.component = ComponentName(context.packageName, mainActivity)
             }
         }
 

@@ -72,6 +72,7 @@ import com.quantactions.sdk.data.model.JournalEventBody
 import com.quantactions.sdk.data.model.JournalEventEnterResponse
 import com.quantactions.sdk.data.model.Note
 import com.quantactions.sdk.data.model.QuestionnaireResponse
+import com.quantactions.sdk.data.model.TapDataParsed
 import com.quantactions.sdk.data.repository.MVPRoomDatabase.Companion.getDatabase
 import com.quantactions.sdk.data.stringify
 import com.quantactions.sdk.exceptions.QASDKException

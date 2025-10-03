@@ -30,6 +30,7 @@ import com.quantactions.sdk.data.entity.StatisticEntity
 import com.quantactions.sdk.data.entity.StatisticStringEntity
 import com.quantactions.sdk.data.entity.TrendEntity
 import com.quantactions.sdk.data.model.ResolvedJournalEntries
+import com.quantactions.sdk.data.model.TapDataParsed
 import kotlinx.coroutines.flow.Flow
 
 
