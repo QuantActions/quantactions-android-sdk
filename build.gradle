@@ -37,10 +37,7 @@ plugins {
     id 'com.google.dagger.hilt.android' version '2.57.2' apply false
 }
 
-apply plugin: "org.jetbrains.dokka"
-
 allprojects {
-
     repositories {
         mavenCentral()
         google()
