@@ -17,8 +17,8 @@ apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'dagger.hilt.android.plugin'
 
-def versionName = '1.1.4-alpha02'
-def versionCode = '60'
+def versionName = '1.1.4-beta01'
+def versionCode = '61'
 
 android {
     compileSdk = 36
