@@ -40,7 +40,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.util.Arrays
 
 /**
  * Background service (forced to be foreground for SDK >= Android O) that allows QA to function
@@ -123,7 +122,7 @@ class ReadingsService : Service() {
 
         val transitionList = ArrayList<ActivityTransition>()
         val activities: ArrayList<Int> = ArrayList(
-            Arrays.asList(
+            listOf(
                 DetectedActivity.STILL,
                 DetectedActivity.WALKING,
                 DetectedActivity.ON_FOOT,
@@ -224,20 +223,44 @@ class ReadingsService : Service() {
 
         getInstance(this@ReadingsService).updater.updateNotification()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channelId = createNotificationChannel()
-            // This is necessary for handleMessage error on Samsung, does not really happen to other phones
-            startForeground(
-                QAStrings.QA_FOREGROUND_SERVICE_ID, getInstance(this@ReadingsService).updater.createNotification(
-                    applicationContext,
-                    channelId,
-//                    intent?.hasExtra("pauseSignal") ?: false
-                )
-            )
-        }
-
         // Check if is added view
         if (Settings.canDrawOverlays(applicationContext)) addView()
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channelId = createNotificationChannel()
+                // This is necessary for handleMessage error on Samsung, does not really happen to other phones
+                startForeground(
+                    QAStrings.QA_FOREGROUND_SERVICE_ID, getInstance(this@ReadingsService).updater.createNotification(
+                        applicationContext,
+                        channelId,
+    //                    intent?.hasExtra("pauseSignal") ?: false
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            // This means that the foreground service cannot be started from background, either turn
+            // off the battery optimization, or send a notification to reopen the app so that the
+            // foreground can start again. The only problem is that this is via the SDK and not via
+            // the app so it is problematic for customization.
+            Log.d("QAReadingService", "${e.localizedMessage}")
+            val notification = restartedRequiredNotification.createNotification(
+                this@ReadingsService,
+                this@ReadingsService.getString(R.string.notification_channel_id_qa)
+            )
+            val notificationManager =
+                this@ReadingsService.getSystemService(NOTIFICATION_SERVICE) as? NotificationManager
+            notificationManager?.notify(1, notification)
+            Firebase.crashlytics.setUserId(qa.deviceID)
+            Firebase.crashlytics.setCustomKeys {
+                key("location", "ReadingService")
+                key("method", "onStartCommand")
+                key("canDraw", qa.canDraw(this@ReadingsService))
+                key("canUsage", qa.canUsage(this@ReadingsService))
+            }
+            Firebase.crashlytics.recordException(e)
+        }
+
         // This function is launched when an On/Off event is triggered
         if (null != intent) {
             val screenOff: Boolean
@@ -287,7 +310,7 @@ class ReadingsService : Service() {
         if (mReceiver != null) {
             unregisterReceiver(mReceiver)
         }
-        sendBroadcast(Intent("YouWillNeverKillMe"))
+//        sendBroadcast(Intent("YouWillNeverKillMe"))
         super.onDestroy()
     }
 
@@ -295,7 +318,7 @@ class ReadingsService : Service() {
      * This is deprecated from Android O on.
      */
     override fun onTaskRemoved(rootIntent: Intent) {
-        sendBroadcast(Intent("YouWillNeverKillMe"))
+//        sendBroadcast(Intent("YouWillNeverKillMe"))
         super.onTaskRemoved(rootIntent)
     }
 
