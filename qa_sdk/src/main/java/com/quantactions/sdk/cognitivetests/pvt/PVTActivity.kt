@@ -50,7 +50,7 @@ class PVTActivity : AppCompatActivity() {
     private val reactionTimes =
         mutableListOf<Triple<Long, Long, TrialType>>() // Triple of reaction time, waiting time, and trial type
     private var currentWaitingTime: Long = 0
-    private val maxTestDuration: Long = (if (BuildConfig.DEBUG) 1 else 3) * 60 * 1000L // 3 minutes in milliseconds
+    private var maxTestDuration: Long = (if (BuildConfig.DEBUG) 1 else 3) * 60 * 1000L // 3 minutes in milliseconds
     private var noResponseCounter: Int = 0
     private val listOfRandomTimes: MutableList<Long> = mutableListOf()
 
@@ -103,6 +103,30 @@ class PVTActivity : AppCompatActivity() {
     }
 
     private fun showStartTestDialog() {
+//        if (BuildConfig.DEBUG) {
+//            showInstructionsDialog()
+//        } else {
+            val durations = arrayOf("3 minutes", "5 minutes", "10 minutes")
+            val durationsMs = arrayOf(3 * 60 * 1000L, 5 * 60 * 1000L, 10 * 60 * 1000L)
+            var selectedItem = 0
+
+            MaterialAlertDialogBuilder(this)
+                .setTitle("Select Test Duration")
+                .setSingleChoiceItems(durations, selectedItem) { _, which ->
+                    selectedItem = which
+                }
+                .setPositiveButton("Next") { _, _ ->
+                    maxTestDuration = durationsMs[selectedItem]
+                    showInstructionsDialog()
+                }
+                .setNegativeButton("Back") { _, _ ->
+                    finish()
+                }
+                .show()
+//        }
+    }
+
+    private fun showInstructionsDialog() {
         val builder = MaterialAlertDialogBuilder(this)
         builder.setTitle("Ready to Start?")
         builder.setMessage("Please ensure you are sitting comfortably and are free from distractions.")
@@ -114,8 +138,12 @@ class PVTActivity : AppCompatActivity() {
         }
 
         builder.setNegativeButton("Back") { _, _ ->
-            // Close the activity
-            finish()
+//            if (BuildConfig.DEBUG) {
+//                // Close the activity
+//                finish()
+//            } else {
+                showStartTestDialog()
+//            }
         }
 
         val dialog = builder.create()

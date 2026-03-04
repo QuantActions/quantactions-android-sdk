@@ -29,7 +29,9 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 /**
- * Enumeration class that holds all of the info for the metrics
+ * Enumeration class that holds all of the info for the metrics. For complete information about metrics,
+ * how they are calculated and to cite relevant publications in your work. Please refer to our always-up-to-date user manual
+ * [here](https://tapsaidownload.blob.core.windows.net/docs/QuantActions_tapsai_User_Manual.pdf).
  * @property id name of the metric
  * @property code to get it from TIE (e.g. XXX-XXX-XXX-XXX)
  * @property eta number of days before the score is ready
@@ -298,7 +300,6 @@ sealed class Metric<P : TimestampedEntity, T>(
      * - [Age-related behavioral resilience in smartphone touchscreen interaction dynamics](https://www.pnas.org/doi/10.1073/pnas.2311865121)
      * - [A model of healthy aging based on smartphone interactions reveals advanced behavioral age in neurological disease](https://doi.org/10.1016/j.isci.2022.104792)
      * - [Temporal clusters of age-related behavioral alterations captured in smartphone touchscreen interactions](https://doi.org/10.1016/j.isci.2022.104791)
-     *
      */
     @Keep
     object BEHAVIOURAL_AGE : DoubleMetricV2(
