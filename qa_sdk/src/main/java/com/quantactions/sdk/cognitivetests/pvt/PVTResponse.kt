@@ -21,5 +21,6 @@ data class PVTResponse(
     val reactionTimes: List<Long>,
     val waitTimes: List<Long>,
     val falseStartCount: Int,
-    val noResponseCount: Int
+    val noResponseCount: Int,
+    val durationMinutes: Int
 )

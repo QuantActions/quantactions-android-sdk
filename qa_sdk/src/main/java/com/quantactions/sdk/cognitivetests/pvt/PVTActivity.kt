@@ -190,9 +190,9 @@ class PVTActivity : AppCompatActivity() {
         val res = PVTResponse(
             reactionTimes = validTimes,
             waitTimes = listOfRandomTimes,
-
             falseStartCount = falseStarts,
-            noResponseCount = noResponseCounter
+            noResponseCount = noResponseCounter,
+            durationMinutes = (maxTestDuration / 1000 / 60).toInt()
         )
 
         // Here we show a loading dialog while we save the response
