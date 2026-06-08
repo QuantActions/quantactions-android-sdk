@@ -37,6 +37,7 @@ import com.quantactions.sdk.TapsStats
 import com.quantactions.sdk.TimeSeries
 import com.quantactions.sdk.cognitivetests.CognitiveTest
 import com.quantactions.sdk.cognitivetests.CognitiveTestResult
+import com.quantactions.sdk.cognitivetests.dotmemory.DotMemoryTestResponse
 import com.quantactions.sdk.cognitivetests.pvt.PVTResponse
 import com.quantactions.sdk.data.api.ApiService
 import com.quantactions.sdk.data.api.TokenApi
@@ -348,7 +349,7 @@ class MVPRepository @Inject constructor(
                     entities.map { entity ->
                         CognitiveTestResult(
                             cognitiveTest = CognitiveTest.DotMemory.id,
-                            result = gson.fromJson(entity.results, PVTResponse::class.java) as T,
+                            result = gson.fromJson(entity.results, DotMemoryTestResponse::class.java) as T,
                             timestamp = entity.timestamp,
                             localTime = entity.localTime
                         )
