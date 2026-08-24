@@ -17,8 +17,8 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.13.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0"
+        classpath 'com.android.tools.build:gradle:9.3.1'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.10'
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:2.0.0"
         classpath "org.jetbrains.dokka:android-documentation-plugin:2.0.0"
         classpath "org.jetbrains.kotlin:kotlin-serialization:2.2.10"
@@ -33,7 +33,7 @@ buildscript {
 }
 
 plugins {
-    id 'com.google.devtools.ksp' version '2.2.10-2.0.2' apply false
+    id 'com.google.devtools.ksp' version '2.3.6' apply false
     id 'com.google.dagger.hilt.android' version '2.57.2' apply false
 }
 

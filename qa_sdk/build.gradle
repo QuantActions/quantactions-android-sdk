@@ -24,8 +24,8 @@ android {
     compileSdk = 36
 
     defaultConfig {
+        testInstrumentationRunnerArguments
         minSdkVersion 23
-        targetSdk 36
 
         buildFeatures.buildConfig = true
 
@@ -94,6 +94,12 @@ android {
     }
 
     namespace = 'com.quantactions.sdk'
+    lint {
+        targetSdk 36
+    }
+    testOptions {
+        targetSdk 36
+    }
 }
 
 
