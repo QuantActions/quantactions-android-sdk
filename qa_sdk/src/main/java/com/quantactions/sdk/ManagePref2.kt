@@ -29,7 +29,7 @@ import java.util.Locale
 /**
  * @hide
  */
-class ManagePref2 private constructor(context: Context) : GenericPreferences {
+class ManagePref2 private constructor(val context: Context) : GenericPreferences {
 
     private var sharedPref = PreferenceManager.getDefaultSharedPreferences(context)
     private val databaseHelper = DatabaseHelper.getInstance(context)

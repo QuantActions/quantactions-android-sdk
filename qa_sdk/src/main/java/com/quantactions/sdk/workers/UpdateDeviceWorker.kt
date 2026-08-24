@@ -15,7 +15,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.hadiyarajesh.flower_core.ApiEmptyResponse
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
-import com.quantactions.sdk.data.repository.MVPRepository
+import com.quantactions.sdk.QAPrivate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -23,13 +23,14 @@ import timber.log.Timber
 class UpdateDeviceWorker(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
 
-    private val repository = MVPRepository.getInstance(context)
+    private val deviceRepository = QAPrivate.getInstance(context).deviceRepo
+    private val identityRepository = QAPrivate.getInstance(context).identityRepo
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
 
         try {
-            if (repository.deviceID == ""){
-                registerSpecificationsAndDevice(applicationContext, repository)
+            if (identityRepository.deviceID == ""){
+                registerSpecificationsAndDevice(deviceRepository)
             }
         } catch (e: Exception) {
             try {
@@ -40,7 +41,7 @@ class UpdateDeviceWorker(context: Context, params: WorkerParameters) :
             e.printStackTrace()
         }
 
-        when (val response = repository.updateDeviceInfo(applicationContext)){
+        when (val response = deviceRepository.updateDeviceInfo()){
             is ApiErrorResponse -> {
                 Timber.e(response.errorMessage)
                 Result.failure()
@@ -55,7 +56,7 @@ class UpdateDeviceWorker(context: Context, params: WorkerParameters) :
     }
 
     private suspend fun updateIdentity(): Result {
-        return when (val response = repository.updateIdentity()) {
+        return when (val response = identityRepository.updateIdentity()) {
             is ApiErrorResponse -> {
                 Timber.e(response.errorMessage)
                 Result.failure()
@@ -66,9 +67,7 @@ class UpdateDeviceWorker(context: Context, params: WorkerParameters) :
             }
 
             is ApiSuccessResponse -> {
-                response.body.let {
-                    Result.success()
-                }
+                Result.success()
             }
         }
     }

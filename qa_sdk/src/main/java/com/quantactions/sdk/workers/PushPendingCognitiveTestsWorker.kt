@@ -12,8 +12,8 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
+import com.quantactions.sdk.QAPrivate
 import com.quantactions.sdk.cognitivetests.CognitiveTest
-import com.quantactions.sdk.data.repository.MVPRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -22,7 +22,7 @@ import kotlinx.coroutines.withContext
 class PushPendingCognitiveTestsWorker(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
 
-    private val repository = MVPRepository.getInstance(context)
+    private val repository = QAPrivate.getInstance(context).cognitiveRepo
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
 

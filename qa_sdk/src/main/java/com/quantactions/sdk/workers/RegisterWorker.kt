@@ -15,7 +15,8 @@ import androidx.work.WorkerParameters
 import com.hadiyarajesh.flower_core.ApiEmptyResponse
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
-import com.quantactions.sdk.data.repository.MVPRepository
+import com.quantactions.sdk.QAPrivate
+import com.quantactions.sdk.data.repository.DeviceRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -23,18 +24,19 @@ import timber.log.Timber
 class RegisterWorker(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
 
-    private val repository = MVPRepository.getInstance(context)
+    private val deviceRepository = QAPrivate.getInstance(context).deviceRepo
+    private val identityRepository = QAPrivate.getInstance(context).identityRepo
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        repository.checkRegisteredStatus()
-        registerSpecificationsAndDevice(applicationContext, repository)
+        identityRepository.checkRegisteredStatus()
+        registerSpecificationsAndDevice(deviceRepository)
     }
 }
 
 
 
-suspend fun registerSpecificationsAndDevice(context: Context, repository: MVPRepository): ListenableWorker.Result {
-    when (val response = repository.registerDeviceSpecifications()) {
+internal suspend fun registerSpecificationsAndDevice(deviceRepository: DeviceRepository): ListenableWorker.Result {
+    when (val response = deviceRepository.registerDeviceSpecifications()) {
         is ApiEmptyResponse -> {
             return ListenableWorker.Result.retry()
         }
@@ -45,8 +47,8 @@ suspend fun registerSpecificationsAndDevice(context: Context, repository: MVPRep
         is ApiSuccessResponse -> {
             return if (response.body != null) {
                 Timber.d("Registered device specs -> ${response.body!!.id}")
-                repository.saveDeviceSpecificationsId(response.body!!.id)
-                registerDevice(context, repository, response.body!!.id)
+                deviceRepository.saveDeviceSpecificationsId(response.body!!.id)
+                registerDevice(deviceRepository, response.body!!.id)
             } else {
                 ListenableWorker.Result.failure()
             }
@@ -54,8 +56,8 @@ suspend fun registerSpecificationsAndDevice(context: Context, repository: MVPRep
     }
 }
 
-suspend fun registerDevice(context: Context, repository: MVPRepository, id: String): ListenableWorker.Result {
-    when (val response2 = repository.registerUser(context, id)) {
+internal suspend fun registerDevice(deviceRepository: DeviceRepository, id: String): ListenableWorker.Result {
+    when (val response2 = deviceRepository.registerUser(id)) {
         is ApiEmptyResponse -> {
             return ListenableWorker.Result.retry()
         }
@@ -66,7 +68,7 @@ suspend fun registerDevice(context: Context, repository: MVPRepository, id: Stri
         is ApiSuccessResponse -> {
             response2.body?.let {
                 Timber.d("Registered device -> ${it.id}")
-                repository.setDeviceId(it.id)
+                deviceRepository.setDeviceId(it.id)
             }
             return ListenableWorker.Result.success()
         }

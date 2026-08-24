@@ -14,8 +14,8 @@ import androidx.work.WorkerParameters
 import com.hadiyarajesh.flower_core.ApiEmptyResponse
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
+import com.quantactions.sdk.QAPrivate
 import com.quantactions.sdk.data.model.AppToPush
-import com.quantactions.sdk.data.repository.MVPRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -23,7 +23,7 @@ import timber.log.Timber
 class UpdateAppsListWorker(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
 
-    private val repository = MVPRepository.getInstance(context)
+    private val repository = QAPrivate.getInstance(context).deviceRepo
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val pendingAppCodes = repository.getPendingAppCodes()

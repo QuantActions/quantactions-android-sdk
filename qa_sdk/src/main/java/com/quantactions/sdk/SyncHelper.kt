@@ -21,7 +21,6 @@ import android.content.Context
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
-import com.quantactions.sdk.data.repository.MVPRepository
 import com.quantactions.sdk.workers.PushPendingCognitiveTestsWorker
 import com.quantactions.sdk.workers.PushPendingJournalEntriesWorker
 import com.quantactions.sdk.workers.PushPendingQuestionnairesWorker
@@ -43,7 +42,7 @@ internal class SyncHelper(context: Context) {
     private var appOps: AppOpsManager? = null
     private val managePref = ManagePref2.getInstance(context)
     private val statusNow = managePref.getPermissionsStatus(context)
-    private val repository = MVPRepository.getInstance(context)
+    private val qaPrivate = QAPrivate.getInstance(context)
     private var pushStats = true
 
     init {
@@ -84,7 +83,7 @@ internal class SyncHelper(context: Context) {
             }
 
             // pending quest
-            val pendingQuestionnaires = repository.getQuestionnaireResponses()
+            val pendingQuestionnaires = qaPrivate.getQuestionnaireResponses()
             if (pendingQuestionnaires.isNotEmpty()) {
                 workManager.enqueueUniqueWork(
                     "submitPendingQuest",
@@ -98,7 +97,7 @@ internal class SyncHelper(context: Context) {
             }
 
             // pending cog test
-            val pendingCognitiveTest = repository.getPendingCognitiveTests()
+            val pendingCognitiveTest = qaPrivate.getPendingCognitiveTests()
             if (pendingCognitiveTest.isNotEmpty()) {
                 workManager.enqueueUniqueWork(
                     "submitPendingCogTest",
@@ -112,8 +111,8 @@ internal class SyncHelper(context: Context) {
             }
 
             // pending journal entries
-            val pendingEntries = repository.getPendingJournalEntries()
-            val pendingEntriesToDelete = repository.getPendingJournalEntriesToDelete()
+            val pendingEntries = qaPrivate.getPendingJournalEntries()
+            val pendingEntriesToDelete = qaPrivate.getPendingJournalEntriesToDelete()
             if (pendingEntries.isNotEmpty() or pendingEntriesToDelete.isNotEmpty()) {
                 workManager.enqueueUniqueWork(
                     "submitPendingJournal",
@@ -129,7 +128,7 @@ internal class SyncHelper(context: Context) {
             // update list of apps
             updateAppList()
 
-            if (repository.getTapDataParsedToSync().isNotEmpty()) {
+            if (qaPrivate.getTapDataParsedToSync().isNotEmpty()) {
                 workManager.enqueueUniqueWork(
                     "submitTapDataParsed",
                     ExistingWorkPolicy.REPLACE,
@@ -139,7 +138,7 @@ internal class SyncHelper(context: Context) {
                 )
             }
 
-            if (repository.getDeviceHealthParsedToSync().isNotEmpty()) {
+            if (qaPrivate.getDeviceHealthParsedToSync().isNotEmpty()) {
                 workManager.enqueueUniqueWork(
                     "submitHealthDataParsed",
                     ExistingWorkPolicy.REPLACE,
@@ -149,7 +148,7 @@ internal class SyncHelper(context: Context) {
                 )
             }
 
-            if (repository.getActivityToSync().isNotEmpty()) {
+            if (qaPrivate.getActivityToSync().isNotEmpty()) {
                 workManager.enqueueUniqueWork(
                     "activityRecognition",
                     ExistingWorkPolicy.REPLACE,
