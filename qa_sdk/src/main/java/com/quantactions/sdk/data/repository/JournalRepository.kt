@@ -19,6 +19,7 @@ import com.quantactions.sdk.data.api.responses.JournalEntriesResponse
 import com.quantactions.sdk.data.entity.JournalEntryEntity
 import com.quantactions.sdk.data.entity.JournalEntryJoinsJournalEventEntity
 import com.quantactions.sdk.data.entity.JournalEventEntity
+import com.quantactions.sdk.data.local.MVPDao
 import com.quantactions.sdk.data.model.JournalEntry
 import com.quantactions.sdk.data.model.JournalEntryBody
 import com.quantactions.sdk.data.model.JournalEntryEvent

@@ -9,7 +9,7 @@
 
 @file:Suppress("HardCodedStringLiteral")
 
-package com.quantactions.sdk.data.repository
+package com.quantactions.sdk.data.local
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -30,7 +30,8 @@ import com.quantactions.sdk.data.entity.StatisticEntity
 import com.quantactions.sdk.data.entity.StatisticStringEntity
 import com.quantactions.sdk.data.entity.TrendEntity
 import com.quantactions.sdk.data.model.ResolvedJournalEntries
-import com.quantactions.sdk.data.model.TapDataParsed
+import com.quantactions.sdk.data.entity.TapDataParsed
+import com.quantactions.sdk.data.entity.DeviceHealthParsed
 import kotlinx.coroutines.flow.Flow
 
 

@@ -20,7 +20,11 @@ import com.quantactions.sdk.data.api.NetworkManager
 import com.quantactions.sdk.data.api.responses.RegistrationResponse
 import com.quantactions.sdk.data.entity.ActivityTransitionEntity
 import com.quantactions.sdk.data.entity.CodeOfApp
+import com.quantactions.sdk.data.entity.DeviceHealthParsed
 import com.quantactions.sdk.data.entity.HourlyTapsEntity
+import com.quantactions.sdk.data.entity.TapDataParsed
+import com.quantactions.sdk.data.local.MVPDao
+import com.quantactions.sdk.data.model.ActivityBody
 import com.quantactions.sdk.data.model.AppToPush
 import com.quantactions.sdk.data.model.AppWithCategory
 import com.quantactions.sdk.data.model.DevicePatch
@@ -29,8 +33,9 @@ import com.quantactions.sdk.data.model.DeviceSpecifications
 import com.quantactions.sdk.data.model.DeviceSpecificationsResponse
 import com.quantactions.sdk.data.model.DeviceStats
 import com.quantactions.sdk.data.model.DeviceStatsResponse
+import com.quantactions.sdk.data.model.HealthDataBody
 import com.quantactions.sdk.data.model.Note
-import com.quantactions.sdk.data.model.TapDataParsed
+import com.quantactions.sdk.data.model.TapDataBody
 import com.quantactions.sdk.exceptions.QASDKException
 
 /**

@@ -28,9 +28,9 @@ import com.quantactions.sdk.data.api.getBasicAuthHeader
 import com.quantactions.sdk.data.entity.JournalEntryEntity
 import com.quantactions.sdk.data.entity.JournalEntryJoinsJournalEventEntity
 import com.quantactions.sdk.data.entity.TimestampedEntity
+import com.quantactions.sdk.data.local.MVPRoomDatabase.Companion.getDatabase
 import com.quantactions.sdk.data.model.JournalEntry
 import com.quantactions.sdk.data.model.JournalEntryEvent
-import com.quantactions.sdk.data.repository.MVPRoomDatabase.Companion.getDatabase
 import com.quantactions.sdk.data.stringify
 import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope

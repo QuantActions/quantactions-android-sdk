@@ -9,7 +9,7 @@
 
 @file:Suppress("HardCodedStringLiteral")
 
-package com.quantactions.sdk.data.repository
+package com.quantactions.sdk.data.local
 
 import android.content.Context
 import androidx.room.Database
@@ -33,7 +33,8 @@ import com.quantactions.sdk.data.entity.SleepSummaryEntity
 import com.quantactions.sdk.data.entity.StatisticEntity
 import com.quantactions.sdk.data.entity.StatisticStringEntity
 import com.quantactions.sdk.data.entity.TrendEntity
-import com.quantactions.sdk.data.model.TapDataParsed
+import com.quantactions.sdk.data.entity.TapDataParsed
+import com.quantactions.sdk.data.entity.DeviceHealthParsed
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 
 

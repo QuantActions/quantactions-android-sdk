@@ -21,6 +21,7 @@ import com.quantactions.sdk.cognitivetests.pvt.PVTResponse
 import com.quantactions.sdk.data.api.ApiService
 import com.quantactions.sdk.data.api.NetworkManager
 import com.quantactions.sdk.data.entity.CognitiveTestEntity
+import com.quantactions.sdk.data.local.CognitiveTestDao
 import com.quantactions.sdk.exceptions.QASDKException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow

@@ -7,7 +7,7 @@
  * *******************************************************************************
  */
 
-package com.quantactions.sdk.data.repository
+package com.quantactions.sdk.data.local
 
 import android.content.Context
 import net.zetetic.database.sqlcipher.SQLiteDatabase

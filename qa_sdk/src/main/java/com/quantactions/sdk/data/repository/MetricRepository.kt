@@ -14,8 +14,8 @@ import com.hadiyarajesh.flower_core.dbBoundResource
 import com.quantactions.sdk.CanReturnCompiledTimeSeries
 import com.quantactions.sdk.TimeSeries
 import com.quantactions.sdk.data.api.NetworkManager
-import com.quantactions.sdk.data.repository.MVPDao
 import com.quantactions.sdk.data.entity.TimestampedEntity
+import com.quantactions.sdk.data.local.MVPDao
 import com.quantactions.sdk.data.stringify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi

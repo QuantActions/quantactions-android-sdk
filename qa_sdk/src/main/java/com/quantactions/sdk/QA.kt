@@ -31,9 +31,9 @@ import com.quantactions.sdk.data.entity.Cohort
 import com.quantactions.sdk.data.entity.JournalEventEntity
 import com.quantactions.sdk.data.entity.Questionnaire
 import com.quantactions.sdk.data.entity.QuestionnaireWithCohortName
+import com.quantactions.sdk.data.entity.TapDataParsed
 import com.quantactions.sdk.data.entity.TimestampedEntity
 import com.quantactions.sdk.data.model.JournalEntry
-import com.quantactions.sdk.data.model.TapDataParsed
 import com.quantactions.sdk.exceptions.QASDKException
 import com.quantactions.sdk.exceptions.SDKNotInitialisedException
 import kotlinx.coroutines.flow.Flow

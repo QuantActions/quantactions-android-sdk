@@ -7,7 +7,7 @@
  * *******************************************************************************
  */
 
-package com.quantactions.sdk.data.repository
+package com.quantactions.sdk.data.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

@@ -16,8 +16,8 @@ import com.hadiyarajesh.flower_core.ApiResponse
 import com.quantactions.sdk.data.api.ApiService
 import com.quantactions.sdk.data.entity.TimestampedEntity
 import com.quantactions.sdk.data.entity.TrendEntity
+import com.quantactions.sdk.data.local.MVPDao
 import com.quantactions.sdk.data.model.TrendHolder
-import com.quantactions.sdk.data.repository.MVPDao
 import kotlinx.coroutines.flow.Flow
 
 /**

@@ -16,8 +16,8 @@ import com.google.android.gms.location.ActivityTransition
 import com.google.android.gms.location.ActivityTransitionResult
 import com.google.android.gms.location.DetectedActivity
 import com.quantactions.sdk.data.entity.ActivityTransitionEntity
-import com.quantactions.sdk.data.repository.MVPDao
-import com.quantactions.sdk.data.repository.MVPRoomDatabase
+import com.quantactions.sdk.data.local.MVPDao
+import com.quantactions.sdk.data.local.MVPRoomDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

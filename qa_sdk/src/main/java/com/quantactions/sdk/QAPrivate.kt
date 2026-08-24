@@ -43,12 +43,12 @@ import com.quantactions.sdk.data.entity.JournalEventEntity
 import com.quantactions.sdk.data.entity.QuestionnaireResponseEntity
 import com.quantactions.sdk.data.entity.QuestionnaireWithCohortName
 import com.quantactions.sdk.data.entity.TimestampedEntity
+import com.quantactions.sdk.data.local.MVPRoomDatabase.Companion.getDatabase
 import com.quantactions.sdk.data.model.JournalEntry
 import com.quantactions.sdk.data.repository.CognitiveTestRepository
 import com.quantactions.sdk.data.repository.DeviceRepository
 import com.quantactions.sdk.data.repository.IdentityRepository
 import com.quantactions.sdk.data.repository.JournalRepository
-import com.quantactions.sdk.data.repository.MVPRoomDatabase.Companion.getDatabase
 import com.quantactions.sdk.data.repository.MetricRepository
 import com.quantactions.sdk.data.repository.MockRepository
 import com.quantactions.sdk.data.repository.StudyRepository
@@ -702,6 +702,8 @@ internal class QAPrivate private constructor(
     ) {
         identityRepository.updateBasicInfo(newYearOfBirth, newGender, newSelfDeclaredHealthy)
     }
+
+    suspend fun updateOldPassword(newPassword: String) = identityRepository.updateOldPassword(newPassword)
 
     fun executeOldToNewAPIMigration(scope: CoroutineScope) {
         // If password is not null it means I was born with the new API, so no need to make the migration

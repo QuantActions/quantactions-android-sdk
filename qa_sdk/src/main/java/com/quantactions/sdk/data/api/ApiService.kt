@@ -48,9 +48,9 @@ import com.quantactions.sdk.data.model.JournalEventBody
 import com.quantactions.sdk.data.model.JournalEventEnterResponse
 import com.quantactions.sdk.data.model.Note
 import com.quantactions.sdk.data.model.QuestionnaireResponse
-import com.quantactions.sdk.data.repository.ActivityBody
-import com.quantactions.sdk.data.repository.HealthDataBody
-import com.quantactions.sdk.data.repository.TapDataBody
+import com.quantactions.sdk.data.model.ActivityBody
+import com.quantactions.sdk.data.model.HealthDataBody
+import com.quantactions.sdk.data.model.TapDataBody
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory

@@ -23,10 +23,10 @@ import com.quantactions.sdk.data.api.NetworkManager
 import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
 import com.quantactions.sdk.data.api.getBasicAuthHeader
 import com.quantactions.sdk.data.entity.Cohort
-import com.quantactions.sdk.data.repository.MVPDao
 import com.quantactions.sdk.data.entity.Questionnaire
 import com.quantactions.sdk.data.entity.QuestionnaireResponseEntity
 import com.quantactions.sdk.data.entity.QuestionnaireWithCohortName
+import com.quantactions.sdk.data.local.MVPDao
 import com.quantactions.sdk.data.model.QuestionnaireResponse
 import com.quantactions.sdk.exceptions.QASDKException
 import com.quantactions.sdk.data.stringify

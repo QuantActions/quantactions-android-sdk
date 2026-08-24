@@ -25,6 +25,11 @@ import com.quantactions.sdk.data.api.adapters.StatisticAdapter
 import com.quantactions.sdk.data.api.responses.DataFrameSchema
 import com.quantactions.sdk.data.api.responses.StatisticCore
 import com.quantactions.sdk.data.api.responses.StatisticResponse
+import com.quantactions.sdk.data.entity.DeviceHealthParsed
+import com.quantactions.sdk.data.entity.TapDataParsed
+import com.quantactions.sdk.data.local.MVPDao
+import com.quantactions.sdk.data.model.HealthDataBody
+import com.quantactions.sdk.data.model.TapDataBody
 import com.quantactions.sdk.data.repository.*
 import com.quantactions.sdk.exceptions.SDKNotInitialisedException
 import junit.framework.TestCase

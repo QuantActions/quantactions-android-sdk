@@ -11,8 +11,8 @@
 
 package com.quantactions.sdk
 
+import com.quantactions.sdk.data.local.MVPDao
 import com.quantactions.sdk.data.model.DeviceStats
-import com.quantactions.sdk.data.repository.MVPDao
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.ZoneOffset

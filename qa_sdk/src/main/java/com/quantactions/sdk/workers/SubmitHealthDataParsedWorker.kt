@@ -14,9 +14,9 @@ import androidx.work.WorkerParameters
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.quantactions.sdk.QAPrivate
-import com.quantactions.sdk.data.repository.DeviceHealthParsedToPush
-import com.quantactions.sdk.data.repository.HealthDataBody
-import com.quantactions.sdk.data.repository.TapDataParsedToPush
+import com.quantactions.sdk.data.model.DeviceHealthParsedToPush
+import com.quantactions.sdk.data.model.HealthDataBody
+import com.quantactions.sdk.data.model.TapDataParsedToPush
 import com.quantactions.sdk.literalToIntList
 import com.quantactions.sdk.literalToLongList
 import com.squareup.moshi.JsonClass

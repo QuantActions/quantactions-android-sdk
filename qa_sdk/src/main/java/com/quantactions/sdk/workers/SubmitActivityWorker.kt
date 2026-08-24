@@ -14,8 +14,8 @@ import androidx.work.WorkerParameters
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.quantactions.sdk.QAPrivate
-import com.quantactions.sdk.data.repository.ActivityBody
-import com.quantactions.sdk.data.repository.ActivityToPush
+import com.quantactions.sdk.data.model.ActivityBody
+import com.quantactions.sdk.data.model.ActivityToPush
 import com.squareup.moshi.JsonClass
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

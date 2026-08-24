@@ -104,6 +104,16 @@ internal class IdentityRepository(
         return networkManager.apiService.patchIdentity(preferences.identityId, patch)
     }
 
+    suspend fun updateOldPassword(newPassword: String): ApiResponse<TokenApi.Identity> {
+        return networkManager.apiService.patchCredentials(
+            identityId,
+            ApiService.CredentialsRegistration(
+                identityId = identityId,
+                password = newPassword,
+            )
+        )
+    }
+
     suspend fun getIdentity(context: String): TokenApi.Identity {
         return when (val response = networkManager.apiService.getIdentity(preferences.identityId)) {
             is ApiSuccessResponse -> response.body!!

@@ -31,9 +31,9 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.quantactions.sdk.data.repository.DeviceHealthParsed
-import com.quantactions.sdk.data.repository.MVPDao
-import com.quantactions.sdk.data.repository.MVPRoomDatabase.Companion.getDatabase
+import com.quantactions.sdk.data.entity.DeviceHealthParsed
+import com.quantactions.sdk.data.local.MVPDao
+import com.quantactions.sdk.data.local.MVPRoomDatabase.Companion.getDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
