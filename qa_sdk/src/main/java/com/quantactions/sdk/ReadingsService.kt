@@ -105,14 +105,18 @@ class ReadingsService : Service() {
             val notificationManager =
                 this@ReadingsService.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
             notificationManager?.notify(1, notification)
-            Firebase.crashlytics.setUserId(qa.deviceID)
-            Firebase.crashlytics.setCustomKeys {
-                key("location", "ReadingService")
-                key("method", "onCreate")
-                key("canDraw", qa.canDraw(this@ReadingsService))
-                key("canUsage", qa.canUsage(this@ReadingsService))
+            try {
+                Firebase.crashlytics.setUserId(qa.deviceID)
+                Firebase.crashlytics.setCustomKeys {
+                    key("location", "ReadingService")
+                    key("method", "onCreate")
+                    key("canDraw", qa.canDraw(this@ReadingsService))
+                    key("canUsage", qa.canUsage(this@ReadingsService))
+                }
+                Firebase.crashlytics.recordException(e)
+            } catch (ex: Exception) {
+                Timber.w("Firebase Crashlytics not available: ${ex.message}")
             }
-            Firebase.crashlytics.recordException(e)
             false
         }
     }
@@ -251,14 +255,18 @@ class ReadingsService : Service() {
             val notificationManager =
                 this@ReadingsService.getSystemService(NOTIFICATION_SERVICE) as? NotificationManager
             notificationManager?.notify(1, notification)
-            Firebase.crashlytics.setUserId(qa.deviceID)
-            Firebase.crashlytics.setCustomKeys {
-                key("location", "ReadingService")
-                key("method", "onStartCommand")
-                key("canDraw", qa.canDraw(this@ReadingsService))
-                key("canUsage", qa.canUsage(this@ReadingsService))
+            try {
+                Firebase.crashlytics.setUserId(qa.deviceID)
+                Firebase.crashlytics.setCustomKeys {
+                    key("location", "ReadingService")
+                    key("method", "onStartCommand")
+                    key("canDraw", qa.canDraw(this@ReadingsService))
+                    key("canUsage", qa.canUsage(this@ReadingsService))
+                }
+                Firebase.crashlytics.recordException(e)
+            } catch (ex: Exception) {
+                Timber.w("Firebase Crashlytics not available: ${ex.message}")
             }
-            Firebase.crashlytics.recordException(e)
         }
 
         // This function is launched when an On/Off event is triggered
