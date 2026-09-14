@@ -10,6 +10,7 @@
 package com.quantactions.sdk.data.model
 
 import androidx.annotation.Keep
+import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 /**
@@ -29,6 +30,6 @@ data class AppToPush(
 @JsonClass(generateAdapter = true)
 data class AppWithCategory(
     val `package`: String,
-    val installationId: Int?,
-    val categoryMain: String? = null,
+    @Json(name = "id") val installationId: Int? = null,
+    @Json(name = "category_main") val categoryMain: String? = null,
 )
