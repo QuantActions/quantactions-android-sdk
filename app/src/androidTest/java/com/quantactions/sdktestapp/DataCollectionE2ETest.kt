@@ -15,13 +15,16 @@ import android.os.SystemClock
 import androidx.core.content.ContextCompat
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.Until
 import com.quantactions.sdk.BasicInfo
 import com.quantactions.sdk.CapabilitiesManager
 import com.quantactions.sdk.ManagePref2
 import com.quantactions.sdk.QA
 import com.quantactions.sdk.ReadingsService
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -33,10 +36,12 @@ import java.lang.reflect.Proxy
  * End-to-End Instrumented Test for data collection in the QuantActions SDK.
  * Verifies the full background ingestion lifecycle:
  * 1. Permissions & Overlay attachment
- * 2. Screen ON session start
- * 3. UI Automator simulated tap gestures
- * 4. Screen OFF session persistence via Actuator and Room
- * 5. SDK query via getTapsAndAppsInTimeWindow
+ * 2. Visual touches enabled & MainActivity launched on screen
+ * 3. Screen ON session start
+ * 4. UI Automator simulated tap gestures (visible on screen)
+ * 5. Physical Screen OFF (display sleeps/locks) triggering Actuator.saveSession() and Room persistence
+ * 6. Physical Screen ON (display wakes/unlocks)
+ * 7. SDK query via getTapsAndAppsInTimeWindow
  */
 @RunWith(AndroidJUnit4::class)
 class DataCollectionE2ETest {
@@ -56,6 +61,13 @@ class DataCollectionE2ETest {
         val packageName = context.packageName
         instrumentation.uiAutomation.executeShellCommand("appops set $packageName SYSTEM_ALERT_WINDOW allow")
         instrumentation.uiAutomation.executeShellCommand("appops set $packageName GET_USAGE_STATS allow")
+
+        // Enable visual touch circles on the screen so simulated taps are visible to the user
+        instrumentation.uiAutomation.executeShellCommand("settings put system show_touches 1")
+
+        // Ensure device is awake and keyguard is dismissed before starting
+        device.wakeUp()
+        instrumentation.uiAutomation.executeShellCommand("wm dismiss-keyguard")
 
         try {
             if (com.google.firebase.FirebaseApp.getApps(context).isEmpty()) {
@@ -92,11 +104,35 @@ class DataCollectionE2ETest {
         SystemClock.sleep(1000)
     }
 
+    @After
+    fun tearDown() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        // Reset show_touches
+        instrumentation.uiAutomation.executeShellCommand("settings put system show_touches 0")
+        try {
+            device.wakeUp()
+            instrumentation.uiAutomation.executeShellCommand("wm dismiss-keyguard")
+        } catch (_: Exception) {}
+    }
+
     @Test
     fun testDataCollectionAndGetTapsAndAppsInTimeWindow() {
-        device.wakeUp()
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
 
-        // 1. Trigger Screen ON to initialize Actuator session
+        // 1. Wake up device, dismiss keyguard, and launch the test app on screen
+        device.wakeUp()
+        instrumentation.uiAutomation.executeShellCommand("wm dismiss-keyguard")
+
+        val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        }
+        if (launchIntent != null) {
+            context.startActivity(launchIntent)
+            device.wait(Until.hasObject(By.pkg(context.packageName).depth(0)), 5000)
+        }
+        SystemClock.sleep(1000)
+
+        // Trigger Screen ON to initialize Actuator session
         val screenOnIntent = Intent(context, ReadingsService::class.java).apply {
             putExtra("screen_state", false)
         }
@@ -105,27 +141,38 @@ class DataCollectionE2ETest {
 
         val startTime = System.currentTimeMillis()
 
-        // 2. Perform simulated tap gestures on screen using UI Automator
+        // 2. Perform visible tap gestures on the screen using UI Automator
         val displayWidth = device.displayWidth
         val displayHeight = device.displayHeight
-        val clickX = displayWidth / 2
-        val clickY = displayHeight / 2
+        val centerX = displayWidth / 2
+        val centerY = displayHeight / 2
 
         val expectedTapCount = 5
-        repeat(expectedTapCount) {
-            device.click(clickX, clickY)
-            SystemClock.sleep(300)
+        for (i in 0 until expectedTapCount) {
+            val x = centerX + (i - 2) * 60
+            val y = centerY + (i - 2) * 60
+            device.click(x, y)
+            SystemClock.sleep(400) // Paced so touches are clearly visible on screen
         }
 
         val stopTime = System.currentTimeMillis() + 500
 
-        // 3. Trigger Screen OFF to trigger Actuator.saveSession() and persist to Room database
+        // 3. Physically sleep the screen (screen turns off/black), triggering ACTION_SCREEN_OFF and saveSession()
+        device.sleep()
+        SystemClock.sleep(1500)
+
+        // Ensure service receives screen_state true
         val screenOffIntent = Intent(context, ReadingsService::class.java).apply {
             putExtra("screen_state", true)
         }
         context.startService(screenOffIntent)
 
-        // 4. Poll database until session is saved (avoiding fixed flaky sleeps)
+        // 4. Physically wake up the device and unlock the screen
+        device.wakeUp()
+        instrumentation.uiAutomation.executeShellCommand("wm dismiss-keyguard")
+        SystemClock.sleep(1000)
+
+        // 5. Poll database until session is saved (avoiding fixed flaky sleeps)
         var tapsAndApps: QA.TapsAndApps? = null
         val deadline = System.currentTimeMillis() + 6000
         while (System.currentTimeMillis() < deadline) {
@@ -137,7 +184,7 @@ class DataCollectionE2ETest {
             SystemClock.sleep(250)
         }
 
-        // 5. Assertions
+        // 6. Assertions
         assertNotNull("TapsAndApps result should not be null", tapsAndApps)
         assertTrue("Captured taps list should not be empty", tapsAndApps!!.taps.isNotEmpty())
         

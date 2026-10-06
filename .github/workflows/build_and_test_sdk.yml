@@ -53,9 +53,11 @@ jobs:
 
       - name: Firebase Instrumentation Tests (SDK)
         run: |
-          echo "TEST APK: $TEST_APK"
-          echo "APP_APK: $APP_APK"
-            gcloud firebase test android run --type instrumentation --app $APP_APK --test $TEST_APK --device model=Pixel3,version=30,locale=en,orientation=portrait --results-dir=test_sdk_results --environment-variables apiKey=$TEST_API_KEY,testIdentityId=$TEST_IDENTITY_ID,testDeviceId=$TEST_DEVICE_ID,testPassword=$TEST_PASSWORD,testParticipationId=$TEST_PARTICIPATION_ID,testStudyId=$TEST_STUDY_ID,QA_SAMPLE_PASSWORD=$QA_SAMPLE_PASSWORD,QA_SAMPLE_ID=$QA_SAMPLE_ID,QA_SAMPLE_PART_ID=$QA_SAMPLE_PART_ID;
+          APP_FILE="${APP_APK:-app/build/outputs/apk/debug/app-debug.apk}"
+          TEST_FILE="${TEST_APK:-qa_sdk/build/outputs/apk/androidTest/debug/qa_sdk-debug-androidTest.apk}"
+          echo "TEST APK: $TEST_FILE"
+          echo "APP_APK: $APP_FILE"
+          gcloud firebase test android run --type instrumentation --app "$APP_FILE" --test "$TEST_FILE" --device model=Pixel3,version=30,locale=en,orientation=portrait --results-dir=test_sdk_results --environment-variables apiKey=$TEST_API_KEY,testIdentityId=$TEST_IDENTITY_ID,testDeviceId=$TEST_DEVICE_ID,testPassword=$TEST_PASSWORD,testParticipationId=$TEST_PARTICIPATION_ID,testStudyId=$TEST_STUDY_ID,QA_SAMPLE_PASSWORD=$QA_SAMPLE_PASSWORD,QA_SAMPLE_ID=$QA_SAMPLE_ID,QA_SAMPLE_PART_ID=$QA_SAMPLE_PART_ID;
         env:
           TEST_APK: ${{ vars.TEST_SDK_APK }}
           APP_APK: ${{ vars.TEST_APP_APK }}
@@ -69,10 +71,31 @@ jobs:
           QA_SAMPLE_ID: ${{ secrets.QA_SAMPLE_ID }}
           QA_SAMPLE_PART_ID: ${{ secrets.QA_SAMPLE_PART_ID }}
 
+      - name: Firebase Instrumentation Tests (App E2E)
+        run: |
+          APP_FILE="${APP_APK:-app/build/outputs/apk/debug/app-debug.apk}"
+          TEST_FILE="${TEST_APP_E2E_APK:-app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk}"
+          echo "APP APK: $APP_FILE"
+          echo "TEST APK: $TEST_FILE"
+          gcloud firebase test android run \
+            --type instrumentation \
+            --app "$APP_FILE" \
+            --test "$TEST_FILE" \
+            --device model=Pixel3,version=30,locale=en,orientation=portrait \
+            --test-targets "class com.quantactions.sdktestapp.DataCollectionE2ETest" \
+            --results-dir=test_app_e2e_results;
+        env:
+          APP_APK: ${{ vars.TEST_APP_APK }}
+          TEST_APP_E2E_APK: ${{ vars.TEST_APP_E2E_APK }}
+
       - name: Retrieve test results
-        run: gsutil cp gs://test-lab-x186ifk5q10q4-k8d32juhknhic/test_sdk_results/Pixel3-30-en-portrait/test_result_1.xml ./test_result_sdk_1.xml
+        if: always()
+        run: |
+          gsutil cp gs://test-lab-x186ifk5q10q4-k8d32juhknhic/test_sdk_results/Pixel3-30-en-portrait/test_result_1.xml ./test_result_sdk_1.xml || true
+          gsutil cp gs://test-lab-x186ifk5q10q4-k8d32juhknhic/test_app_e2e_results/Pixel3-30-en-portrait/test_result_1.xml ./test_result_app_e2e_1.xml || true
 
       - name: Publish Test Results
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results

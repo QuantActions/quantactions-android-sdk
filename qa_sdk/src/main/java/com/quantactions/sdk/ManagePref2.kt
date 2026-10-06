@@ -156,8 +156,8 @@ class ManagePref2 private constructor(val context: Context) : GenericPreferences
             }
         }
 
-    override var password: String?
-        get() = sharedPref.getString(PASSWORD, null)
+    override var password: String
+        get() = sharedPref.getString(PASSWORD, "")!!
         set(newVal) {
             sharedPref.edit {
                 putString(PASSWORD, newVal)

@@ -130,7 +130,7 @@ internal class QAPrivate private constructor(
         get() = identityRepository.deviceID
     val identityId: String
         get() = identityRepository.identityId
-    val password: String?
+    val password: String
         get() = identityRepository.password
     val basicInfo: BasicInfo
         get() = identityRepository.getBasicInfo()

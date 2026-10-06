@@ -89,7 +89,7 @@ class QA private constructor(
         get() = qaPrivate.deviceID
     val identityId: String
         get() = qaPrivate.identityId
-    val password: String?
+    val password: String
         get() = qaPrivate.password
     /** [BasicInfo] for the current user */
     val basicInfo: BasicInfo

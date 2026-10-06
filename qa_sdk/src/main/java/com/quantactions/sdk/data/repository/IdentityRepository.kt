@@ -31,7 +31,7 @@ internal class IdentityRepository(
 ) {
     val identityId: String get() = preferences.identityId
     val deviceID: String get() = preferences.deviceID
-    val password: String? get() = preferences.password
+    val password: String get() = preferences.password
 
     suspend fun checkRegisteredStatus(): Boolean {
         if (preferences.areCredentialsRegistered && preferences.isOauthActivated) {
