@@ -204,10 +204,17 @@ internal class StudyRepository(
     }
 
     suspend fun withdraw(participationId: String, studyId: String) {
-        val body = ApiService.WithdrawBody(withdraw = "voluntary")
+        val created = Instant.now().atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_DATE_TIME)
+        val body = ApiService.WithdrawBody(withdraw = created)
         when (val response = networkManager.apiService.withdrawParticipation(identityRepository.identityId, participationId, body)) {
-            is ApiSuccessResponse -> mvpDao.deleteStudy(studyId)
-            else -> Timber.e("Withdraw failed")
+            is ApiSuccessResponse, is ApiEmptyResponse -> {
+                mvpDao.deleteStudy(studyId)
+                mvpDao.deleteQuestionnaires(studyId)
+            }
+            is ApiErrorResponse -> {
+                Timber.e("Delete error: ${response.errorMessage}")
+                throw QASDKException("API Error [withdraw()]: ${response.errorMessage} || ${response.httpStatusCode}")
+            }
         }
     }
 
