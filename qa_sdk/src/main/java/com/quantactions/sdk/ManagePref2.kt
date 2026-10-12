@@ -37,7 +37,7 @@ class ManagePref2 private constructor(val context: Context) : GenericPreferences
     private val sqLiteDatabase = databaseHelper.writableDatabase
 
     var apiKey: String
-        get() = sharedPref.getString(API_KEY, "")!!
+        get() = sharedPref.getString(API_KEY, "") ?: ""
         set(newVal) {
             sharedPref.edit {
                 putString(API_KEY, newVal)
@@ -45,7 +45,7 @@ class ManagePref2 private constructor(val context: Context) : GenericPreferences
         }
 
     var deviceSpecificationsId: String
-        get() = sharedPref.getString(DEVICE_SPECS, "")!!
+        get() = sharedPref.getString(DEVICE_SPECS, "") ?: ""
         set(newVal) {
             sharedPref.edit {
                 putString(DEVICE_SPECS, newVal)
@@ -109,7 +109,7 @@ class ManagePref2 private constructor(val context: Context) : GenericPreferences
         }
 
     var deviceID: String
-        get() = sharedPref.getString(DEVICE_ID, "")!!
+        get() = sharedPref.getString(DEVICE_ID, "") ?: ""
         set(newVal) {
             sharedPref.edit {
                 putString(DEVICE_ID, newVal)
@@ -117,7 +117,7 @@ class ManagePref2 private constructor(val context: Context) : GenericPreferences
         }
 
     override var identityId: String
-        get() = sharedPref.getString(IAM_IDENTITY_ID, "")!!
+        get() = sharedPref.getString(IAM_IDENTITY_ID, "") ?: ""
         set(newVal) {
             sharedPref.edit {
                 putString(IAM_IDENTITY_ID, newVal)
@@ -157,7 +157,7 @@ class ManagePref2 private constructor(val context: Context) : GenericPreferences
         }
 
     override var password: String
-        get() = sharedPref.getString(PASSWORD, "")!!
+        get() = sharedPref.getString(PASSWORD, "") ?: ""
         set(newVal) {
             sharedPref.edit {
                 putString(PASSWORD, newVal)
@@ -234,7 +234,7 @@ class ManagePref2 private constructor(val context: Context) : GenericPreferences
     }
 
     fun getSavedPermissions(): String {
-        return sharedPref.getString(SAVED_PERM, "-1-1-1-1")!!
+        return sharedPref.getString(SAVED_PERM, "-1-1-1-1") ?: "-1-1-1-1"
     }
 
     internal fun setSavedPermissions(context: Context){
@@ -320,7 +320,7 @@ class ManagePref2 private constructor(val context: Context) : GenericPreferences
     }
 
     internal fun getPendingSignUp(): String {
-        return sharedPref.getString(PENDING_SIGN_UP, "")!!
+        return sharedPref.getString(PENDING_SIGN_UP, "") ?: ""
     }
 
     fun getPermissionsStatus(context: Context): String {
@@ -339,7 +339,7 @@ class ManagePref2 private constructor(val context: Context) : GenericPreferences
     }
 
     fun getAuthCode(): String {
-        return sharedPref.getString(AUTH_CODE, "")!!
+        return sharedPref.getString(AUTH_CODE, "") ?: ""
     }
 
     fun setAuthCode(authCode: String){
@@ -349,7 +349,7 @@ class ManagePref2 private constructor(val context: Context) : GenericPreferences
     }
 
     fun getFBCode(): String {
-        return sharedPref.getString(FB_CODE, "no_token")!!
+        return sharedPref.getString(FB_CODE, "no_token") ?: "no_token"
     }
 
     fun setFBCode(fbCode: String){

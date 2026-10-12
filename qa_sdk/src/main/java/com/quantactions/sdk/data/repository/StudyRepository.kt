@@ -18,6 +18,7 @@ import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.quantactions.sdk.ManagePref2
+import com.quantactions.sdk.Subscription
 import com.quantactions.sdk.data.api.ApiService
 import com.quantactions.sdk.data.api.NetworkManager
 import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
@@ -174,9 +175,33 @@ internal class StudyRepository(
         }
     }
 
-    suspend fun getStudies(): List<Cohort> = mvpDao.getStudies()
-    suspend fun getStudiesSingle(): List<Cohort> = mvpDao.getStudiesSingle()
-    suspend fun getQuestionnaires(): List<QuestionnaireWithCohortName> = mvpDao.getQuestionnaires()
+    fun getStudies(): List<Cohort> = mvpDao.getStudies()
+    fun getStudiesSingle(): List<Cohort> = mvpDao.getStudiesSingle()
+    fun getQuestionnaires(): List<QuestionnaireWithCohortName> = mvpDao.getQuestionnaires()
+
+    suspend fun getSubscriptions(studyId: String? = null): List<Subscription> {
+        val filter = mutableMapOf<String, Any>()
+        filter["where"] = mapOf("deleted" to null, "withdraw" to null)
+        filter["include"] = listOf(mapOf("relation" to "study", "scope" to mapOf("where" to mapOf("deleted" to null))))
+
+        val response = networkManager.apiService.getParticipations(identityRepository.identityId, filter.stringify())
+        return if (response is ApiSuccessResponse) {
+            val results = response.body!!
+            val items = if (studyId != null) results.filter { it.studyId == studyId } else results
+            items.map { p ->
+                Subscription(
+                    p.id,
+                    listOf(),
+                    p.studyId!!,
+                    p.study?.name ?: "",
+                    if (p.ttl != null) ZonedDateTime.parse(p.ttl).toInstant().toEpochMilli() else -1,
+                    p.token
+                )
+            }
+        } else {
+            emptyList()
+        }
+    }
 
     suspend fun withdraw(participationId: String, studyId: String) {
         val body = ApiService.WithdrawBody(withdraw = "voluntary")

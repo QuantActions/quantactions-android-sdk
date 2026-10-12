@@ -37,32 +37,16 @@ internal class CognitiveTestRepository(
     private val networkManager: NetworkManager,
     private val cognitiveTestDao: CognitiveTestDao
 ) {
-    @Suppress("UNCHECKED_CAST")
     fun <T> getCognitiveTestResults(testType: CognitiveTest<T>): Flow<List<CognitiveTestResult<T>>> {
         val gson = Gson()
         return cognitiveTestDao.getResultsForType(testType.id).map { entities ->
-            when (testType) {
-                is CognitiveTest.PVT -> {
-                    entities.map { entity ->
-                        CognitiveTestResult(
-                            cognitiveTest = CognitiveTest.PVT.id,
-                            result = gson.fromJson(entity.results, PVTResponse::class.java) as T,
-                            timestamp = entity.timestamp,
-                            localTime = entity.localTime
-                        )
-                    }
-                }
-
-                is CognitiveTest.DotMemory -> {
-                    entities.map { entity ->
-                        CognitiveTestResult(
-                            cognitiveTest = CognitiveTest.DotMemory.id,
-                            result = gson.fromJson(entity.results, DotMemoryTestResponse::class.java) as T,
-                            timestamp = entity.timestamp,
-                            localTime = entity.localTime
-                        )
-                    }
-                }
+            entities.map { entity ->
+                CognitiveTestResult(
+                    cognitiveTest = testType.id,
+                    result = testType.parseResult(entity.results, gson),
+                    timestamp = entity.timestamp,
+                    localTime = entity.localTime
+                )
             }
         }.flowOn(Dispatchers.IO)
     }

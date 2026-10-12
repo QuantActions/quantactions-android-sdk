@@ -58,16 +58,13 @@ import com.quantactions.sdk.exceptions.SDKNotInitialisedException
 import com.quantactions.sdk.workers.RegisterWorker
 import com.quantactions.sdk.workers.UpdateDeviceWorker
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.time.Instant
-import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Locale
@@ -85,6 +82,7 @@ internal class QAPrivate private constructor(
     private val deviceRepository: DeviceRepository,
     private val cognitiveTestRepository: CognitiveTestRepository,
     private val metricRepository: MetricRepository,
+    private val networkManager: NetworkManager,
     private val preferences: ManagePref2,
     private var firebaseToken: String? = null
 ) {
@@ -115,7 +113,7 @@ internal class QAPrivate private constructor(
                     
                     instance = QAPrivate(
                         identityRepo, studyRepo, journalRepo, deviceRepo, cognitiveRepo, metricRepo,
-                        preferences,
+                        networkManager, preferences,
                     )
                     INSTANCE = instance
                 }
@@ -174,7 +172,7 @@ internal class QAPrivate private constructor(
     ): Boolean {
 
         preferences.apiKey = authCode
-        NetworkManager.getInstance(context).initServices(authCode)
+        networkManager.initServices(authCode)
 
         if (preferences.identityId == "") {
             preferences.identityId = identityId ?: UUID.randomUUID().toString()
@@ -328,7 +326,7 @@ internal class QAPrivate private constructor(
     }
 
     fun hasFeature(feature: String): Boolean {
-        return NetworkManager.getInstance(preferences.context).capabilitiesManager.hasFeature(feature)
+        return networkManager.capabilitiesManager.hasFeature(feature)
     }
 
     fun getFirebaseToken(): String? {
@@ -384,7 +382,7 @@ internal class QAPrivate private constructor(
     }
 
     fun canWithdraw(studyId: String): Boolean {
-        val study = runBlocking(Dispatchers.IO) { studyRepository.getStudiesSingle().find { it.cohortId == studyId } }
+        val study = studyRepository.getStudiesSingle().find { it.cohortId == studyId }
         return study != null && study.canWithdraw == 1
     }
 
@@ -494,7 +492,7 @@ internal class QAPrivate private constructor(
     }
 
     fun getStudyList(): List<Cohort> {
-        return runBlocking(Dispatchers.IO) { studyRepository.getStudies() }
+        return studyRepository.getStudies()
     }
 
     @Throws(QASDKException::class)
@@ -529,7 +527,7 @@ internal class QAPrivate private constructor(
         refresh: Boolean = false
     ): Flow<TimeSeries<T>> {
         // Need to get participation ID. This might be problematic if not yet cached.
-        val participationId = runBlocking(Dispatchers.IO) { studyRepository.getStudiesSingle().firstOrNull()?.cohortId ?: "" }
+        val participationId = studyRepository.getStudiesSingle().firstOrNull()?.cohortId ?: ""
         return metricRepository.getStat(metricOrTrend, participationId, from, to, refresh = refresh)
     }
 
@@ -598,20 +596,10 @@ internal class QAPrivate private constructor(
 
     suspend fun subscription(studyId: String? = null): List<Subscription> {
         return if (isDeviceRegistered()) {
-            val filter = mutableMapOf<String, Any>()
-            filter["where"] = mapOf("deleted" to null, "withdraw" to null)
-            filter["include"] = listOf(mapOf("relation" to "study", "scope" to mapOf("where" to mapOf("deleted" to null))))
-            
-            val response = NetworkManager.getInstance(preferences.context).apiService.getParticipations(identityId, filter.stringify())
-            if (response is ApiSuccessResponse) {
-                val results = response.body!!
-                val items = if (studyId != null) results.filter { it.studyId == studyId } else results
-                items.map { p ->
-                    Subscription(p.id, listOf(), p.studyId!!, p.study?.name ?: "",
-                        if (p.ttl != null) ZonedDateTime.parse(p.ttl).toInstant().toEpochMilli() else -1, p.token)
-                }
-            } else listOf()
-        } else listOf()
+            studyRepository.getSubscriptions(studyId)
+        } else {
+            emptyList()
+        }
     }
 
     fun stopReadingService(context: Context) {
