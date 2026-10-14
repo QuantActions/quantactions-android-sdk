@@ -23,7 +23,7 @@ interface GenericPreferences {
 
     var identityId: String
 
-    var password: String?
+    var password: String
 
     val accessToken: String?
 

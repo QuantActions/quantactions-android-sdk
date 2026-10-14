@@ -9,15 +9,18 @@
 
 package com.quantactions.sdk.cognitivetests
 
+import com.google.gson.Gson
 import com.quantactions.sdk.cognitivetests.dotmemory.DotMemoryTestResponse
 import com.quantactions.sdk.cognitivetests.pvt.PVTResponse
 
 /**
  * @hide
  */
-sealed class CognitiveTest<T>(val id: String) {
-    data object PVT : CognitiveTest<PVTResponse>("PVT")
-    data object DotMemory : CognitiveTest<DotMemoryTestResponse>("DotMemory")
+sealed class CognitiveTest<T>(val id: String, internal val responseClass: Class<T>) {
+    data object PVT : CognitiveTest<PVTResponse>("PVT", PVTResponse::class.java)
+    data object DotMemory : CognitiveTest<DotMemoryTestResponse>("DotMemory", DotMemoryTestResponse::class.java)
+
+    internal fun parseResult(json: String, gson: Gson): T = gson.fromJson(json, responseClass)
 }
 
 /**

@@ -21,7 +21,7 @@ import com.quantactions.sdk.data.entity.StatisticStringEntity
 import com.quantactions.sdk.data.entity.TimestampedEntity
 import com.quantactions.sdk.data.model.ScreenTimeAggregate
 import com.quantactions.sdk.data.model.SleepSummary
-import com.quantactions.sdk.data.repository.MVPDao
+import com.quantactions.sdk.data.local.MVPDao
 import com.quantactions.sdk.data.stringify
 import kotlinx.coroutines.flow.Flow
 import java.time.Instant

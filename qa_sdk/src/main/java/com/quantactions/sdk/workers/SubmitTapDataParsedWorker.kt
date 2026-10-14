@@ -13,9 +13,9 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
-import com.quantactions.sdk.data.repository.MVPRepository
-import com.quantactions.sdk.data.repository.TapDataBody
-import com.quantactions.sdk.data.repository.TapDataParsedToPush
+import com.quantactions.sdk.QAPrivate
+import com.quantactions.sdk.data.model.TapDataBody
+import com.quantactions.sdk.data.model.TapDataParsedToPush
 import com.quantactions.sdk.literalToIntList
 import com.quantactions.sdk.literalToLongList
 import com.squareup.moshi.JsonClass
@@ -26,7 +26,7 @@ import timber.log.Timber
 class SubmitTapDataParsedWorker(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
 
-    private val repository = MVPRepository.getInstance(context)
+    private val repository = QAPrivate.getInstance(context).deviceRepo
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
 

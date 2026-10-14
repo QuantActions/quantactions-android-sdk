@@ -9,7 +9,7 @@
 
 @file:Suppress("HardCodedStringLiteral")
 
-package com.quantactions.sdk.data.repository
+package com.quantactions.sdk.data.local
 
 import androidx.room.Dao
 import androidx.room.Insert

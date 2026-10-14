@@ -7,7 +7,7 @@
  * *******************************************************************************
  */
 
-package com.quantactions.sdk.data.repository
+package com.quantactions.sdk.data.local
 
 import androidx.room.TypeConverter
 import com.google.gson.Gson

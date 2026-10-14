@@ -12,8 +12,8 @@
 package com.quantactions.sdk
 
 import com.quantactions.sdk.data.model.AppToPush
-import com.quantactions.sdk.data.repository.DeviceHealthParsedToPush
-import com.quantactions.sdk.data.repository.TapDataParsedToPush
+import com.quantactions.sdk.data.model.DeviceHealthParsedToPush
+import com.quantactions.sdk.data.model.TapDataParsedToPush
 
 class Payloads(
     val tapDataParsedPayload: List<TapDataParsedToPush> =

@@ -7,7 +7,7 @@
  * *******************************************************************************
  */
 
-package com.quantactions.sdk.data.repository
+package com.quantactions.sdk.data.model
 
 import com.squareup.moshi.JsonClass
 

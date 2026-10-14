@@ -29,24 +29,30 @@ import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics
 import com.google.firebase.crashlytics.setCustomKeys
 import com.google.firebase.messaging.FirebaseMessaging
-import com.google.gson.Gson
 import com.hadiyarajesh.flower_core.ApiEmptyResponse
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.quantactions.sdk.cognitivetests.CognitiveTest
 import com.quantactions.sdk.cognitivetests.CognitiveTestResult
+import com.quantactions.sdk.data.api.NetworkManager
 import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
 import com.quantactions.sdk.data.entity.CodeOfApp
-import com.quantactions.sdk.data.entity.CognitiveTestEntity
 import com.quantactions.sdk.data.entity.Cohort
 import com.quantactions.sdk.data.entity.HourlyTapsEntity
 import com.quantactions.sdk.data.entity.JournalEventEntity
 import com.quantactions.sdk.data.entity.QuestionnaireResponseEntity
 import com.quantactions.sdk.data.entity.QuestionnaireWithCohortName
 import com.quantactions.sdk.data.entity.TimestampedEntity
+import com.quantactions.sdk.data.local.MVPRoomDatabase.Companion.getDatabase
 import com.quantactions.sdk.data.model.JournalEntry
-import com.quantactions.sdk.data.repository.MVPRepository
+import com.quantactions.sdk.data.repository.CognitiveTestRepository
+import com.quantactions.sdk.data.repository.DeviceRepository
+import com.quantactions.sdk.data.repository.IdentityRepository
+import com.quantactions.sdk.data.repository.JournalRepository
+import com.quantactions.sdk.data.repository.MetricRepository
 import com.quantactions.sdk.data.repository.MockRepository
+import com.quantactions.sdk.data.repository.StudyRepository
+import com.quantactions.sdk.data.stringify
 import com.quantactions.sdk.exceptions.QASDKException
 import com.quantactions.sdk.exceptions.SDKNotInitialisedException
 import com.quantactions.sdk.workers.RegisterWorker
@@ -70,10 +76,23 @@ import java.util.concurrent.TimeUnit
  * Contact: enea.ceolini@quantactions.com
  */
 internal class QAPrivate private constructor(
-    private var repository: MVPRepository,
+    private val identityRepository: IdentityRepository,
+    private val studyRepository: StudyRepository,
+    private val journalRepository: JournalRepository,
+    private val deviceRepository: DeviceRepository,
+    private val cognitiveTestRepository: CognitiveTestRepository,
+    private val metricRepository: MetricRepository,
+    private val networkManager: NetworkManager,
     private val preferences: ManagePref2,
     private var firebaseToken: String? = null
 ) {
+
+    internal val identityRepo = identityRepository
+    internal val studyRepo = studyRepository
+    internal val journalRepo = journalRepository
+    internal val deviceRepo = deviceRepository
+    internal val cognitiveRepo = cognitiveTestRepository
+    internal val metricRepo = metricRepository
 
     companion object {
         @Volatile
@@ -84,9 +103,17 @@ internal class QAPrivate private constructor(
                 var instance = INSTANCE
                 if (instance == null) {
                     val preferences = ManagePref2.getInstance(context)
+                    val networkManager = NetworkManager.getInstance(context, preferences)
+                    val identityRepo = IdentityRepository(preferences, networkManager)
+                    val journalRepo = JournalRepository(identityRepo, networkManager, getDatabase(context).mvpDao())
+                    val studyRepo = StudyRepository(preferences, identityRepo, networkManager, getDatabase(context).mvpDao(), WorkManager.getInstance(context))
+                    val cognitiveRepo = CognitiveTestRepository(identityRepo, networkManager, getDatabase(context).cognitiveTestDao())
+                    val deviceRepo = DeviceRepository(context, preferences, identityRepo, networkManager, getDatabase(context).mvpDao())
+                    val metricRepo = MetricRepository(identityRepo, networkManager, getDatabase(context).mvpDao())
+                    
                     instance = QAPrivate(
-                        MVPRepository.getInstance(context),
-                        preferences,
+                        identityRepo, studyRepo, journalRepo, deviceRepo, cognitiveRepo, metricRepo,
+                        networkManager, preferences,
                     )
                     INSTANCE = instance
                 }
@@ -98,26 +125,37 @@ internal class QAPrivate private constructor(
     var activityPermissionNotification: ActivityPermissionNotification = ActivityPermissionNotificationImpl()
     var restartedRequiredNotification: RestartedRequiredNotification = RestartedRequiredNotificationImpl()
     val deviceID: String
-        get() = repository.deviceID
+        get() = identityRepository.deviceID
     val identityId: String
-        get() = repository.identityId
-    val password: String?
-        get() = repository.password
+        get() = identityRepository.identityId
+    val password: String
+        get() = identityRepository.password
     val basicInfo: BasicInfo
-        get() = repository.basicInfo
+        get() = identityRepository.getBasicInfo()
+
+    fun getQuestionnaireResponses() = studyRepository.getQuestionnaireResponses()
+    fun getPendingCognitiveTests() = cognitiveTestRepository.getPendingCognitiveTests()
+    fun getPendingJournalEntries() = journalRepository.getPendingJournalEntries()
+    fun getPendingJournalEntriesToDelete() = journalRepository.getPendingJournalEntriesToDelete()
+    fun getTapDataParsedToSync() = deviceRepository.getTapDataParsedToSync()
+    fun getDeviceHealthParsedToSync() = deviceRepository.getDeviceHealthParsedToSync()
+    fun getActivityToSync() = deviceRepository.getActivityToSync()
+    internal val mvpDao = deviceRepository.mvpDao
+
+    suspend fun checkRegisteredStatus(): Boolean = identityRepository.checkRegisteredStatus()
 
     fun isDeviceRegistered(): Boolean {
-        return repository.isDeviceRegistered()
+        return identityRepository.deviceID != ""
     }
 
-    private fun registerDeviceAsync() {
+    private fun registerDeviceAsync(context: Context) {
         val registerWork = OneTimeWorkRequest.Builder(RegisterWorker::class.java)
             .addTag("registerUser")
             .build()
         val updateDeviceWork = OneTimeWorkRequest.Builder(UpdateDeviceWorker::class.java)
             .addTag("updateDevice")
             .build()
-        repository.workManager.beginUniqueWork(
+        WorkManager.getInstance(context).beginUniqueWork(
             "registerUser",
             ExistingWorkPolicy.KEEP,
             registerWork
@@ -134,8 +172,7 @@ internal class QAPrivate private constructor(
     ): Boolean {
 
         preferences.apiKey = authCode
-        // I refresh the repository instance cause before the api was invalid
-        repository = MVPRepository.getInstance(context, preferences.apiKey)
+        networkManager.initServices(authCode)
 
         if (preferences.identityId == "") {
             preferences.identityId = identityId ?: UUID.randomUUID().toString()
@@ -143,7 +180,7 @@ internal class QAPrivate private constructor(
             // if iamIdentity is not null, the identity already exists so we should just login
             if (identityId != null){
                 try {
-                    val existingIdentity = repository.getIdentity("qa init")
+                    val existingIdentity = identityRepository.getIdentity("qa init")
                     preferences.areCredentialsRegistered = true
                     preferences.isOauthActivated = true
                     preferences.selfDeclaredHealthy = existingIdentity.selfDeclaredHealthy == true
@@ -184,7 +221,7 @@ internal class QAPrivate private constructor(
     }
 
     private fun checkAndRunService(context: Context) {
-        if (repository.canDraw(context)) {
+        if (preferences.canDraw(context)) {
             makeServiceForeground(context)
             Timber.d("Service NOT running, launching")
         } else {
@@ -228,23 +265,23 @@ internal class QAPrivate private constructor(
     @Throws(QASDKException::class)
     private suspend fun registerSpecificationsAndDevice(context: Context) {
 
-        repository.checkRegisteredStatus()
+        identityRepository.checkRegisteredStatus()
 
-        when (val response = repository.registerDeviceSpecifications()) {
+        when (val response = deviceRepository.registerDeviceSpecifications()) {
             is ApiEmptyResponse -> {
                 throw QASDKException("Device registration failed, this should, never happen")
             }
 
             is ApiErrorResponse -> {
                 Timber.e("Register spec and device error ${response.errorMessage}")
-                registerDeviceAsync()
+                registerDeviceAsync(context)
                 throw QASDKException("Device registration failed, retrying later")
             }
 
             is ApiSuccessResponse -> {
                 if (response.body != null) {
                     Timber.d("Registered device specs -> ${response.body!!.id}")
-                    repository.saveDeviceSpecificationsId(response.body!!.id)
+                    deviceRepository.saveDeviceSpecificationsId(response.body!!.id)
                     registerDevice(context, response.body!!.id)
                 } else {
                     throw QASDKException("Device registration failed, this should, never happen")                }
@@ -252,12 +289,12 @@ internal class QAPrivate private constructor(
         }
 
         // I could not do this before cause I needed a login, could be called also somewhere else
-        repository.cacheJournalEvents()
+        journalRepository.cacheJournalEvents()
     }
 
     @Throws(QASDKException::class)
     private suspend fun registerDevice(context: Context, id: String) {
-        when (val response2 = repository.registerUser(context, id)) {
+        when (val response2 = deviceRepository.registerUser(id)) {
             is ApiEmptyResponse -> {
                 throw QASDKException("Device registration failed, this should, never happen")
             }
@@ -271,14 +308,14 @@ internal class QAPrivate private constructor(
                 preferences.isDeviceRegistered = true
                 response2.body?.let {
                     Timber.d("Registered device -> ${it.id}")
-                    repository.setDeviceId(it.id)
+                    deviceRepository.setDeviceId(it.id)
                 }
             }
         }
     }
 
     suspend fun linkIdentities(idToLink: String): Boolean {
-        return when (repository.linkIdentities(idToLink)) {
+        return when (identityRepository.linkIdentities(idToLink)) {
             is ApiSuccessResponse, is ApiEmptyResponse -> {
                 true
             }
@@ -289,7 +326,7 @@ internal class QAPrivate private constructor(
     }
 
     fun hasFeature(feature: String): Boolean {
-        return repository.hasFeature(feature)
+        return networkManager.capabilitiesManager.hasFeature(feature)
     }
 
     fun getFirebaseToken(): String? {
@@ -313,12 +350,12 @@ internal class QAPrivate private constructor(
 
     @Throws(QASDKException::class)
     suspend fun leaveStudy(participationId: String, studyId: String) {
-        return repository.withdraw(participationId, studyId)
+        return studyRepository.withdraw(participationId, studyId)
     }
 
     @Throws(QASDKException::class)
     suspend fun reSubscribe(participationId: String) {
-        return repository.reSubscribe(participationId)
+        return studyRepository.reSubscribe(participationId)
     }
 
     @Throws(QASDKException::class)
@@ -330,9 +367,9 @@ internal class QAPrivate private constructor(
             throw QASDKException("You need to provide either a studyId or a subscriptionId")
         }
         return if (subscriptionId != null){
-            repository.registerToStudyWithParticipationId(subscriptionId)
+            studyRepository.registerToStudyWithParticipationId(subscriptionId)
         } else {
-            repository.registerToStudy(studyId!!)
+            studyRepository.registerToStudy(studyId!!)
         }
     }
 
@@ -341,11 +378,11 @@ internal class QAPrivate private constructor(
     }
 
     suspend fun submitNote(text: String) {
-        repository.submitNote(text)
+        deviceRepository.submitNote(text)
     }
 
     fun canWithdraw(studyId: String): Boolean {
-        val study = repository.getStudiesSingle().find { it.cohortId == studyId }
+        val study = studyRepository.getStudiesSingle().find { it.cohortId == studyId }
         return study != null && study.canWithdraw == 1
     }
 
@@ -378,7 +415,7 @@ internal class QAPrivate private constructor(
                 justOneDay.add(Calendar.DAY_OF_MONTH, -1)
                 rollBackDate = sdf.format(calendar.timeInMillis)
 
-                val latestTaps = repository.getLatestTaps(rollBackDate)
+                val latestTaps = deviceRepository.getLatestTaps(rollBackDate)
 
                 latestTaps.forEach {
                     taps["%02d".format(it.hour)] = it.taps
@@ -403,7 +440,7 @@ internal class QAPrivate private constructor(
                 calendar.add(Calendar.DAY_OF_MONTH, -flag.timePoints)
                 rollBackDate = sdf.format(calendar.timeInMillis)
 
-                val latestTaps = repository.getLatestTaps(rollBackDate)
+                val latestTaps = deviceRepository.getLatestTaps(rollBackDate)
 
                 latestTaps.groupBy { it.date }.mapValues { (_, v) -> v.sumOf { it.taps } }.forEach {
                     taps[it.key] = it.value
@@ -438,7 +475,7 @@ internal class QAPrivate private constructor(
         }
 
         // Retrieve taps in the time window
-        val taps = repository.getTapsInTimeWindow(startTimestamp, stopTimestamp)
+        val taps = deviceRepository.getTapsInTimeWindow(startTimestamp, stopTimestamp)
 
         // Extract all unique app IDs from the retrieved taps
         val ids = mutableSetOf<Int>()
@@ -449,13 +486,13 @@ internal class QAPrivate private constructor(
         Timber.d("Retrieved ${taps.size} tap sessions with app IDs: $ids")
 
         // Retrieve app codes for the extracted IDs
-        val apps = repository.getAppCodesByIds(ids.toList())
+        val apps = deviceRepository.getAppCodesByIds(ids.toList())
 
         return QA.TapsAndApps(taps, apps)
     }
 
     fun getStudyList(): List<Cohort> {
-        return repository.getStudies()
+        return studyRepository.getStudies()
     }
 
     @Throws(QASDKException::class)
@@ -474,11 +511,11 @@ internal class QAPrivate private constructor(
         date,
         JSONObject(response as Map<*, *>).toString()
         )
-        return repository.sendQuestionnaireResponse(resp)
+        return studyRepository.sendQuestionnaireResponse(resp)
     }
 
     suspend fun getQuestionnairesList(): List<QuestionnaireWithCohortName> {
-        return repository.getQuestionnaires()
+        return studyRepository.getQuestionnaires()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -489,7 +526,9 @@ internal class QAPrivate private constructor(
         to: Long = Instant.now().toEpochMilli(),
         refresh: Boolean = false
     ): Flow<TimeSeries<T>> {
-        return repository.getStat(metricOrTrend, from, to, refresh = refresh)
+        // Need to get participation ID. This might be problematic if not yet cached.
+        val participationId = studyRepository.getStudiesSingle().firstOrNull()?.cohortId ?: ""
+        return metricRepository.getStat(metricOrTrend, participationId, from, to, refresh = refresh)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -518,12 +557,12 @@ internal class QAPrivate private constructor(
     suspend fun saveJournalEntry(
         journalEntry: JournalEntry
     ): JournalEntry {
-        return repository.saveJournalEntry(journalEntry)
+        return journalRepository.saveJournalEntry(journalEntry)
     }
 
 
     fun getJournal(): Flow<List<JournalEntry>> {
-        return repository.getJournalFromDAO()
+        return journalRepository.getJournalFromDAO()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -541,24 +580,26 @@ internal class QAPrivate private constructor(
 
     @Throws(SDKNotInitialisedException::class)
     suspend fun journalEventKinds(): List<JournalEventEntity> {
-        return repository.journalEventKinds()
+        return journalRepository.journalEventKinds()
     }
 
     @Throws(QASDKException::class)
     suspend fun deleteJournalEntry(id: String) {
-        repository.deleteJournalEntry(id)
+        journalRepository.deleteJournalEntry(id)
     }
 
     fun getJournalEntry(
         journalEntryId: String
     ): JournalEntry? {
-        return repository.getAndResolveJournalEntry(journalEntryId)
+        return journalRepository.getAndResolveJournalEntry(journalEntryId)
     }
 
     suspend fun subscription(studyId: String? = null): List<Subscription> {
         return if (isDeviceRegistered()) {
-            repository.getParticipations(studyId)
-        } else listOf()
+            studyRepository.getSubscriptions(studyId)
+        } else {
+            emptyList()
+        }
     }
 
     fun stopReadingService(context: Context) {
@@ -578,15 +619,15 @@ internal class QAPrivate private constructor(
     }
 
     fun canActivity(context: Context): Boolean {
-        return repository.canActivity(context)
+        return preferences.canActivity(context)
     }
 
     fun canDraw(context: Context): Boolean {
-        return repository.canDraw(context)
+        return preferences.canDraw(context)
     }
 
     fun canUsage(context: Context): Boolean {
-        return repository.canUsage(context)
+        return preferences.canUsage(context)
     }
 
 
@@ -647,8 +688,10 @@ internal class QAPrivate private constructor(
         newGender: QA.Gender,
         newSelfDeclaredHealthy: Boolean
     ) {
-        repository.updateBasicInfo(newYearOfBirth, newGender, newSelfDeclaredHealthy)
+        identityRepository.updateBasicInfo(newYearOfBirth, newGender, newSelfDeclaredHealthy)
     }
+
+    suspend fun updateOldPassword(newPassword: String) = identityRepository.updateOldPassword(newPassword)
 
     fun executeOldToNewAPIMigration(scope: CoroutineScope) {
         // If password is not null it means I was born with the new API, so no need to make the migration
@@ -674,19 +717,19 @@ internal class QAPrivate private constructor(
             // manual migration for them
 
             scope.launch {
-                repository.deleteLocalStudies()
-                repository.checkRegisteredStatus()
+                deviceRepository.deleteLocalStudies()
+                identityRepository.checkRegisteredStatus()
                 try {
-                    val associatedIdentity = repository.getIdentity("OldToNewAPIMigration")
+                    val associatedIdentity = identityRepository.getIdentity("OldToNewAPIMigration")
                     Timber.d("ID $associatedIdentity")
                     associatedIdentity.identityId?.let {
                         preferences.identityId = it
                         preferences.isOauthActivated = false
-                        repository.checkRegisteredStatus()
+                        identityRepository.checkRegisteredStatus()
                     }
 
-                    repository.resetAppCodesSyncStatus()
-                    repository.resetJournalSyncStatus()
+                    deviceRepository.resetAppCodesSyncStatus()
+                    journalRepository.resetJournalSyncStatus()
                 } catch (e: QASDKException) {
                     Firebase.crashlytics.recordException(e)
                     Timber.e(e.toString())
@@ -726,7 +769,7 @@ internal class QAPrivate private constructor(
             }
             cursor.close()
             Timber.tag("BroadCastReceiver").i("Inserting into taps (${hourlyTapsEntities.size})")
-            scope.launch { repository.insertOrUpdateHourlyTapsEntity(hourlyTapsEntities) }
+            scope.launch { deviceRepository.insertOrUpdateHourlyTapsEntity(hourlyTapsEntities) }
             cursor = sqLiteDatabase.query(
                 LookUp.TABLE_APP_CODE, null, null, null, null, null, null
             )
@@ -742,7 +785,7 @@ internal class QAPrivate private constructor(
             }
             cursor.close()
             Timber.tag("BroadCastReceiver").i("Moving (${appCodes.size}) apps")
-            scope.launch { repository.insertOrUpdateAppCode(appCodes) }
+            scope.launch { deviceRepository.insertOrUpdateAppCode(appCodes) }
 
             cursor = sqLiteDatabase.query(
                 LookUp.TABLE_RECORDS,
@@ -792,11 +835,11 @@ internal class QAPrivate private constructor(
 
     @Throws(QASDKException::class)
     suspend fun getConnectedDevices(): List<String> {
-        return repository.getConnectedDevices()
+        return deviceRepository.getConnectedDevices()
     }
 
     fun <T>getCognitiveTestResults(testType: CognitiveTest<T>): Flow<List<CognitiveTestResult<T>>> {
-        return repository.getCognitiveTestResults(testType)
+        return cognitiveTestRepository.getCognitiveTestResults(testType)
     }
 
     suspend fun <T>saveCognitiveTestResult(
@@ -805,15 +848,15 @@ internal class QAPrivate private constructor(
         timestamp: Long = System.currentTimeMillis(),
         localTime: String = Instant.now().toString()
     ) {
-        val gson = Gson()
+        val gson = com.google.gson.Gson()
         val resultJson = gson.toJson(testResult)
-        val entity = CognitiveTestEntity(
+        val entity = com.quantactions.sdk.data.entity.CognitiveTestEntity(
             testType = testType.id,
             results = resultJson,
             timestamp = timestamp,
             localTime = localTime,
             sync = 0
         )
-        return repository.submitCognitiveTestResponse(testType, entity)
+        return cognitiveTestRepository.submitCognitiveTestResponse(testType, entity)
     }
 }

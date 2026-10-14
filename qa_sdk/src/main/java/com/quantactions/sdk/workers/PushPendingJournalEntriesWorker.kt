@@ -14,9 +14,9 @@ import androidx.work.WorkerParameters
 import com.hadiyarajesh.flower_core.ApiEmptyResponse
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
+import com.quantactions.sdk.QAPrivate
 import com.quantactions.sdk.data.model.JournalEntryBody
 import com.quantactions.sdk.data.model.JournalEventBody
-import com.quantactions.sdk.data.repository.MVPRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -29,7 +29,7 @@ import java.time.format.DateTimeFormatter
 class PushPendingJournalEntriesWorker(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
 
-    private val repository = MVPRepository.getInstance(context)
+    private val repository = QAPrivate.getInstance(context).journalRepo
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
 
@@ -114,7 +114,7 @@ class PushPendingJournalEntriesWorker(context: Context, params: WorkerParameters
         }
 
         if (job.awaitAll().sum() == 0) {
-            if (deleteJob.awaitAll().sum() == 0) {
+            if (deleteJob.awaitAll().sumOf { if (it == 0) 0 else 1 } == 0) {
                 Result.success()
             } else {
                 Result.retry()

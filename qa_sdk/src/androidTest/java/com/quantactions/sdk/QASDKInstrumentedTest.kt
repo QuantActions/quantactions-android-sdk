@@ -25,6 +25,11 @@ import com.quantactions.sdk.data.api.adapters.StatisticAdapter
 import com.quantactions.sdk.data.api.responses.DataFrameSchema
 import com.quantactions.sdk.data.api.responses.StatisticCore
 import com.quantactions.sdk.data.api.responses.StatisticResponse
+import com.quantactions.sdk.data.entity.DeviceHealthParsed
+import com.quantactions.sdk.data.entity.TapDataParsed
+import com.quantactions.sdk.data.local.MVPDao
+import com.quantactions.sdk.data.model.HealthDataBody
+import com.quantactions.sdk.data.model.TapDataBody
 import com.quantactions.sdk.data.repository.*
 import com.quantactions.sdk.exceptions.SDKNotInitialisedException
 import junit.framework.TestCase
@@ -63,7 +68,7 @@ class SDKFunctionalityTest {
     @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
     private val mainThreadSurrogate = newSingleThreadContext("UI thread")
 
-    private lateinit var repository: MVPRepository
+    private lateinit var qaPrivate: QAPrivate
     private lateinit var preferences: ManagePref2
     private lateinit var mockRepository: MockRepository
     private lateinit var mockPreferences: MockPref
@@ -83,9 +88,9 @@ class SDKFunctionalityTest {
         preferences.deviceID = deviceId
         preferences.password = password
         preferences.setFBCode(fbToken)
-        repository = MVPRepository.getInstance(appContext, apiKey)
-        runBlocking {
-            repository.checkRegisteredStatus()
+        qaPrivate = QAPrivate.getInstance(appContext)
+        runBlocking<Unit> {
+            qaPrivate.checkRegisteredStatus()
         }
         // Mock repository
         mockPreferences = MockPref.getInstance(appContext)
@@ -116,7 +121,7 @@ class SDKFunctionalityTest {
 
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
         val job = runBlocking {
-            when (val response = repository.updateDeviceInfo(appContext)) {
+            when (val response = qaPrivate.deviceRepo.updateDeviceInfo()) {
                 is ApiErrorResponse -> {
                     Resource.error("", 404, null)
                 }
@@ -139,7 +144,7 @@ class SDKFunctionalityTest {
 
         val deviceHealthBody = HealthDataBody(Payloads().deviceHealthParsedPayload)
         val job = runBlocking {
-            when (val response = repository.submitHealthDataParsed(deviceHealthBody)) {
+            when (val response = qaPrivate.deviceRepo.submitHealthDataParsed(deviceHealthBody)) {
                 is ApiErrorResponse -> Resource.error("", 404, null)
                 is ApiEmptyResponse -> Resource.error("", 404, null)
                 is ApiSuccessResponse -> Resource.success(response)
@@ -173,7 +178,7 @@ class SDKFunctionalityTest {
     fun testSendNote() {
 
         runBlocking {
-            repository.submitNote("test note", identityId)
+            qaPrivate.deviceRepo.submitNote("test note", identityId)
         }
     }
 
@@ -184,7 +189,7 @@ class SDKFunctionalityTest {
         val job = runBlocking {
 
             when (val response =
-                repository.updateAppList(Payloads().appsToPush)) {
+                qaPrivate.deviceRepo.updateAppList(Payloads().appsToPush)) {
                 is ApiErrorResponse -> {
                     Log.e("ErrorTest", response.errorMessage)
                     Resource.error("", 404, null)
@@ -201,11 +206,11 @@ class SDKFunctionalityTest {
     @Throws(InterruptedException::class)
     fun testSubmitStatistic() {
 
-        val tapsStats = TapsStats(repository.mvpDao).toDeviceStats()
+        val tapsStats = TapsStats(qaPrivate.mvpDao).toDeviceStats()
 
         val job = runBlocking {
 
-            when (val response = repository.submitStatistic(tapsStats)) {
+            when (val response = qaPrivate.deviceRepo.submitStatistic(tapsStats)) {
                 is ApiErrorResponse -> {
                     Resource.error("", 404, null)
                 }
@@ -231,7 +236,7 @@ class SDKFunctionalityTest {
         val tapData = TapDataBody(Payloads().tapDataParsedPayload)
 
         val job = runBlocking {
-            when (val response = repository.submitTapDataParsed(tapData)) {
+            when (val response = qaPrivate.deviceRepo.submitTapDataParsed(tapData)) {
                 is ApiErrorResponse -> {
                     Resource.error("", 404, null)
                 }
@@ -270,7 +275,7 @@ class SDKFunctionalityTest {
     @Test
     @OptIn(ExperimentalCoroutinesApi::class)
     fun testGetJournalEntries() = runTest {
-        val entries = repository.cacheJournal()
+        val entries = mockRepository.cacheJournal()
         TestCase.assertEquals(entries.size, 0)
     }
 
@@ -278,11 +283,11 @@ class SDKFunctionalityTest {
     @Throws(InterruptedException::class, SDKNotInitialisedException::class)
     fun testSignUpForStudyAndWithdraw() = runTest {
 
-        repository.registerToStudyWithParticipationId(participationId)
+        qaPrivate.studyRepo.registerToStudyWithParticipationId(participationId)
 
-        repository.withdraw(participationId, studyId)
+        qaPrivate.studyRepo.withdraw(participationId, studyId)
 
-//        repository.reSubscribe(participationId)
+//        qaPrivate.reSubscribe(participationId)
 
     }
 //    fun <T> LiveData<T>.getOrAwaitValue(

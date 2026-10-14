@@ -11,7 +11,7 @@ package com.quantactions.sdk.workers
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.quantactions.sdk.data.repository.MVPRepository
+import com.quantactions.sdk.QAPrivate
 import com.quantactions.sdk.exceptions.QASDKException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -19,7 +19,7 @@ import kotlinx.coroutines.withContext
 class SignUpForStudyWorker(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
 
-    private val repository = MVPRepository.getInstance(context)
+    private val repository = QAPrivate.getInstance(context).studyRepo
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
 
