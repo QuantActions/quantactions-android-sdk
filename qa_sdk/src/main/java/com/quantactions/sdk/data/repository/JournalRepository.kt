@@ -9,6 +9,7 @@
 
 package com.quantactions.sdk.data.repository
 
+import com.hadiyarajesh.flower_core.ApiEmptyResponse
 import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
@@ -133,9 +134,15 @@ internal class JournalRepository(
     }
 
     suspend fun deleteJournalEntry(id: String) {
+        mvpDao.deleteJournalEntry(id)
         when (val response = networkManager.apiService.journalEntryDelete(identityRepository.identityId, id)) {
-            is ApiSuccessResponse -> mvpDao.deleteJournalEntry(id)
-            else -> Timber.e("Failed to delete journal entry")
+            is ApiSuccessResponse, is ApiEmptyResponse -> {
+                mvpDao.updateJournalEntry(id, 1)
+            }
+            is ApiErrorResponse -> {
+                Timber.e("Failed to delete journal entry on server: ${response.errorMessage}")
+                throw QASDKException("API Error [deleteJournalEntry()]: ${response.errorMessage} || ${response.httpStatusCode}")
+            }
         }
     }
 

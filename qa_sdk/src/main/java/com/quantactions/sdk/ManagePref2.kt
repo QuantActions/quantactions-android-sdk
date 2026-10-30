@@ -164,6 +164,14 @@ class ManagePref2 private constructor(val context: Context) : GenericPreferences
             }
         }
 
+    override var participationId: String
+        get() = sharedPref.getString(PARTICIPATION_ID, "") ?: ""
+        set(newVal) {
+            sharedPref.edit {
+                putString(PARTICIPATION_ID, newVal)
+            }
+        }
+
     override val accessToken: String?
         get() = sharedPref.getString(ACCESS_TOKEN, null)
 
@@ -450,5 +458,6 @@ class ManagePref2 private constructor(val context: Context) : GenericPreferences
         const val OLD_TO_NEW_API_MIGRATION_DONE  = "old_to_new_api_migration_done"
         const val HEALTHY_RANGES                 = "healthy_ranges"
         const val CAPABILITIES_TOKEN             = "capabilities_token"
+        const val PARTICIPATION_ID               = "participation_id"
     }
 }

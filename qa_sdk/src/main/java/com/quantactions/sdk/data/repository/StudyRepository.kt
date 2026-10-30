@@ -61,6 +61,7 @@ internal class StudyRepository(
             is ApiSuccessResponse -> {
                 apiResponse.body?.let {
                     Timber.d("SUCCESS while signup $it")
+                    preferences.participationId = it.id
                     val cohort = getStudyInfo(it.studyId!!) ?: throw QASDKException("Cohort is null")
                     val questionnaires = getQuestionnaires(it.studyId!!)
                     mvpDao.insertOrUpdateStudy(cohort)
@@ -103,6 +104,7 @@ internal class StudyRepository(
             is ApiSuccessResponse -> {
                 apiResponse.body?.let {
                     Timber.d("SUCCESS while signup $it")
+                    preferences.participationId = it.id
                     networkManager.tokenApi.login(getBasicAuthHeader(preferences))
                     val cohort = getStudyInfoWithParticipationId(participationId) ?: throw QASDKException("Cohort is null")
                     val questionnaires = getQuestionnaires(cohort.cohortId)
@@ -155,7 +157,21 @@ internal class StudyRepository(
         return when (val response = networkManager.apiService.getParticipations(identityRepository.identityId, filter.stringify())) {
             is ApiSuccessResponse -> {
                 val studyInfo = response.body!!.first { it.studyId == studyId }.study!!
-                val cohort = Cohort(studyInfo.id, studyInfo.privacyPolicy, studyInfo.name, null, 0, if (studyInfo.enableWithdraw) 1 else 0, if (studyInfo.enableSyncOnScreenOff) 1 else 0, if (studyInfo.enableAppIdAccess) 1 else 0, if (studyInfo.enableSyncOnScreenOff) 1 else 0, if (studyInfo.enableDrawOverAccess) 1 else 0, 0, 0, studyInfo.enableCognitiveTests ?: false)
+                val cohort = Cohort(
+                    cohortId = studyInfo.id,
+                    privacyPolicy = studyInfo.privacyPolicy,
+                    cohortName = studyInfo.name,
+                    dataPattern = null,
+                    gpsResolution = 0,
+                    canWithdraw = if (studyInfo.enableWithdraw) 1 else 0,
+                    syncOnScreenOff = if (studyInfo.enableSyncOnScreenOff) 1 else 0,
+                    perimeterCheck = 0,
+                    permAppId = if (studyInfo.enableAppIdAccess) 1 else 0,
+                    permDrawOver = if (studyInfo.enableDrawOverAccess) 1 else 0,
+                    permLocation = 0,
+                    permContact = 0,
+                    enableCognitiveTests = studyInfo.enableCognitiveTests ?: false
+                )
                 mvpDao.insertOrUpdateStudy(cohort)
                 cohort
             }
@@ -167,7 +183,21 @@ internal class StudyRepository(
         return when (val response = networkManager.apiService.getParticipation(identityRepository.identityId, participationId, "{\"include\":[{\"relation\":\"study\",\"scope\":{\"where\":{\"deleted\":null}}}]}")) {
             is ApiSuccessResponse -> {
                 val studyInfo = response.body!!.study!!
-                val cohort = Cohort(studyInfo.id, studyInfo.privacyPolicy, studyInfo.name, null, 0, if (studyInfo.enableWithdraw) 1 else 0, if (studyInfo.enableSyncOnScreenOff) 1 else 0, if (studyInfo.enableAppIdAccess) 1 else 0, if (studyInfo.enableSyncOnScreenOff) 1 else 0, if (studyInfo.enableDrawOverAccess) 1 else 0, 0, 0, studyInfo.enableCognitiveTests ?: false)
+                val cohort = Cohort(
+                    cohortId = studyInfo.id,
+                    privacyPolicy = studyInfo.privacyPolicy,
+                    cohortName = studyInfo.name,
+                    dataPattern = null,
+                    gpsResolution = 0,
+                    canWithdraw = if (studyInfo.enableWithdraw) 1 else 0,
+                    syncOnScreenOff = if (studyInfo.enableSyncOnScreenOff) 1 else 0,
+                    perimeterCheck = 0,
+                    permAppId = if (studyInfo.enableAppIdAccess) 1 else 0,
+                    permDrawOver = if (studyInfo.enableDrawOverAccess) 1 else 0,
+                    permLocation = 0,
+                    permContact = 0,
+                    enableCognitiveTests = studyInfo.enableCognitiveTests ?: false
+                )
                 mvpDao.insertOrUpdateStudy(cohort)
                 cohort
             }
@@ -187,6 +217,11 @@ internal class StudyRepository(
         val response = networkManager.apiService.getParticipations(identityRepository.identityId, filter.stringify())
         return if (response is ApiSuccessResponse) {
             val results = response.body!!
+            if (results.isNotEmpty()) {
+                preferences.participationId = results.first().id
+            } else {
+                preferences.participationId = ""
+            }
             val items = if (studyId != null) results.filter { it.studyId == studyId } else results
             items.map { p ->
                 Subscription(
@@ -208,6 +243,9 @@ internal class StudyRepository(
         val body = ApiService.WithdrawBody(withdraw = created)
         when (val response = networkManager.apiService.withdrawParticipation(identityRepository.identityId, participationId, body)) {
             is ApiSuccessResponse, is ApiEmptyResponse -> {
+                if (preferences.participationId == participationId) {
+                    preferences.participationId = ""
+                }
                 mvpDao.deleteStudy(studyId)
                 mvpDao.deleteQuestionnaires(studyId)
             }
@@ -245,8 +283,18 @@ internal class StudyRepository(
             questionnaireId,
             toPush
         )
-        if (apiResponse is ApiSuccessResponse) {
-            mvpDao.deleteQuestionnaireResponse(daoResponse)
+        when (apiResponse) {
+            is ApiSuccessResponse -> {
+                apiResponse.body?.let {
+                    mvpDao.deleteQuestionnaireResponse(daoResponse)
+                }
+            }
+            is ApiErrorResponse -> {
+                throw QASDKException("API Error [sendQuestionnaireResponse()]: ${apiResponse.errorMessage} || ${apiResponse.httpStatusCode}")
+            }
+            is ApiEmptyResponse -> {
+                throw QASDKException("Response Body to sendQuestionnaire is empty, this should not happen, file a bug report!")
+            }
         }
     }
 

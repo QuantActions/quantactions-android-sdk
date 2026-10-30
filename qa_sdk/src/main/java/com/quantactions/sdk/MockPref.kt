@@ -42,6 +42,7 @@ class MockPref private constructor(context: Context) : GenericPreferences {
     override var identityId: String = BuildConfig.QA_SAMPLE_ID
 
     override var password: String = BuildConfig.QA_SAMPLE_PASSWORD
+    override var participationId: String = BuildConfig.QA_SAMPLE_PART_ID
 
     override val accessToken: String?
         get() = sharedPref.getString(ACCESS_TOKEN, null)

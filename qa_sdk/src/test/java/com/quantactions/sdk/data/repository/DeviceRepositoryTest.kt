@@ -168,8 +168,8 @@ class DeviceRepositoryTest {
             [
                 {
                     "package": "com.quantactions.testapp",
-                    "id": 42,
-                    "category_main": "health_and_fitness"
+                    "installationId": 42,
+                    "categoryMain": "health_and_fitness"
                 }
             ]
         """.trimIndent()
