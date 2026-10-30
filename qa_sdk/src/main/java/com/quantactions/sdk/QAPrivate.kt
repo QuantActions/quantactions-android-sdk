@@ -216,6 +216,13 @@ internal class QAPrivate private constructor(
             // not first time, I check for running
             checkAndRunService(context)
             settingUpSomeWorkers(context)
+            if (preferences.participationId.isEmpty() && isDeviceRegistered()) {
+                try {
+                    studyRepository.getSubscriptions()
+                } catch (e: Exception) {
+                    Timber.w("Could not fetch participations during init: ${e.message}")
+                }
+            }
             return false
         }
     }
@@ -526,8 +533,10 @@ internal class QAPrivate private constructor(
         to: Long = Instant.now().toEpochMilli(),
         refresh: Boolean = false
     ): Flow<TimeSeries<T>> {
-        // Need to get participation ID. This might be problematic if not yet cached.
-        val participationId = studyRepository.getStudiesSingle().firstOrNull()?.cohortId ?: ""
+        val participationId = preferences.participationId
+        if (participationId.isEmpty()) {
+            Timber.w("No participationId found; user is not registered in any study. Returning local/cached stats without network call.")
+        }
         return metricRepository.getStat(metricOrTrend, participationId, from, to, refresh = refresh)
     }
 
@@ -694,8 +703,8 @@ internal class QAPrivate private constructor(
     suspend fun updateOldPassword(newPassword: String) = identityRepository.updateOldPassword(newPassword)
 
     fun executeOldToNewAPIMigration(scope: CoroutineScope) {
-        // If password is not null it means I was born with the new API, so no need to make the migration
-        if (!preferences.oldToNewAPIMigrationDone && preferences.password == null) {
+        // If password is not empty it means I was born with the new API, so no need to make the migration
+        if (!preferences.oldToNewAPIMigrationDone && preferences.password.isEmpty()) {
             preferences.oldToNewAPIMigrationDone = true
             preferences.password = BuildConfig.QA_SAMPLE_PASSWORD
             // this can be done because the deviceID is the same as the IAM identity

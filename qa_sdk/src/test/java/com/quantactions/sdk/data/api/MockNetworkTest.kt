@@ -101,9 +101,9 @@ class MockNetworkTest {
             [
                 {
                     "package": "com.example.app1",
-                    "id": 1,
-                    "category_main": "productivity",
-                    "category_secondary": "tools"
+                    "installationId": 1,
+                    "categoryMain": "productivity",
+                    "categorySecondary": "tools"
                 }
             ]
         """.trimIndent()
