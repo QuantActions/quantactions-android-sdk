@@ -100,33 +100,41 @@ fun CumulativeBarPlot(
 
     val width = screenWidth - marginRight - marginLeft
     val lineStroke = 1.dp
-    val barWidth: Dp
 
-    var valuesToPlot by remember { mutableStateOf(TimeSeries.ScreenTimeAggregateTimeSeries()) }
-    var scoreValuesToPlot by remember { mutableStateOf(TimeSeries.DoubleTimeSeries()) }
-    val xLabelsText: List<AnnotatedString>
-    val times: TimeSeries.DoubleTimeSeries
+    val weekString = stringResource(id = R.string.week)
+    val valuesToPlot: TimeSeries.ScreenTimeAggregateTimeSeries = remember(screenTime, chartType) {
+        when (chartType) {
+            Chart.WEEK -> screenTime.fillMissingDays(Chart.WEEK.numValues).takeLast(Chart.WEEK.numValues)
+            Chart.MONTH -> screenTime.fillMissingDays(Chart.MONTH.numValues * 7).extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
+            Chart.YEAR -> screenTime.fillMissingDays(366).extractMonthlyAverages().takeLast(Chart.YEAR.numValues)
+        }
+    }
 
-    when (chartType) {
-        Chart.WEEK -> {
+    val scoreValuesToPlot: TimeSeries.DoubleTimeSeries = remember(socialEngagementScore, chartType) {
+        when (chartType) {
+            Chart.WEEK -> socialEngagementScore.fillMissingDays(Chart.WEEK.numValues).takeLast(Chart.WEEK.numValues)
+            Chart.MONTH -> socialEngagementScore.fillMissingDays(Chart.MONTH.numValues * 7).extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
+            Chart.YEAR -> socialEngagementScore.fillMissingDays(366).extractMonthlyAverages().takeLast(Chart.YEAR.numValues)
+        }
+    }
 
-            valuesToPlot =
-                screenTime.fillMissingDays(Chart.WEEK.numValues)
-                    .takeLast(Chart.WEEK.numValues)
+    val times: TimeSeries.DoubleTimeSeries = remember(chartType) {
+        when (chartType) {
+            Chart.WEEK -> TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.WEEK.numValues).takeLast(Chart.WEEK.numValues)
+            Chart.MONTH -> TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.MONTH.numValues * 7).extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
+            Chart.YEAR -> TimeSeries.DoubleTimeSeries().fillMissingDays(366).extractMonthlyAverages().takeLast(Chart.YEAR.numValues)
+        }
+    }
 
+    val barWidth: Dp = when (chartType) {
+        Chart.WEEK -> 8.dp
+        Chart.MONTH -> 20.dp
+        Chart.YEAR -> 10.dp
+    }
 
-            scoreValuesToPlot =
-                socialEngagementScore.fillMissingDays(Chart.WEEK.numValues)
-                    .takeLast(Chart.WEEK.numValues)
-
-
-            times = TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.WEEK.numValues)
-                .takeLast(Chart.WEEK.numValues)
-
-            barWidth = 8.dp
-
-            // x labels
-            xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
+    val xLabelsText: List<AnnotatedString> = remember(valuesToPlot, selectedPoint, chartType, weekString) {
+        when (chartType) {
+            Chart.WEEK -> valuesToPlot.timestamps.mapIndexed { i, timestamp ->
                 buildAnnotatedString {
                     withStyle(
                         style = SpanStyle(
@@ -146,27 +154,7 @@ fun CumulativeBarPlot(
                     }
                 }
             }
-        }
-
-        Chart.MONTH -> {
-            valuesToPlot =
-                screenTime.fillMissingDays(Chart.MONTH.numValues * 7)
-                    .extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
-
-
-            scoreValuesToPlot =
-                socialEngagementScore.fillMissingDays(Chart.MONTH.numValues * 7)
-                    .extractWeeklyAverages()
-                    .takeLast(Chart.MONTH.numValues)
-
-
-            times = TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.MONTH.numValues * 7)
-                .extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
-
-
-            barWidth = 20.dp
-            // x labels
-            xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
+            Chart.MONTH -> valuesToPlot.timestamps.mapIndexed { i, timestamp ->
                 buildAnnotatedString {
                     withStyle(
                         style = SpanStyle(
@@ -178,32 +166,14 @@ fun CumulativeBarPlot(
                     ) {
                         append(
                             String.format(
-                                stringResource(id = R.string.week),
+                                weekString,
                                 timestamp.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
                             )
                         )
                     }
                 }
             }
-        }
-
-        Chart.YEAR -> {
-            // here I need to massage and extract averages over months
-            valuesToPlot =
-                screenTime.fillMissingDays(366).extractMonthlyAverages()
-                    .takeLast(Chart.YEAR.numValues)
-
-            scoreValuesToPlot =
-                socialEngagementScore.fillMissingDays(366)
-                    .extractMonthlyAverages()
-                    .takeLast(Chart.YEAR.numValues)
-
-            times = TimeSeries.DoubleTimeSeries().fillMissingDays(366).extractMonthlyAverages()
-                .takeLast(Chart.YEAR.numValues)
-
-            barWidth = 10.dp
-            // x labels
-            xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
+            Chart.YEAR -> valuesToPlot.timestamps.mapIndexed { i, timestamp ->
                 buildAnnotatedString {
                     withStyle(
                         style = TP.regular.overline.toSpanStyle(if (i == selectedPoint) score.colors.color else ColdGrey04)
@@ -220,7 +190,7 @@ fun CumulativeBarPlot(
 
     var prevSelectedPoint by remember { mutableIntStateOf(-1) }
     var showNoDataInfo by remember { mutableStateOf(false) }
-    var lastXValue by remember { mutableFloatStateOf(-1.0f) }
+    var lastXValue = -1.0f
 
     val scoreBubbleWidth = 8.dp
     val scoreBubbleHeight = 6.dp
