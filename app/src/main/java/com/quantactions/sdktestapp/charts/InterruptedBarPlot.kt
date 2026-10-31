@@ -104,30 +104,41 @@ fun InterruptedBarPlot(
 
     val width = screenWidth - marginRight - marginLeft
     val lineStroke = 1.dp
-    val barWidth: Dp
 
-    var valuesToPlot by remember { mutableStateOf(TimeSeries.SleepSummaryTimeTimeSeries()) }
-    var scoreValuesToPlot by remember { mutableStateOf(TimeSeries.DoubleTimeSeries()) }
-    val xLabelsText: List<AnnotatedString>
-    val times: TimeSeries.DoubleTimeSeries
+    val weekString = stringResource(id = R.string.week)
+    val valuesToPlot: TimeSeries.SleepSummaryTimeTimeSeries = remember(sleepSummary, chartType) {
+        when (chartType) {
+            Chart.WEEK -> sleepSummary.fillMissingDays(Chart.WEEK.numValues).takeLast(Chart.WEEK.numValues)
+            Chart.MONTH -> sleepSummary.fillMissingDays(Chart.MONTH.numValues * 7).extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
+            Chart.YEAR -> sleepSummary.fillMissingDays(366).extractMonthlyAverages().takeLast(Chart.YEAR.numValues)
+        }
+    }
 
-    when (chartType) {
-        Chart.WEEK -> {
-            valuesToPlot =
-                sleepSummary.fillMissingDays(Chart.WEEK.numValues)
-                    .takeLast(Chart.WEEK.numValues)
+    val scoreValuesToPlot: TimeSeries.DoubleTimeSeries = remember(sleepScore, chartType) {
+        when (chartType) {
+            Chart.WEEK -> sleepScore.fillMissingDays(Chart.WEEK.numValues).takeLast(Chart.WEEK.numValues)
+            Chart.MONTH -> sleepScore.fillMissingDays(Chart.MONTH.numValues * 7).extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
+            Chart.YEAR -> sleepScore.fillMissingDays(366).extractMonthlyAverages().takeLast(Chart.YEAR.numValues)
+        }
+    }
 
-            scoreValuesToPlot =
-                sleepScore.fillMissingDays(Chart.WEEK.numValues)
-                    .takeLast(Chart.WEEK.numValues)
+    val times: TimeSeries.DoubleTimeSeries = remember(chartType) {
+        when (chartType) {
+            Chart.WEEK -> TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.WEEK.numValues).takeLast(Chart.WEEK.numValues)
+            Chart.MONTH -> TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.MONTH.numValues * 7).extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
+            Chart.YEAR -> TimeSeries.DoubleTimeSeries().fillMissingDays(366).extractMonthlyAverages().takeLast(Chart.YEAR.numValues)
+        }
+    }
 
-            times = TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.WEEK.numValues)
-                .takeLast(Chart.WEEK.numValues)
+    val barWidth: Dp = when (chartType) {
+        Chart.WEEK -> 8.dp
+        Chart.MONTH -> 20.dp
+        Chart.YEAR -> 10.dp
+    }
 
-            barWidth = 8.dp
-
-            // x labels
-            xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
+    val xLabelsText: List<AnnotatedString> = remember(valuesToPlot, selectedPoint, chartType, weekString) {
+        when (chartType) {
+            Chart.WEEK -> valuesToPlot.timestamps.mapIndexed { i, timestamp ->
                 buildAnnotatedString {
                     withStyle(
                         style = SpanStyle(
@@ -147,27 +158,7 @@ fun InterruptedBarPlot(
                     }
                 }
             }
-        }
-
-        Chart.MONTH -> {
-            valuesToPlot =
-                sleepSummary.fillMissingDays(Chart.MONTH.numValues * 7)
-                    .extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
-
-
-            scoreValuesToPlot =
-                sleepScore.fillMissingDays(Chart.MONTH.numValues * 7)
-                    .extractWeeklyAverages()
-                    .takeLast(Chart.MONTH.numValues)
-
-
-            times = TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.MONTH.numValues * 7)
-                .extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
-
-
-            barWidth = 20.dp
-            // x labels
-            xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
+            Chart.MONTH -> valuesToPlot.timestamps.mapIndexed { i, timestamp ->
                 buildAnnotatedString {
                     withStyle(
                         style = SpanStyle(
@@ -178,30 +169,15 @@ fun InterruptedBarPlot(
                         )
                     ) {
                         append(
-                            String.format(stringResource(id = R.string.week),
-                                timestamp.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR))
+                            String.format(
+                                weekString,
+                                timestamp.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
+                            )
                         )
                     }
                 }
             }
-        }
-
-        Chart.YEAR -> {
-            valuesToPlot =
-                sleepSummary.fillMissingDays(366).extractMonthlyAverages()
-                    .takeLast(Chart.YEAR.numValues)
-
-            scoreValuesToPlot =
-                sleepScore.fillMissingDays(366)
-                    .extractMonthlyAverages()
-                    .takeLast(Chart.YEAR.numValues)
-
-            times = TimeSeries.DoubleTimeSeries().fillMissingDays(366).extractMonthlyAverages()
-                .takeLast(Chart.YEAR.numValues)
-
-            barWidth = 10.dp
-            // x labels
-            xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
+            Chart.YEAR -> valuesToPlot.timestamps.mapIndexed { i, timestamp ->
                 buildAnnotatedString {
                     withStyle(
                         style = TP.regular.overline.toSpanStyle(if (i == selectedPoint) score.colors.color else ColdGrey04)
@@ -221,7 +197,7 @@ fun InterruptedBarPlot(
 
     var prevSelectedPoint by remember { mutableIntStateOf(-1) }
     var showNoDataInfo by remember { mutableStateOf(false) }
-    var lastXValue by remember { mutableFloatStateOf(-1.0f) }
+    var lastXValue = -1.0f
 
     val scoreBubbleWidth = 8.dp
     val scoreBubbleHeight = 6.dp

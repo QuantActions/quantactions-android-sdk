@@ -104,28 +104,32 @@ fun ShadedLineChart(
     val width = screenWidth - marginRight - marginLeft
     val lineStroke = 1.dp
 
-    var valuesToPlot by remember { mutableStateOf(TimeSeries.DoubleTimeSeries()) } 
-    val xLabelsText: List<AnnotatedString>
-    val times: TimeSeries.DoubleTimeSeries
-    val horizontalBias: Dp
+    val weekString = stringResource(id = R.string.week)
+    val valuesToPlot: TimeSeries.DoubleTimeSeries = remember(timeSeries, chartType) {
+        when (chartType) {
+            Chart.WEEK -> timeSeries.fillMissingDays(Chart.WEEK.numValues).takeLast(Chart.WEEK.numValues)
+            Chart.MONTH -> timeSeries.fillMissingDays(Chart.MONTH.numValues * 7).extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
+            Chart.YEAR -> timeSeries.fillMissingDays(366).extractMonthlyAverages().takeLast(Chart.YEAR.numValues)
+        }
+    }
 
-    // other
+    val times: TimeSeries.DoubleTimeSeries = remember(chartType) {
+        when (chartType) {
+            Chart.WEEK -> TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.WEEK.numValues).takeLast(Chart.WEEK.numValues)
+            Chart.MONTH -> TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.MONTH.numValues * 7).extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
+            Chart.YEAR -> TimeSeries.DoubleTimeSeries().fillMissingDays(366).extractMonthlyAverages().takeLast(Chart.YEAR.numValues)
+        }
+    }
 
-    when (chartType) {
-        Chart.WEEK -> {
+    val horizontalBias: Dp = when (chartType) {
+        Chart.WEEK -> 8.dp
+        Chart.MONTH -> 20.dp
+        Chart.YEAR -> 8.dp
+    }
 
-            valuesToPlot =
-                timeSeries.fillMissingDays(Chart.WEEK.numValues)
-                    .takeLast(Chart.WEEK.numValues)
-
-
-            times = TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.WEEK.numValues)
-                .takeLast(Chart.WEEK.numValues)
-
-            horizontalBias = 8.dp
-
-            // x labels
-            xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
+    val xLabelsText: List<AnnotatedString> = remember(valuesToPlot, selectedPoint, chartType, weekString) {
+        when (chartType) {
+            Chart.WEEK -> valuesToPlot.timestamps.mapIndexed { i, timestamp ->
                 buildAnnotatedString {
                     withStyle(
                         style = SpanStyle(
@@ -145,21 +149,7 @@ fun ShadedLineChart(
                     }
                 }
             }
-        }
-
-        Chart.MONTH -> {
-            valuesToPlot =
-                timeSeries.fillMissingDays(Chart.MONTH.numValues * 7)
-                    .extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
-
-
-            times = TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.MONTH.numValues * 7)
-                .extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
-
-
-            horizontalBias = 20.dp
-            // x labels
-            xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
+            Chart.MONTH -> valuesToPlot.timestamps.mapIndexed { i, timestamp ->
                 buildAnnotatedString {
                     withStyle(
                         style = SpanStyle(
@@ -171,26 +161,14 @@ fun ShadedLineChart(
                     ) {
                         append(
                             String.format(
-                                stringResource(id = R.string.week),
-                                timestamp.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR))
+                                weekString,
+                                timestamp.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
+                            )
                         )
                     }
                 }
             }
-        }
-
-        Chart.YEAR -> {
-            // here I need to massage and extract averages over months
-            valuesToPlot =
-                timeSeries.fillMissingDays(366).extractMonthlyAverages()
-                    .takeLast(Chart.YEAR.numValues)
-
-            times = TimeSeries.DoubleTimeSeries().fillMissingDays(366).extractMonthlyAverages()
-                .takeLast(Chart.YEAR.numValues)
-
-            horizontalBias = 8.dp
-            // x labels
-            xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
+            Chart.YEAR -> valuesToPlot.timestamps.mapIndexed { i, timestamp ->
                 buildAnnotatedString {
                     withStyle(
                         style = TP.regular.overline.toSpanStyle(if (i == selectedPoint - 1) score.colors.color else ColdGrey04)
@@ -246,7 +224,7 @@ fun ShadedLineChart(
     var selectedTimePoint by remember { mutableIntStateOf(-1) }
     var selectedLowY by remember { mutableIntStateOf(-1) }
     var selectedHighY by remember { mutableIntStateOf(-1) }
-    var lastXValue by remember { mutableFloatStateOf(-1.0f) }
+    var lastXValue = -1.0f
     val shadedArea: Path
     val linesArea: Path
 

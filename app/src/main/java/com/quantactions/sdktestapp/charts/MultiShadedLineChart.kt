@@ -54,27 +54,47 @@ fun MultiShadedLineChart(
 
     // Here I need to custom for number fo values
     val nVerticalLines = chartType.numValues
-    val horizontalBias: Dp
-    val times: TimeSeries<Double>
-
-    val valuesToPlot: List<TimeSeries<Double>>
-
     val xLabelFormatter = DateTimeFormatter.ofPattern(StringFormatter.ChartXWeek.pattern)
     val textMeasure = rememberTextMeasurer()
-    val xLabelsText: List<AnnotatedString>
-
-    when (chartType) {
-        Chart.WEEK -> {
-            valuesToPlot = scoreStates.map {
+    val weekString = stringResource(R.string.week)
+    val valuesToPlot: List<TimeSeries<Double>> = remember(scoreStates, chartType) {
+        when (chartType) {
+            Chart.WEEK -> scoreStates.map {
                 it.timeSeries.fillMissingDays(Chart.WEEK.numValues)
                     .takeLast(Chart.WEEK.numValues)
             }
-            times = TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.WEEK.numValues)
-                .takeLast(Chart.WEEK.numValues)
+            Chart.MONTH -> scoreStates.map {
+                it.timeSeries.fillMissingDays(Chart.MONTH.numValues * 7)
+                    .extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
+            }
+            Chart.YEAR -> {
+                val monthlyAverages =
+                    scoreStates.map { it.timeSeries.fillMissingDays(366).extractMonthlyAverages() }
+                monthlyAverages.map { it.takeLast(Chart.YEAR.numValues) }
+            }
+        }
+    }
 
-            horizontalBias = 8.dp
-            // x labels
-            xLabelsText = times.timestamps.map { timestamp ->
+    val times: TimeSeries<Double> = remember(chartType) {
+        when (chartType) {
+            Chart.WEEK -> TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.WEEK.numValues)
+                .takeLast(Chart.WEEK.numValues)
+            Chart.MONTH -> TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.MONTH.numValues * 7)
+                .extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
+            Chart.YEAR -> TimeSeries.DoubleTimeSeries().fillMissingDays(366).extractMonthlyAverages()
+                .takeLast(Chart.YEAR.numValues)
+        }
+    }
+
+    val horizontalBias: Dp = when (chartType) {
+        Chart.WEEK -> 8.dp
+        Chart.MONTH -> 20.dp
+        Chart.YEAR -> 8.dp
+    }
+
+    val xLabelsText: List<AnnotatedString> = remember(times, chartType, weekString) {
+        when (chartType) {
+            Chart.WEEK -> times.timestamps.map { timestamp ->
                 buildAnnotatedString {
                     withStyle(
                         style = SpanStyle(
@@ -92,21 +112,7 @@ fun MultiShadedLineChart(
                     }
                 }
             }
-        }
-
-        Chart.MONTH -> {
-            valuesToPlot = scoreStates.map {
-                it.timeSeries.fillMissingDays(Chart.MONTH.numValues * 7)
-                    .extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
-            }
-
-            times = TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.MONTH.numValues * 7)
-                .extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
-
-
-            horizontalBias = 20.dp
-            // x labels
-            xLabelsText = times.timestamps.map { timestamp ->
+            Chart.MONTH -> times.timestamps.map { timestamp ->
                 buildAnnotatedString {
                     withStyle(
                         style = SpanStyle(
@@ -117,25 +123,15 @@ fun MultiShadedLineChart(
                         )
                     ) {
                         append(
-                            stringResource(
-                                R.string.week,
+                            String.format(
+                                weekString,
                                 timestamp.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
-                            ))
+                            )
+                        )
                     }
                 }
             }
-
-        }
-
-        Chart.YEAR -> {
-            val monthlyAverages =
-                scoreStates.map { it.timeSeries.fillMissingDays(366).extractMonthlyAverages() }
-            valuesToPlot = monthlyAverages.map { it.takeLast(Chart.YEAR.numValues) }
-            times = TimeSeries.DoubleTimeSeries().fillMissingDays(366).extractMonthlyAverages()
-                .takeLast(Chart.YEAR.numValues)
-            horizontalBias = 8.dp
-            // x labels
-            xLabelsText = times.timestamps.map { timestamp ->
+            Chart.YEAR -> times.timestamps.map { timestamp ->
                 buildAnnotatedString {
                     withStyle(
                         style = SpanStyle(
@@ -152,7 +148,6 @@ fun MultiShadedLineChart(
                     }
                 }
             }
-
         }
     }
 

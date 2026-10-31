@@ -132,10 +132,14 @@ class MockRepository @Inject constructor(
 
         val resources = networkResource(
             makeNetworkRequest = {
-                val thisFrom = if (refresh) "1970-01" else Instant.now().minus(60, ChronoUnit.DAYS)
-                    .atZone(ZoneId.systemDefault()).format(
-                        DateTimeFormatter.ofPattern("yyyy-MM", Locale.ENGLISH)
-                    )
+                val fromInstant = if (from <= 0L) {
+                    Instant.ofEpochMilli(0L)
+                } else {
+                    Instant.ofEpochMilli(from)
+                }
+                val thisFrom = fromInstant.atZone(ZoneId.systemDefault()).format(
+                    DateTimeFormatter.ofPattern("yyyy-MM", Locale.ENGLISH)
+                )
                 val thisTo = Instant.ofEpochMilli(to).atZone(ZoneId.systemDefault()).format(
                     DateTimeFormatter.ofPattern("yyyy-MM", Locale.ENGLISH)
                 )

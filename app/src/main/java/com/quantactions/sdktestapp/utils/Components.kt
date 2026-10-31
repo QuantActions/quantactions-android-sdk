@@ -39,6 +39,8 @@ import com.quantactions.sdktestapp.core_ui.theme.Brand
 import com.quantactions.sdktestapp.core_ui.theme.TP
 
 
+import androidx.compose.foundation.lazy.LazyColumn
+
 @Composable
 fun Components(
     cognitiveFitness: ScoreState,
@@ -100,86 +102,95 @@ fun Components(
         }
     }
 
-    Column(
+    LazyColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
+            .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .verticalScroll(rememberScrollState())
     ) {
-        ColoredTitle(title = "Cognitive Fitness", color = Score.COGNITIVE_FITNESS.colors.color)
-        MetricRow(
-            metricColor = Score.COGNITIVE_FITNESS.colors,
-            metricDisplayName = "Cognitive Fitness",
-            scoreState = cognitiveFitness,
-            scoreTrendState = cognitiveFitnessTrend,
-            true,
-        )
+        item {
+            ColoredTitle(title = "Cognitive Fitness", color = Score.COGNITIVE_FITNESS.colors.color)
+            MetricRow(
+                metricColor = Score.COGNITIVE_FITNESS.colors,
+                metricDisplayName = "Cognitive Fitness",
+                scoreState = cognitiveFitness,
+                scoreTrendState = cognitiveFitnessTrend,
+                true,
+            )
 
-        when (cognitiveFitness) {
-            is ScoreState.ScoreAvailable -> {
-                DetailMetricCircularIndicator(
-                    prepareAndAggregateTimeSeries(
-                        cognitiveFitness.timeSeries,
-                        currentChart
-                    ),
-                    Score.COGNITIVE_FITNESS.colors
-                )
+            when (cognitiveFitness) {
+                is ScoreState.ScoreAvailable -> {
+                    DetailMetricCircularIndicator(
+                        prepareAndAggregateTimeSeries(
+                            cognitiveFitness.timeSeries,
+                            currentChart
+                        ),
+                        Score.COGNITIVE_FITNESS.colors
+                    )
+                }
+                else -> {
+                    DetailMetricCircularIndicator(
+                        0.0,
+                        Score.COGNITIVE_FITNESS.colors
+                    )
+                }
             }
-            else -> {
-                DetailMetricCircularIndicator(
-                    0.0,
-                    Score.COGNITIVE_FITNESS.colors
-                )
-            }
+
+            ShadedLineChart(
+                thisCognitiveFitness,
+                Score.COGNITIVE_FITNESS,
+                currentChart,
+                true,
+                basicInfo,
+                100f,
+                false,
+            )
         }
 
+        item {
+            ColoredTitle(title = "Screen Time", color = Score.SOCIAL_ENGAGEMENT.colors.color)
 
-        ShadedLineChart(
-            thisCognitiveFitness,
-            Score.COGNITIVE_FITNESS,
-            currentChart,
-            true,
-            basicInfo,
-            100f,
-            false,
-        )
+            CumulativeBarPlot(
+                thisScreenTime,
+                thisEngagementScore,
+                Score.SOCIAL_ENGAGEMENT,
+                currentChart
+            )
+        }
 
-        ColoredTitle(title = "Screen Time", color = Score.SOCIAL_ENGAGEMENT.colors.color)
+        item {
+            ColoredTitle(title = "Sleep Summary", color = Score.SLEEP_SCORE.colors.color)
 
-        CumulativeBarPlot(
-            thisScreenTime,
-            thisEngagementScore,
-            Score.SOCIAL_ENGAGEMENT,
-            currentChart
-        )
-        ColoredTitle(title = "Sleep Summary", color = Score.SLEEP_SCORE.colors.color)
+            InterruptedBarPlot(
+                thisSleepSummary,
+                thisSleepScore,
+                Score.SLEEP_SUMMARY,
+                currentChart,
+            )
+        }
 
-        InterruptedBarPlot(
-            thisSleepSummary,
-            thisSleepScore,
-            Score.SLEEP_SUMMARY,
-            currentChart,
-        )
+        item {
+            ColoredTitle(title = "Action Time", color = Score.COGNITIVE_FITNESS.colors.color)
 
-        ColoredTitle(title = "Action Time", color = Score.COGNITIVE_FITNESS.colors.color)
+            AdjustableBarPlot(
+                timeSeries = thisActionSpeed,
+                scoreTimeSeries = thisCognitiveFitness,
+                score = Score.ACTION_SPEED,
+                chartType = currentChart,
+                maxValRequested = 0f,
+                adaptiveRange = true
+            )
+        }
 
-        AdjustableBarPlot(
-            timeSeries = thisActionSpeed,
-            scoreTimeSeries = thisCognitiveFitness,
-            score = Score.ACTION_SPEED,
-            chartType = currentChart,
-            maxValRequested = 0f,
-            adaptiveRange = true
-        )
+        item {
+            ColoredTitle(title = "Relations", color = Brand)
 
-        ColoredTitle(title = "Relations", color = Brand)
-
-        MultiShadedLineChart(
-            listOfScoreStates,
-            currentChart,
-            true,
-        )
-
+            MultiShadedLineChart(
+                listOfScoreStates,
+                currentChart,
+                true,
+            )
+        }
     }
 }
 

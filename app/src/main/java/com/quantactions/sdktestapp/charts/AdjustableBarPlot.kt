@@ -79,32 +79,41 @@ fun AdjustableBarPlot(
     val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("EEE")
     val width = screenWidth - marginRight - marginLeft
     val lineStroke = 1.dp
-    val barWidth: Dp
 
-    var valuesToPlot by remember { mutableStateOf(TimeSeries.DoubleTimeSeries()) }
-    var scoreValuesToPlot by remember { mutableStateOf(TimeSeries.DoubleTimeSeries()) }
-    val xLabelsText: List<AnnotatedString>
-    val times: TimeSeries.DoubleTimeSeries
+    val weekString = stringResource(id = R.string.week)
+    val valuesToPlot: TimeSeries.DoubleTimeSeries = remember(timeSeries, chartType) {
+        when (chartType) {
+            Chart.WEEK -> timeSeries.fillMissingDays(Chart.WEEK.numValues).takeLast(Chart.WEEK.numValues)
+            Chart.MONTH -> timeSeries.fillMissingDays(Chart.MONTH.numValues * 7).extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
+            Chart.YEAR -> timeSeries.fillMissingDays(366).extractMonthlyAverages().takeLast(Chart.YEAR.numValues)
+        }
+    }
 
+    val scoreValuesToPlot: TimeSeries.DoubleTimeSeries = remember(scoreTimeSeries, chartType) {
+        when (chartType) {
+            Chart.WEEK -> scoreTimeSeries.fillMissingDays(Chart.WEEK.numValues).takeLast(Chart.WEEK.numValues)
+            Chart.MONTH -> scoreTimeSeries.fillMissingDays(Chart.MONTH.numValues * 7).extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
+            Chart.YEAR -> scoreTimeSeries.fillMissingDays(366).extractMonthlyAverages().takeLast(Chart.YEAR.numValues)
+        }
+    }
 
-    when (chartType) {
-        Chart.WEEK -> {
+    val times: TimeSeries.DoubleTimeSeries = remember(chartType) {
+        when (chartType) {
+            Chart.WEEK -> TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.WEEK.numValues).takeLast(Chart.WEEK.numValues)
+            Chart.MONTH -> TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.MONTH.numValues * 7).extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
+            Chart.YEAR -> TimeSeries.DoubleTimeSeries().fillMissingDays(366).extractMonthlyAverages().takeLast(Chart.YEAR.numValues)
+        }
+    }
 
-            valuesToPlot =
-                timeSeries.fillMissingDays(Chart.WEEK.numValues)
-                    .takeLast(Chart.WEEK.numValues)
+    val barWidth: Dp = when (chartType) {
+        Chart.WEEK -> 8.dp
+        Chart.MONTH -> 20.dp
+        Chart.YEAR -> 10.dp
+    }
 
-            scoreValuesToPlot =
-                scoreTimeSeries.fillMissingDays(Chart.WEEK.numValues)
-                    .takeLast(Chart.WEEK.numValues)
-
-            times = TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.WEEK.numValues)
-                .takeLast(Chart.WEEK.numValues)
-
-            barWidth = 8.dp
-
-            // x labels
-            xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
+    val xLabelsText: List<AnnotatedString> = remember(valuesToPlot, selectedPoint, chartType, weekString) {
+        when (chartType) {
+            Chart.WEEK -> valuesToPlot.timestamps.mapIndexed { i, timestamp ->
                 buildAnnotatedString {
                     withStyle(
                         style = SpanStyle(
@@ -124,27 +133,7 @@ fun AdjustableBarPlot(
                     }
                 }
             }
-        }
-
-        Chart.MONTH -> {
-            valuesToPlot =
-                timeSeries.fillMissingDays(Chart.MONTH.numValues * 7)
-                    .extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
-
-
-            scoreValuesToPlot =
-                scoreTimeSeries.fillMissingDays(Chart.MONTH.numValues * 7)
-                    .extractWeeklyAverages()
-                    .takeLast(Chart.MONTH.numValues)
-
-
-            times = TimeSeries.DoubleTimeSeries().fillMissingDays(Chart.MONTH.numValues * 7)
-                .extractWeeklyAverages().takeLast(Chart.MONTH.numValues)
-
-
-            barWidth = 20.dp
-            // x labels
-            xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
+            Chart.MONTH -> valuesToPlot.timestamps.mapIndexed { i, timestamp ->
                 buildAnnotatedString {
                     withStyle(
                         style = SpanStyle(
@@ -156,32 +145,14 @@ fun AdjustableBarPlot(
                     ) {
                         append(
                             String.format(
-                                stringResource(id = R.string.week),
+                                weekString,
                                 timestamp.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
                             )
                         )
                     }
                 }
             }
-        }
-
-        Chart.YEAR -> {
-            // here I need to massage and extract averages over months
-            valuesToPlot =
-                timeSeries.fillMissingDays(366).extractMonthlyAverages()
-                    .takeLast(Chart.YEAR.numValues)
-
-            scoreValuesToPlot =
-                scoreTimeSeries.fillMissingDays(366)
-                    .extractMonthlyAverages()
-                    .takeLast(Chart.YEAR.numValues)
-
-            times = TimeSeries.DoubleTimeSeries().fillMissingDays(366).extractMonthlyAverages()
-                .takeLast(Chart.YEAR.numValues)
-
-            barWidth = 10.dp
-            // x labels
-            xLabelsText = valuesToPlot.timestamps.mapIndexed { i, timestamp ->
+            Chart.YEAR -> valuesToPlot.timestamps.mapIndexed { i, timestamp ->
                 buildAnnotatedString {
                     withStyle(
                         style = TP.regular.overline.toSpanStyle(if (i == selectedPoint) score.colors.color else ColdGrey04)
@@ -196,17 +167,16 @@ fun AdjustableBarPlot(
         }
     }
 
-
     var prevSelectedPoint by remember { mutableIntStateOf(-1) }
     var showNoDataInfo by remember { mutableStateOf(false) }
-    var lastXValue by remember { mutableFloatStateOf(-1.0f) }
+    var lastXValue = -1.0f
 
     val scoreBubbleWidth = 8.dp
     val scoreBubbleHeight = 6.dp
     val spaceForText = 70.dp + 20.dp
 
     val flatPointsList: List<PointF>
-    var topPointsList by remember { mutableStateOf(listOf(listOf<PointF>())) }
+    val topPointsList: List<List<PointF>>
     val pathHorizontal: Path
     val pathVertical: Path
     val pathsTotal = mutableListOf<Path>()

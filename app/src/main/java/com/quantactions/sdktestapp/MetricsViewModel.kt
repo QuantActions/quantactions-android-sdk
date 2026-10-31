@@ -31,6 +31,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import jakarta.inject.Inject
 
 
@@ -190,7 +192,7 @@ open class MetricsViewModel @Inject constructor(
     @ExperimentalCoroutinesApi
     open fun <P : TimestampedEntity, T> getStat(score: Metric<P, T>, force: Boolean = false) {
 
-        val from = 0L
+        val from = Instant.now().minus(370, ChronoUnit.DAYS).toEpochMilli()
         val context = getApplication<Application>().applicationContext
 
         viewModelScope.launch {
