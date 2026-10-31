@@ -22,6 +22,7 @@ import com.quantactions.sdk.data.entity.TimestampedEntity
 import com.quantactions.sdk.data.model.ScreenTimeAggregate
 import com.quantactions.sdk.data.model.SleepSummary
 import com.quantactions.sdk.data.local.MVPDao
+import com.quantactions.sdk.data.parseZoneId
 import com.quantactions.sdk.data.stringify
 import kotlinx.coroutines.flow.Flow
 import java.time.Instant
@@ -71,25 +72,26 @@ sealed class Metric<P : TimestampedEntity, T>(
             to: Long
         ): TimeSeries<SleepSummary> {
             val sleepSummaries = values.map {
+                val zone = parseZoneId(it.timeZoneId)
                 SleepSummary(
                     ZonedDateTime.ofInstant(
                         Instant.ofEpochMilli(it.sleepStart),
-                        ZoneId.of(it.timeZoneId)
+                        zone
                     ),
                     ZonedDateTime.ofInstant(
                         Instant.ofEpochMilli(it.sleepEnd),
-                        ZoneId.of(it.timeZoneId)
+                        zone
                     ),
                     it.interruptionsStart.map { s ->
                         ZonedDateTime.ofInstant(
                             Instant.ofEpochMilli(s),
-                            ZoneId.of(it.timeZoneId)
+                            zone
                         )
                     },
                     it.interruptionsEnd.map { s ->
                         ZonedDateTime.ofInstant(
                             Instant.ofEpochMilli(s),
-                            ZoneId.of(it.timeZoneId)
+                            zone
                         )
                     },
                     it.interruptionsNumberOfTaps
@@ -102,7 +104,7 @@ sealed class Metric<P : TimestampedEntity, T>(
                     ZonedDateTime.ofInstant(
                         Instant.ofEpochSecond(
                             statistic.timestamp
-                        ), ZoneId.of(statistic.timeZoneId)
+                        ), parseZoneId(statistic.timeZoneId)
                     )
                 },
                 values.map { SleepSummary() },
@@ -440,7 +442,7 @@ sealed class Metric<P : TimestampedEntity, T>(
             return filterScoreBasedOnTimeZone(
                 TimeSeries.DoubleTimeSeries(
                     values.map { statistic -> statistic.value },
-                    values.map { statistic -> statistic.timestamp.localize(ZoneId.of(statistic.timeZone)) },
+                    values.map { statistic -> statistic.timestamp.localize(parseZoneId(statistic.timeZone)) },
                     values.map { statistic -> statistic.confidenceIntervalLow ?: Double.NaN },
                     values.map { statistic -> statistic.confidenceIntervalHigh ?: Double.NaN },
                     values.map { statistic -> statistic.confidence ?: Double.NaN },

@@ -76,3 +76,62 @@ private fun parseDateFromPostgres(created: String): Long {
             .parse(created)
     ).toInstant(ZoneOffset.UTC).toEpochMilli()
 }
+
+private val GMT_OFFSET_REGEX: Pattern = Pattern.compile("^(?:[A-Za-z]+)?([+-])(\\d{1,2}):(\\d{1,2})$")
+
+/**
+ * Robustly parses a timezone string that may come from legacy systems, Android, or backend
+ * in non-standard formats (such as "GMT+1:0", "GMT-5:0", "+1:0", etc.) as well as standard
+ * IANA identifiers ("Europe/Zurich") and standard offsets ("GMT+01:00", "+01:00", "UTC").
+ */
+fun parseZoneId(timeZone: String?): java.time.ZoneId {
+    if (timeZone.isNullOrBlank()) return java.time.ZoneId.of("UTC")
+    val trimmed = timeZone.trim()
+    try {
+        return java.time.ZoneId.of(trimmed)
+    } catch (_: Exception) {}
+
+    // Check for formats like GMT+1:0, GMT-5:0, +1:0, UTC+2:0
+    val matcher = GMT_OFFSET_REGEX.matcher(trimmed)
+    if (matcher.matches()) {
+        val sign = matcher.group(1) ?: "+"
+        val hours = matcher.group(2)?.toIntOrNull() ?: 0
+        val minutes = matcher.group(3)?.toIntOrNull() ?: 0
+        val normalized = String.format(java.util.Locale.ROOT, "GMT%s%02d:%02d", sign, hours, minutes)
+        try {
+            return java.time.ZoneId.of(normalized)
+        } catch (_: Exception) {}
+    }
+
+    // Fallback using java.util.TimeZone which parses custom legacy formats
+    try {
+        val tz = java.util.TimeZone.getTimeZone(trimmed)
+        if (tz != null && (tz.id != "GMT" || trimmed.startsWith("GMT") || trimmed == "UTC")) {
+            return tz.toZoneId()
+        }
+    } catch (_: Exception) {}
+
+    return java.time.ZoneId.of("UTC")
+}
+
+/**
+ * Robustly parses date strings in various ISO formats (with or without milliseconds,
+ * or date-only) without throwing DateTimeParseException.
+ */
+fun parseFlexDateTime(dateStr: String?): LocalDateTime {
+    if (dateStr.isNullOrBlank()) return LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC)
+    val trimmed = dateStr.trim()
+    return try {
+        java.time.Instant.parse(trimmed).atZone(ZoneOffset.UTC).toLocalDateTime()
+    } catch (_: Exception) {
+        try {
+            LocalDateTime.parse(trimmed, DateTimeFormatter.ISO_DATE_TIME)
+        } catch (_: Exception) {
+            try {
+                java.time.LocalDate.parse(trimmed).atStartOfDay()
+            } catch (_: Exception) {
+                LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC)
+            }
+        }
+    }
+}
