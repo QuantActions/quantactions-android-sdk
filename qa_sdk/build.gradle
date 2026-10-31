@@ -14,6 +14,7 @@ apply plugin: 'org.jetbrains.dokka'
 apply plugin: 'maven-publish'
 apply plugin: 'kotlinx-serialization'
 apply plugin: 'org.jetbrains.kotlin.android'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'dagger.hilt.android.plugin'
 
@@ -76,6 +77,7 @@ android {
     }
     buildFeatures{
         buildConfig = true
+        compose = true
     }
 
     compileOptions {
@@ -183,8 +185,19 @@ dependencies {
 
     dokkaHtmlPlugin 'org.jetbrains.dokka:android-documentation-plugin:2.0.0'
 
-    // UI for cognitive tests
+    // UI for cognitive tests & Compose
     api("com.google.android.material:material:1.14.0")
+    api platform('androidx.compose:compose-bom:2024.10.01')
+    api 'androidx.activity:activity-compose:1.10.1'
+    api 'androidx.compose.ui:ui'
+    api 'androidx.compose.ui:ui-graphics'
+    api 'androidx.compose.ui:ui-tooling-preview'
+    api 'androidx.compose.material3:material3'
+    api 'androidx.compose.material:material-icons-extended'
+    api 'androidx.lifecycle:lifecycle-runtime-compose:2.8.7'
+    api 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7'
+    debugApi 'androidx.compose.ui:ui-tooling'
+    debugApi 'androidx.compose.ui:ui-test-manifest'
 
     // Dependency Injection
     implementation "com.google.dagger:hilt-android:2.57.2" // Check for latest version
