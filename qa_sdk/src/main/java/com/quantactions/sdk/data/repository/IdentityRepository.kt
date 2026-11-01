@@ -66,7 +66,7 @@ internal class IdentityRepository(
             id = preferences.identityId,
             password = preferences.password,
             gender = preferences.gender.code,
-            yearOfBirth = if (preferences.yearOfBirth != 0) preferences.yearOfBirth else null,
+            yearOfBirth = if (preferences.yearOfBirth >= 1900) preferences.yearOfBirth else null,
             selfDeclaredHealthy = preferences.selfDeclaredHealthy
         )
 
@@ -97,8 +97,8 @@ internal class IdentityRepository(
 
     suspend fun updateIdentity(): ApiResponse<TokenApi.Identity> {
         val patch = ApiService.IdentityPatch(
-            gender = preferences.gender.code!!,
-            yearOfBirth = preferences.yearOfBirth,
+            gender = preferences.gender.code,
+            yearOfBirth = if (preferences.yearOfBirth >= 1900) preferences.yearOfBirth else null,
             selfDeclaredHealthy = preferences.selfDeclaredHealthy
         )
         return networkManager.apiService.patchIdentity(preferences.identityId, patch)

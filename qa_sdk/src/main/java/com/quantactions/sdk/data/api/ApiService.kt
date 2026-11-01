@@ -632,7 +632,7 @@ class TokenAuthenticator @Inject constructor(
                     id = preferences.identityId,
                     password = preferences.password,
                     gender = preferences.gender.code,
-                    yearOfBirth = if (preferences.yearOfBirth != 0) preferences.yearOfBirth else null,
+                    yearOfBirth = if (preferences.yearOfBirth >= 1900) preferences.yearOfBirth else null,
                     selfDeclaredHealthy = preferences.selfDeclaredHealthy
                 )
 
