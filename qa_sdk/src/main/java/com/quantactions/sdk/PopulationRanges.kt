@@ -52,7 +52,7 @@ data class AgeStratifiedRange(
     /** Get the lower end of the range (25% percentile) for the selected [yearOfBirth].*/
     @Keep
     fun get25thPercentile(yearOfBirth: Int?): Float {
-        if (yearOfBirth == null) return all.percentile25
+        if (yearOfBirth == null || yearOfBirth < 1900) return all.percentile25
         return when (LocalDate.now().year - yearOfBirth) {
             in 1..29 -> lowerThan30.percentile25
             in 30..50 -> between30And50.percentile25
@@ -64,7 +64,7 @@ data class AgeStratifiedRange(
     /** Get the higher end of the range (75% percentile) */
     @Keep
     fun get75thPercentile(yearOfBirth: Int?): Float {
-        if (yearOfBirth == null) return all.percentile75
+        if (yearOfBirth == null || yearOfBirth < 1900) return all.percentile75
         return when (LocalDate.now().year - yearOfBirth) {
             in 1..30 -> lowerThan30.percentile75
             in 31..50 -> between30And50.percentile75
@@ -95,7 +95,7 @@ class PopulationRange(
      * [yearOfBirth] and [gender].
      * */
     @Keep
-    fun get25thPercentile(yearOfBirth: Int? = 0, gender: QA.Gender = QA.Gender.UNKNOWN): Float {
+    fun get25thPercentile(yearOfBirth: Int? = null, gender: QA.Gender = QA.Gender.UNKNOWN): Float {
         return when (gender) {
             QA.Gender.MALE -> male.get25thPercentile(yearOfBirth)
             QA.Gender.FEMALE -> female.get25thPercentile(yearOfBirth)
@@ -107,7 +107,7 @@ class PopulationRange(
      * [yearOfBirth] and [gender].
      * */
     @Keep
-    fun get75thPercentile(yearOfBirth: Int? = 0, gender: QA.Gender = QA.Gender.UNKNOWN): Float {
+    fun get75thPercentile(yearOfBirth: Int? = null, gender: QA.Gender = QA.Gender.UNKNOWN): Float {
             return when (gender) {
                 QA.Gender.MALE -> male.get75thPercentile(yearOfBirth)
                 QA.Gender.FEMALE -> female.get75thPercentile(yearOfBirth)
