@@ -20,6 +20,7 @@ import android.os.BatteryManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
 import android.view.MotionEvent
@@ -52,7 +53,13 @@ internal class Actuator private constructor() {
     private var startTime: Long = 0
     private lateinit var mvpDao: MVPDao
     private lateinit var usm: UsageStatsManager
+    private val mainHandler = Handler(Looper.getMainLooper())
+    @Volatile
     var added: Boolean = false
+    @Volatile
+    private var pendingServiceStart: Boolean = false
+    @Volatile
+    private var pendingServiceIntent: Intent? = null
 
     @Keep
     companion object {
@@ -67,100 +74,183 @@ internal class Actuator private constructor() {
          */
         @Keep
         fun getInstance(context: Context): Actuator {
+            val appContext = context.applicationContext
             synchronized(this) {
                 var instance = INSTANCE
                 if (instance == null) {
                     instance = Actuator()
                     INSTANCE = instance
                     instance.logs = Vector()
-                    instance.addView(context)
-                    instance.mvpDao = getDatabase(context).mvpDao()
-                    instance.usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+                    instance.mvpDao = getDatabase(appContext).mvpDao()
+                    instance.usm = appContext.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+                    instance.addView(appContext)
                 } else {
-                    instance.addView(context)
+                    instance.addView(appContext)
                 }
                 return instance
             }
         }
     }
 
+    private fun buildLayoutParams(): WindowManager.LayoutParams {
+        @Suppress("DEPRECATION")
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            WindowManager.LayoutParams(
+                10, 10,  //Arbitrary size
+                // Had to switch from TYPE_PHONE to TYPE_TOAST when changing API from 21 to 23, for permission reasons
+                // API: 21 -> 23 = TYPE_PHONE -> TYPE_TOAST
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or  // Prevent the view to get focused
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,  // Listen to the touches
+                // that happen outside of its layout limits
+                PixelFormat.TRANSLUCENT
+            )
+        } else {
+            WindowManager.LayoutParams(
+                10, 10,  //Arbitrary size
+                // THIS SHOULD BE TYPE_APPLICATION_OVERLAY but needs to be tested!
+                // Also this is from API 26+ so it needs to be checked
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or  // Prevent the view to get focused
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,  // Listen to the touches
+                // that happen outside of its layout limits
+                PixelFormat.TRANSLUCENT
+            )
+        }
+    }
+
+    private fun addViewOnMainThread(appContext: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(appContext)) {
+            added = false
+            return
+        }
+        val currentView = layerView
+        if (added && currentView != null && currentView.isAttachedToWindow) {
+            Timber.d("View already added and attached")
+            return
+        }
+        val wm = appContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val viewToAdd = currentView ?: CustomTouchView(appContext).also { layerView = it }
+        try {
+            if (!viewToAdd.isAttachedToWindow) {
+                wm.addView(viewToAdd, buildLayoutParams())
+            }
+            added = true
+            Timber.d("Adding view")
+            Log.d("Actuator", "Adding view")
+        } catch (e: IllegalStateException) {
+            // View is already added to WindowManager
+            added = true
+            Timber.d("View already added in WindowManager")
+        } catch (e: Exception) {
+            added = false
+            Timber.e(e, "Failed to add overlay view")
+        }
+    }
 
     fun addView(context: Context) {
-        @Suppress("DEPRECATION") val wParams: WindowManager.LayoutParams =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                WindowManager.LayoutParams(
-                    10, 10,  //Arbitrary size
-                    // Had to switch from TYPE_PHONE to TYPE_TOAST when changing API from 21 to 23, for permission reasons
-                    // API: 21 -> 23 = TYPE_PHONE -> TYPE_TOAST
-                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or  // Prevent the view to get focused
-                            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                            WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,  // Listen to the touches
-                    // that happen outside of its layout limits
-                    PixelFormat.TRANSLUCENT
-                )
-            } else {
-                WindowManager.LayoutParams(
-                    10, 10,  //Arbitrary size
-                    // THIS SHOULD BE TYPE_APPLICATION_OVERLAY but needs to be tested!
-                    // Also this is from API 26+ so it needs to be checked
-                    WindowManager.LayoutParams.TYPE_PHONE,
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or  // Prevent the view to get focused
-                            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                            WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,  // Listen to the touches
-                    // that happen outside of its layout limits
-                    PixelFormat.TRANSLUCENT
-                )
+        val appContext = context.applicationContext
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            addViewOnMainThread(appContext)
+        } else {
+            mainHandler.post { addViewOnMainThread(appContext) }
+        }
+    }
+
+    /**
+     * Ensures the TYPE_APPLICATION_OVERLAY view is attached and visible before starting ReadingsService.
+     * On Android 15+ (API 35+), holding SYSTEM_ALERT_WINDOW only grants a background FGS start exemption
+     * when the overlay window is actively attached and View.VISIBLE.
+     * - If the screen is ON: attaches the overlay and starts ReadingsService as soon as windowVisibility == View.VISIBLE.
+     * - If the screen is OFF: attaches the overlay and arms it so ReadingsService starts the instant the screen wakes.
+     */
+    fun ensureOverlayAndStartService(
+        context: Context,
+        intent: Intent = Intent(context.applicationContext, ReadingsService::class.java)
+    ) {
+        val appContext = context.applicationContext
+        pendingServiceIntent = intent
+        pendingServiceStart = true
+
+        val action = Runnable {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(appContext)) {
+                pendingServiceStart = false
+                pendingServiceIntent = null
+                QAPrivate.getInstance(appContext).startForegroundServiceDirect(appContext, intent)
+                return@Runnable
             }
-        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        if (null == layerView) {
-            layerView = CustomTouchView(context)
+
+            addViewOnMainThread(appContext)
+
+            val pm = appContext.getSystemService(Context.POWER_SERVICE) as? PowerManager
+            val isScreenInteractive = pm?.isInteractive ?: true
+            val view = layerView
+
+            if (isScreenInteractive && view != null && view.isAttachedToWindow && view.windowVisibility == View.VISIBLE) {
+                pendingServiceStart = false
+                pendingServiceIntent = null
+                QAPrivate.getInstance(appContext).startForegroundServiceDirect(appContext, intent)
+            } else if (isScreenInteractive) {
+                // View was just added; WindowManager will dispatch onWindowVisibilityChanged(View.VISIBLE) on next frame.
+                // Schedule a short fallback check in case visibility is already set without a transition callback.
+                mainHandler.postDelayed({
+                    if (pendingServiceStart && layerView?.windowVisibility == View.VISIBLE) {
+                        val startIntent = pendingServiceIntent ?: Intent(appContext, ReadingsService::class.java)
+                        pendingServiceStart = false
+                        pendingServiceIntent = null
+                        QAPrivate.getInstance(appContext).startForegroundServiceDirect(appContext, startIntent)
+                    }
+                }, 200L)
+            } else {
+                Timber.d("Screen is OFF; overlay attached and armed to start ReadingsService on next screen wake")
+                Log.i("Actuator", "Screen is OFF; overlay armed to start ReadingsService on next screen wake")
+            }
         }
 
-        // Main looper to add view from background
-        val handler = Handler(Looper.getMainLooper())
-        if (!added) {
-            // Add layout to window manager
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (Settings.canDrawOverlays(context)) {
-                    handler.post { wm.addView(layerView, wParams) }
-                    added = true
-                    Timber.d("Adding view")
-                    Log.d("Actuator", "Adding view")
-                } else {
-                    added = false
-                }
-            } else {
-                handler.post { wm.addView(layerView, wParams) }
-                added = true
-                Log.d("Actuator", "Adding view")
-                Timber.d("Adding view")
-            }
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            action.run()
         } else {
-            Timber.d("View already added")
-            Log.d("Actuator", "View already added")
+            mainHandler.post(action)
         }
     }
 
     fun removeView(context: Context) {
-        val handler = Handler(Looper.getMainLooper())
+        val appContext = context.applicationContext
+        pendingServiceStart = false
+        pendingServiceIntent = null
         try {
-            if (null != layerView) {
-                val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-                handler.post {
-                    wm.removeView(layerView)
+            val removeAction = Runnable {
+                try {
+                    val view = layerView
+                    if (view != null) {
+                        val wm = appContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                        if (view.isAttachedToWindow) {
+                            wm.removeView(view)
+                        }
+                        layerView = null
+                    }
+                    added = false
+                    Timber.d("Removing view")
+                    Log.d("Actuator", "Removing view")
+                } catch (e: Exception) {
+                    added = false
                     layerView = null
+                    Timber.e(e, "Exception during view removal on main thread")
                 }
-                added = false
-                Timber.d("Removing view")
-                Log.d("Actuator", "Removing view")
+            }
+            if (Looper.myLooper() == Looper.getMainLooper()) {
+                removeAction.run()
+            } else {
+                mainHandler.post(removeAction)
             }
         } catch (e: Exception) {
             try {
                 FirebaseCrashlytics.getInstance().recordException(e)
-                } catch (ex2: Exception) {
-                    Timber.e("App does not integrate Firebase, cannot send crash!")
-                }
+            } catch (ex2: Exception) {
+                Timber.e("App does not integrate Firebase, cannot send crash!")
+            }
             Timber.e(context.getString(R.string.TAG), "Exception during removal")
         }
     }
@@ -395,6 +485,28 @@ internal class Actuator private constructor() {
     // tap that happened outside of the view itself. This is a security measure to avoid Tap-jacking.
     // that is why we save this information only if the phone is old enough.
         (context: Context?) : View(context) {
+
+        override fun onWindowVisibilityChanged(visibility: Int) {
+            super.onWindowVisibilityChanged(visibility)
+            if (visibility == View.VISIBLE) {
+                val appContext = context?.applicationContext ?: return
+                if (pendingServiceStart || !ReadingsService.isServiceRunning) {
+                    val startIntent = pendingServiceIntent ?: Intent(appContext, ReadingsService::class.java)
+                    pendingServiceStart = false
+                    pendingServiceIntent = null
+                    Timber.d("Overlay window is VISIBLE; starting ReadingsService in foreground")
+                    Log.i("Actuator", "Overlay window is VISIBLE; starting ReadingsService in foreground")
+                    QAPrivate.getInstance(appContext).startForegroundServiceDirect(appContext, startIntent)
+                }
+            }
+        }
+
+        override fun onDetachedFromWindow() {
+            super.onDetachedFromWindow()
+            added = false
+            Timber.d("Overlay view detached from WindowManager")
+        }
+
         @SuppressLint("ClickableViewAccessibility")
         override fun onTouchEvent(event: MotionEvent): Boolean {
             super.onTouchEvent(event)
@@ -404,6 +516,13 @@ internal class Actuator private constructor() {
                     time, arrayOf("NULL", "NULL", "NULL"), context
                 )
             )
+            if (!ReadingsService.isServiceRunning) {
+                context?.applicationContext?.let { appContext ->
+                    pendingServiceStart = false
+                    pendingServiceIntent = null
+                    QAPrivate.getInstance(appContext).startForegroundServiceDirect(appContext)
+                }
+            }
             return false // Return false for other touch events
         }
     }

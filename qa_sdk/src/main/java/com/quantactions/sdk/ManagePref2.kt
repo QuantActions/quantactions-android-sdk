@@ -421,6 +421,14 @@ class ManagePref2 private constructor(val context: Context) : GenericPreferences
             }
         }
 
+    var lastRecordedExitTimestamp: Long
+        get() = sharedPref.getLong(LAST_RECORDED_EXIT_TIMESTAMP, 0L)
+        set(newVal) {
+            sharedPref.edit {
+                putLong(LAST_RECORDED_EXIT_TIMESTAMP, newVal)
+            }
+        }
+
     companion object : SingletonHolder<ManagePref2, Context>(::ManagePref2){
         const val API_KEY                        = "api_key"
         const val APP_ID_NEEDED                  = "app_id_needed"
@@ -459,5 +467,6 @@ class ManagePref2 private constructor(val context: Context) : GenericPreferences
         const val HEALTHY_RANGES                 = "healthy_ranges"
         const val CAPABILITIES_TOKEN             = "capabilities_token"
         const val PARTICIPATION_ID               = "participation_id"
+        const val LAST_RECORDED_EXIT_TIMESTAMP   = "last_recorded_exit_timestamp"
     }
 }
