@@ -11,6 +11,8 @@
 package com.quantactions.sdk
 
 import android.Manifest
+import android.app.ActivityManager
+import android.app.ApplicationExitInfo
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
@@ -38,6 +40,7 @@ import com.quantactions.sdk.data.api.NetworkManager
 import com.quantactions.sdk.data.api.adapters.SubscriptionWithQuestionnaires
 import com.quantactions.sdk.data.entity.CodeOfApp
 import com.quantactions.sdk.data.entity.Cohort
+import com.quantactions.sdk.data.entity.DeviceHealthParsed
 import com.quantactions.sdk.data.entity.HourlyTapsEntity
 import com.quantactions.sdk.data.entity.JournalEventEntity
 import com.quantactions.sdk.data.entity.QuestionnaireResponseEntity
@@ -58,7 +61,9 @@ import com.quantactions.sdk.exceptions.SDKNotInitialisedException
 import com.quantactions.sdk.workers.RegisterWorker
 import com.quantactions.sdk.workers.UpdateDeviceWorker
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -203,6 +208,7 @@ internal class QAPrivate private constructor(
             // I only register the user is it is the first launch, if this fails it will be retried upon sync
             registerSpecificationsAndDevice(context)
             checkAndRunService(context)
+            settingUpSomeWorkers(context)
             return true
 
         } else {
@@ -216,7 +222,7 @@ internal class QAPrivate private constructor(
             // not first time, I check for running
             checkAndRunService(context)
             settingUpSomeWorkers(context)
-            if (preferences.participationId.isEmpty() && isDeviceRegistered()) {
+            if (isDeviceRegistered()) {
                 try {
                     studyRepository.getSubscriptions()
                 } catch (e: Exception) {
@@ -237,7 +243,7 @@ internal class QAPrivate private constructor(
         }
     }
 
-    private fun settingUpSomeWorkers(context: Context) {
+    internal fun settingUpSomeWorkers(context: Context) {
         val alarm = QABroadcastReceiver()
         alarm.setAlarm(context)
 
@@ -394,74 +400,66 @@ internal class QAPrivate private constructor(
     }
 
     fun getLastTaps(flag: QA.Flag): QATaps {
-        val taps: HashMap<String, Int>
-        val speed: HashMap<String, Float>
-        val calendar = Calendar.getInstance()
-        val justOneDay = Calendar.getInstance()
-        val ca: Calendar
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val hours = SimpleDateFormat("HH", Locale.getDefault())
-        val rollBackDate: String
-        val currentHour: String
-        when (flag) {
+        return when (flag) {
             QA.Flag.DAY -> {
-                ca = Calendar.getInstance()
-                taps = LinkedHashMap()
-                speed = LinkedHashMap()
-                currentHour = hours.format(ca.timeInMillis)
-                taps[currentHour] = 0
-                speed[currentHour] = 0f
-                var i = 1
-                while (i < flag.timePoints) {
-                    ca.add(Calendar.HOUR_OF_DAY, -1)
-                    taps[hours.format(ca.timeInMillis)] = 0
-                    speed[hours.format(ca.timeInMillis)] = 0f
-                    i++
-                }
-                calendar.add(Calendar.DAY_OF_MONTH, -2)
-                justOneDay.add(Calendar.DAY_OF_MONTH, -1)
-                rollBackDate = sdf.format(calendar.timeInMillis)
-
+                // To cover the last 24 hours across date boundaries, look back at least 2 days
+                val calRollback = Calendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, -2) }
+                val rollBackDate = sdf.format(calRollback.time)
                 val latestTaps = deviceRepository.getLatestTaps(rollBackDate)
 
-                latestTaps.forEach {
-                    taps["%02d".format(it.hour)] = it.taps
-                    speed["%02d".format(it.hour)] = it.speed
+                // Index by composite key: "yyyy-MM-dd_hour" so different days never overwrite each other
+                val tapsMap = latestTaps.associateBy { "${it.date}_${it.hour}" }
+
+                val resultTaps = ArrayList<Int>(flag.timePoints)
+                val resultSpeed = ArrayList<Float>(flag.timePoints)
+
+                // Build exactly 24 hourly buckets:
+                // i = 0: current hour (Now)
+                // i = 1: 1 hour ago
+                // ...
+                // i = 23: 23 hours ago
+                for (i in 0 until flag.timePoints) {
+                    val pointCal = Calendar.getInstance().apply { add(Calendar.HOUR_OF_DAY, -i) }
+                    val dateStr = sdf.format(pointCal.time)
+                    val hourInt = pointCal.get(Calendar.HOUR_OF_DAY)
+                    val entry = tapsMap["${dateStr}_$hourInt"]
+                    resultTaps.add(entry?.taps ?: 0)
+                    val entrySpeed = entry?.speed ?: 0f
+                    resultSpeed.add(if (entrySpeed.isFinite() && entrySpeed > 0f) entrySpeed else 0f)
                 }
 
+                QATaps(resultTaps, resultTaps.sum(), resultSpeed)
             }
 
             QA.Flag.WEEK, QA.Flag.MONTH -> {
-                ca = Calendar.getInstance()
-                taps = LinkedHashMap()
-                speed = LinkedHashMap()
-                taps[sdf.format(ca.timeInMillis)] = 0
-                speed[sdf.format(ca.timeInMillis)] = 0f
-                var i = 1
-                while (i < flag.timePoints) {
-                    ca.add(Calendar.DAY_OF_YEAR, -1)
-                    taps[sdf.format(ca.timeInMillis)] = 0
-                    speed[sdf.format(ca.timeInMillis)] = 0f
-                    i++
-                }
-                calendar.add(Calendar.DAY_OF_MONTH, -flag.timePoints)
-                rollBackDate = sdf.format(calendar.timeInMillis)
-
+                val calRollback = Calendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, -flag.timePoints - 1) }
+                val rollBackDate = sdf.format(calRollback.time)
                 val latestTaps = deviceRepository.getLatestTaps(rollBackDate)
 
-                latestTaps.groupBy { it.date }.mapValues { (_, v) -> v.sumOf { it.taps } }.forEach {
-                    taps[it.key] = it.value
+                val tapsByDate = latestTaps.groupBy { it.date }.mapValues { (_, v) -> v.sumOf { it.taps } }
+                val speedByDate = latestTaps.groupBy { it.date }.mapValues { (_, v) ->
+                    v.filter { it.speed.isFinite() && it.speed > 0f }.maxOfOrNull { it.speed } ?: 0f
                 }
-                latestTaps.groupBy { it.date }.mapValues { (_, v) -> v.maxOf { it.speed } }
-                    .forEach {
-                        speed[it.key] = it.value
-                    }
+
+                val resultTaps = ArrayList<Int>(flag.timePoints)
+                val resultSpeed = ArrayList<Float>(flag.timePoints)
+
+                // Build exactly timePoints daily buckets:
+                // i = 0: Today
+                // i = 1: Yesterday
+                // ...
+                // i = flag.timePoints - 1: (timePoints - 1) days ago
+                for (i in 0 until flag.timePoints) {
+                    val pointCal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -i) }
+                    val dateStr = sdf.format(pointCal.time)
+                    resultTaps.add(tapsByDate[dateStr] ?: 0)
+                    resultSpeed.add(speedByDate[dateStr] ?: 0f)
+                }
+
+                QATaps(resultTaps, resultTaps.sum(), resultSpeed)
             }
         }
-        return QATaps(
-            taps.toSortedMap().toList().reversed().map { it.second },
-            taps.map { it.value }.sum(),
-            speed.toSortedMap().toList().reversed().map { it.second })
     }
 
     /**
@@ -521,8 +519,8 @@ internal class QAPrivate private constructor(
         return studyRepository.sendQuestionnaireResponse(resp)
     }
 
-    suspend fun getQuestionnairesList(): List<QuestionnaireWithCohortName> {
-        return studyRepository.getQuestionnaires()
+    suspend fun getQuestionnairesList(refresh: Boolean = false): List<QuestionnaireWithCohortName> {
+        return studyRepository.getQuestionnaires(refresh)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -614,12 +612,12 @@ internal class QAPrivate private constructor(
     fun stopReadingService(context: Context) {
         val intent = Intent(context, ReadingsService::class.java)
         intent.putExtra("killSignal", true)
-        makeServiceForeground(context, intent)
         preferences.isDataCollectionPaused = true
+        startForegroundServiceDirect(context, intent)
     }
 
     fun isDataCollectionRunning(context: Context): Boolean {
-        return !QABroadcastReceiver.isMyServiceRunning(ReadingsService::class.java, context)
+        return QABroadcastReceiver.isMyServiceRunning(ReadingsService::class.java, context)
     }
 
     fun resumeCollectionRunning(context: Context) {
@@ -639,24 +637,152 @@ internal class QAPrivate private constructor(
         return preferences.canUsage(context)
     }
 
+    private val healthIoScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+    internal fun logHealthEvent(context: Context, event: String, timestampMs: Long = Instant.now().toEpochMilli()) {
+        val batteryLevel = QABroadcastReceiver.getBatteryPercentage(context)
+        healthIoScope.launch {
+            try {
+                mvpDao.insertOrUpdateDeviceHealthParsed(
+                    DeviceHealthParsed(
+                        0,
+                        "$timestampMs",
+                        "$batteryLevel",
+                        event,
+                        timestampMs,
+                        timestampMs,
+                        0
+                    )
+                )
+            } catch (e: Exception) {
+                Timber.w("Failed to log health event $event: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Queries Android's ApplicationExitInfo (API 30+) to inspect why the previous process/service
+     * instance was stopped by the system (e.g., LOW_MEMORY, EXCESSIVE_RESOURCE_USAGE, USER_REQUESTED,
+     * FREEZER) and records new exit events into DeviceHealthParsed for backend visibility.
+     */
+    internal fun recordHistoricalExitReasons(context: Context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
+        try {
+            val am = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager ?: return
+            val exitList = am.getHistoricalProcessExitReasons(context.packageName, 0, 5)
+            if (exitList.isEmpty()) return
+
+            val lastRecorded = preferences.lastRecordedExitTimestamp
+            var maxTimestamp = lastRecorded
+
+            for (exitInfo in exitList) {
+                val exitTs = exitInfo.timestamp
+                if (exitTs > lastRecorded) {
+                    if (exitTs > maxTimestamp) {
+                        maxTimestamp = exitTs
+                    }
+                    // Only log if lastRecorded was already initialized (avoid backfilling ancient exits on first install)
+                    if (lastRecorded > 0L) {
+                        val reasonCode = exitReasonToShortCode(exitInfo.reason)
+                        Timber.w("Recorded historical process exit: reason=$reasonCode (${exitInfo.reason}), description=${exitInfo.description}")
+                        logHealthEvent(context, "EXIT_$reasonCode", exitTs)
+                    }
+                }
+            }
+
+            if (maxTimestamp > lastRecorded) {
+                preferences.lastRecordedExitTimestamp = maxTimestamp
+            } else if (lastRecorded == 0L) {
+                preferences.lastRecordedExitTimestamp = Instant.now().toEpochMilli()
+            }
+        } catch (e: Exception) {
+            Timber.w("Could not read historical process exit reasons: ${e.message}")
+        }
+    }
+
+    private fun exitReasonToShortCode(reason: Int): String {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return "UNKNOWN"
+        return when (reason) {
+            ApplicationExitInfo.REASON_LOW_MEMORY -> "LOW_MEM"
+            ApplicationExitInfo.REASON_EXCESSIVE_RESOURCE_USAGE -> "EXCESS_RES"
+            ApplicationExitInfo.REASON_USER_REQUESTED -> "USER_REQ"
+            ApplicationExitInfo.REASON_USER_STOPPED -> "USER_STOP"
+            ApplicationExitInfo.REASON_PERMISSION_CHANGE -> "PERM_CHG"
+            ApplicationExitInfo.REASON_CRASH -> "CRASH"
+            ApplicationExitInfo.REASON_CRASH_NATIVE -> "CRASH_NAT"
+            ApplicationExitInfo.REASON_ANR -> "ANR"
+            ApplicationExitInfo.REASON_SIGNALED -> "SIGNAL"
+            ApplicationExitInfo.REASON_DEPENDENCY_DIED -> "DEP_DIED"
+            ApplicationExitInfo.REASON_OTHER -> "OS_OTHER"
+            14 -> "FREEZER" // ApplicationExitInfo.REASON_FREEZER (API 31+)
+            15 -> "PKG_STATE" // ApplicationExitInfo.REASON_PACKAGE_STATE_CHANGE (API 33+)
+            16 -> "PKG_UPD" // ApplicationExitInfo.REASON_PACKAGE_UPDATED (API 33+)
+            else -> "CODE_$reason"
+        }
+    }
 
     fun makeServiceForeground(
         context: Context,
         intent: Intent = Intent(context, ReadingsService::class.java)
     ): Boolean {
+        val isStopOrPause = intent.hasExtra("killSignal") || intent.hasExtra("pauseSignal")
+        if ((preferences.isDataCollectionPaused || !isDeviceRegistered()) && !isStopOrPause) {
+            return false
+        }
+
+        val activityPermResult: Int =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION)
+            } else {
+                PackageManager.PERMISSION_GRANTED
+            }
+        if (activityPermResult != PackageManager.PERMISSION_GRANTED && !isStopOrPause) {
+            Timber.tag("RESTARTER").d("PERMISSION IS NOT ENABLED WE NEED TO ASK")
+            val notification = activityPermissionNotification.createNotification(
+                context,
+                context.getString(R.string.notification_channel_id_qa)
+            )
+            val notificationManager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+            notificationManager?.notify(1, notification)
+            return false
+        }
+
+        // If the service is already running in foreground or we are delivering a stop/pause signal,
+        // deliver the intent directly.
+        if (isStopOrPause || ReadingsService.isServiceRunning) {
+            return startForegroundServiceDirect(context, intent)
+        }
+
+        // When starting/restarting from background and SYSTEM_ALERT_WINDOW is granted, attach the
+        // overlay first and start the service once the overlay window is View.VISIBLE (or arm it
+        // for the next screen wake if the display is currently off).
+        if (canDraw(context)) {
+            Actuator.getInstance(context.applicationContext)
+                .ensureOverlayAndStartService(context.applicationContext, intent)
+            return true
+        }
+
+        return startForegroundServiceDirect(context, intent)
+    }
+
+    internal fun startForegroundServiceDirect(
+        context: Context,
+        intent: Intent = Intent(context, ReadingsService::class.java)
+    ): Boolean {
         return try {
-            if (!preferences.isDataCollectionPaused && isDeviceRegistered()) {
+            val isStopOrPause = intent.hasExtra("killSignal") || intent.hasExtra("pauseSignal")
+            if ((!preferences.isDataCollectionPaused && isDeviceRegistered()) || isStopOrPause) {
                 val result: Int =
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION)
                     } else {
                         PackageManager.PERMISSION_GRANTED
                     }
-                if (result == PackageManager.PERMISSION_GRANTED) {
+                if (result == PackageManager.PERMISSION_GRANTED || isStopOrPause) {
                     ContextCompat.startForegroundService(context, intent)
                 } else {
-                    Timber.tag("RESTARTER").d( "PERMISSION IS NOT ENABLED WE NEED TO ASK")
-                    // Send notification to user to enable the permission
+                    Timber.tag("RESTARTER").d("PERMISSION IS NOT ENABLED WE NEED TO ASK")
                     val notification = activityPermissionNotification.createNotification(
                         context,
                         context.getString(R.string.notification_channel_id_qa)
@@ -673,6 +799,7 @@ internal class QAPrivate private constructor(
             // foreground can start again. The only problem is that this is via the SDK and not via
             // the app so it is problematic for customization.
             Log.e("QAPrivate", "${e.localizedMessage}")
+            logHealthEvent(context, "FGS_BLOCKED")
             val notification = restartedRequiredNotification.createNotification(
                 context,
                 context.getString(R.string.notification_channel_id_qa)
@@ -680,14 +807,18 @@ internal class QAPrivate private constructor(
             val notificationManager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
             notificationManager?.notify(1, notification)
-            Firebase.crashlytics.setUserId(deviceID)
-            Firebase.crashlytics.setCustomKeys {
-                key("location", "QAPrivate")
-                key("method", "makeServiceForeground")
-                key("canDraw", canDraw(context))
-                key("canUsage", canUsage(context))
+            try {
+                Firebase.crashlytics.setUserId(deviceID)
+                Firebase.crashlytics.setCustomKeys {
+                    key("location", "QAPrivate")
+                    key("method", "makeServiceForeground")
+                    key("canDraw", canDraw(context))
+                    key("canUsage", canUsage(context))
+                }
+                Firebase.crashlytics.recordException(e)
+            } catch (ex: Exception) {
+                Timber.w("Firebase Crashlytics not available: ${ex.message}")
             }
-            Firebase.crashlytics.recordException(e)
             false
         }
     }

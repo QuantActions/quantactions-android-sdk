@@ -199,6 +199,179 @@ class StudyRepositoryTest {
     }
 
     @Test
+    fun testGetSubscriptionsRefreshesStudiesAndQuestionnairesInRoom() = runTest {
+        val participationsJson = """
+            [
+                {
+                    "id": "part_12345",
+                    "studyId": "study_abc",
+                    "study": {
+                        "id": "study_abc",
+                        "name": "Test Study",
+                        "privacyPolicy": "https://example.com/privacy",
+                        "privacyPolicyDate": "2024-01-01",
+                        "organisationId": "org_1",
+                        "created": "2024-01-01",
+                        "enableWithdraw": true,
+                        "enableDeviceIdAccess": false,
+                        "enableDeviceNotes": false,
+                        "enableHighGpsResolution": false,
+                        "enableLocationAccess": false,
+                        "enableRawDataAccess": false,
+                        "enableStudyIdSignUp": true,
+                        "enableSyncOnScreenOff": false,
+                        "enableAppIdAccess": true,
+                        "enableDrawOverAccess": false,
+                        "enableCognitiveTests": true
+                    }
+                }
+            ]
+        """.trimIndent()
+
+        val questionnairesJson = """
+            [
+                {
+                    "id": "q_1",
+                    "code": "code_mood",
+                    "title": "Daily Mood",
+                    "description": "Daily mood survey",
+                    "language": "en",
+                    "definition": {"scale": 5},
+                    "completionTimeMinutes": 3
+                }
+            ]
+        """.trimIndent()
+
+        mockWebServer.enqueue(MockResponse().setResponseCode(HttpURLConnection.HTTP_OK).setBody(participationsJson))
+        mockWebServer.enqueue(MockResponse().setResponseCode(HttpURLConnection.HTTP_OK).setBody(questionnairesJson))
+
+        val subscriptions = studyRepository.getSubscriptions()
+        assertEquals(1, subscriptions.size)
+        assertEquals("study_abc", subscriptions[0].cohortId)
+
+        val cachedStudies = mvpDao.getStudies()
+        assertEquals(1, cachedStudies.size)
+        assertEquals("Test Study", cachedStudies[0].cohortName)
+
+        val cachedQuestionnaires = mvpDao.getQuestionnaires()
+        assertEquals(1, cachedQuestionnaires.size)
+        assertEquals("q_1", cachedQuestionnaires[0].id)
+        assertEquals("Daily Mood", cachedQuestionnaires[0].questionnaireName)
+        assertEquals("Test Study", cachedQuestionnaires[0].cohortName)
+    }
+
+    @Test
+    fun testGetQuestionnairesWithEmptyCacheAndParticipationIdTriggersRefresh() = runTest {
+        every { preferences.participationId } returns "part_12345"
+
+        val participationsJson = """
+            [
+                {
+                    "id": "part_12345",
+                    "studyId": "study_abc",
+                    "study": {
+                        "id": "study_abc",
+                        "name": "Study With Added Questionnaires",
+                        "privacyPolicy": "https://example.com/privacy",
+                        "privacyPolicyDate": "2024-01-01",
+                        "organisationId": "org_1",
+                        "created": "2024-01-01",
+                        "enableWithdraw": true,
+                        "enableDeviceIdAccess": false,
+                        "enableDeviceNotes": false,
+                        "enableHighGpsResolution": false,
+                        "enableLocationAccess": false,
+                        "enableRawDataAccess": false,
+                        "enableStudyIdSignUp": true,
+                        "enableSyncOnScreenOff": false,
+                        "enableAppIdAccess": true,
+                        "enableDrawOverAccess": false,
+                        "enableCognitiveTests": false
+                    }
+                }
+            ]
+        """.trimIndent()
+
+        val questionnairesJson = """
+            [
+                {
+                    "id": "q_added_later",
+                    "code": "code_later",
+                    "title": "Late Added Questionnaire",
+                    "description": "Added after signup",
+                    "language": "en",
+                    "definition": {},
+                    "completionTimeMinutes": 2
+                }
+            ]
+        """.trimIndent()
+
+        mockWebServer.enqueue(MockResponse().setResponseCode(HttpURLConnection.HTTP_OK).setBody(participationsJson))
+        mockWebServer.enqueue(MockResponse().setResponseCode(HttpURLConnection.HTTP_OK).setBody(questionnairesJson))
+
+        // Initial local DB is empty, but participationId is set
+        val result = studyRepository.getQuestionnaires(refresh = false)
+        assertEquals(1, result.size)
+        assertEquals("q_added_later", result[0].id)
+        assertEquals("Late Added Questionnaire", result[0].questionnaireName)
+    }
+
+    @Test
+    fun testGetQuestionnairesWithRefreshTrueForcesRefresh() = runTest {
+        every { preferences.participationId } returns "part_12345"
+
+        val participationsJson = """
+            [
+                {
+                    "id": "part_12345",
+                    "studyId": "study_abc",
+                    "study": {
+                        "id": "study_abc",
+                        "name": "Study ABC",
+                        "privacyPolicy": "https://example.com/privacy",
+                        "privacyPolicyDate": "2024-01-01",
+                        "organisationId": "org_1",
+                        "created": "2024-01-01",
+                        "enableWithdraw": true,
+                        "enableDeviceIdAccess": false,
+                        "enableDeviceNotes": false,
+                        "enableHighGpsResolution": false,
+                        "enableLocationAccess": false,
+                        "enableRawDataAccess": false,
+                        "enableStudyIdSignUp": true,
+                        "enableSyncOnScreenOff": false,
+                        "enableAppIdAccess": true,
+                        "enableDrawOverAccess": false,
+                        "enableCognitiveTests": false
+                    }
+                }
+            ]
+        """.trimIndent()
+
+        val questionnairesJson = """
+            [
+                {
+                    "id": "q_updated",
+                    "code": "code_updated",
+                    "title": "Updated Survey",
+                    "description": "Updated description",
+                    "language": "en",
+                    "definition": {},
+                    "completionTimeMinutes": 5
+                }
+            ]
+        """.trimIndent()
+
+        mockWebServer.enqueue(MockResponse().setResponseCode(HttpURLConnection.HTTP_OK).setBody(participationsJson))
+        mockWebServer.enqueue(MockResponse().setResponseCode(HttpURLConnection.HTTP_OK).setBody(questionnairesJson))
+
+        val result = studyRepository.getQuestionnaires(refresh = true)
+        assertEquals(1, result.size)
+        assertEquals("q_updated", result[0].id)
+        assertEquals("Updated Survey", result[0].questionnaireName)
+    }
+
+    @Test
     fun testSendQuestionnaireResponseThrowsOnApiError() = runTest {
         mockWebServer.enqueue(MockResponse().setResponseCode(HttpURLConnection.HTTP_BAD_REQUEST).setBody("{\"error\":\"Invalid answer\"}"))
 
