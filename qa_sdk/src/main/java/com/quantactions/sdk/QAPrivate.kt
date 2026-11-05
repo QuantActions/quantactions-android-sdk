@@ -425,7 +425,8 @@ internal class QAPrivate private constructor(
                     val hourInt = pointCal.get(Calendar.HOUR_OF_DAY)
                     val entry = tapsMap["${dateStr}_$hourInt"]
                     resultTaps.add(entry?.taps ?: 0)
-                    resultSpeed.add(entry?.speed ?: 0f)
+                    val entrySpeed = entry?.speed ?: 0f
+                    resultSpeed.add(if (entrySpeed.isFinite() && entrySpeed > 0f) entrySpeed else 0f)
                 }
 
                 QATaps(resultTaps, resultTaps.sum(), resultSpeed)
@@ -437,7 +438,9 @@ internal class QAPrivate private constructor(
                 val latestTaps = deviceRepository.getLatestTaps(rollBackDate)
 
                 val tapsByDate = latestTaps.groupBy { it.date }.mapValues { (_, v) -> v.sumOf { it.taps } }
-                val speedByDate = latestTaps.groupBy { it.date }.mapValues { (_, v) -> v.maxOfOrNull { it.speed } ?: 0f }
+                val speedByDate = latestTaps.groupBy { it.date }.mapValues { (_, v) ->
+                    v.filter { it.speed.isFinite() && it.speed > 0f }.maxOfOrNull { it.speed } ?: 0f
+                }
 
                 val resultTaps = ArrayList<Int>(flag.timePoints)
                 val resultSpeed = ArrayList<Float>(flag.timePoints)

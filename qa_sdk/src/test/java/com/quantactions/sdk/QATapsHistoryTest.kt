@@ -230,4 +230,29 @@ class QATapsHistoryTest {
         assertEquals(80, monthResult.taps[1])
         assertEquals(790, monthResult.totalTaps) // includes 7 days ago (500)
     }
+
+    @Test
+    fun testGetLastTapsSanitizesCorruptedInfinitySpeed() {
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val nowCal = Calendar.getInstance()
+        val nowDate = sdf.format(nowCal.time)
+        val nowHour = nowCal.get(Calendar.HOUR_OF_DAY)
+
+        // Insert an entry with POSITIVE_INFINITY in DB (simulating legacy corrupted data)
+        mvpDao.insertOrUpdateHourlyTapsEntity(
+            listOf(
+                HourlyTapsEntity(0, nowDate, nowHour, 42, Float.POSITIVE_INFINITY)
+            )
+        )
+
+        val dayResult = qaPrivate.getLastTaps(QA.Flag.DAY)
+        assertEquals(42, dayResult.taps[0])
+        org.junit.Assert.assertTrue("Day speed must be finite", dayResult.speed[0].isFinite())
+        assertEquals(0f, dayResult.speed[0])
+
+        val weekResult = qaPrivate.getLastTaps(QA.Flag.WEEK)
+        assertEquals(42, weekResult.taps[0])
+        org.junit.Assert.assertTrue("Week speed must be finite", weekResult.speed[0].isFinite())
+        assertEquals(0f, weekResult.speed[0])
+    }
 }

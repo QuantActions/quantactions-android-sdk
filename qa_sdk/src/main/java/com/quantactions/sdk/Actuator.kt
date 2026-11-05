@@ -90,6 +90,51 @@ internal class Actuator private constructor() {
                 return instance
             }
         }
+
+        /**
+         * Calculates typing burst speed in taps per second from a sequence of millisecond timestamps.
+         * Discards intervals < 50ms (multi-touch jitter, simultaneous touches) and > 3000ms (reading/idle pauses).
+         * Runs in O(N) with zero heap allocations.
+         */
+        internal fun calculateSpeed(timestamps: List<Long>): Float {
+            if (timestamps.size < 2) return 0f
+            var validCount = 0
+            var sumIntervalsMs = 0L
+
+            for (i in 1 until timestamps.size) {
+                val diff = timestamps[i] - timestamps[i - 1]
+                if (diff in 50L..3000L) {
+                    sumIntervalsMs += diff
+                    validCount++
+                }
+            }
+
+            return if (validCount > 0) {
+                (1000f * validCount) / sumIntervalsMs
+            } else 0f
+        }
+
+        /**
+         * Combines an existing hour's speed with a new session's speed using a weighted running average.
+         * Automatically heals corrupted/infinite values from prior runs.
+         */
+        internal fun calculateCombinedSpeed(
+            currentSpeed: Float,
+            currentTaps: Int,
+            newSpeed: Float,
+            newTaps: Int
+        ): Float {
+            val isCurrentValid = currentSpeed.isFinite() && currentSpeed > 0f
+            val isNewValid = newSpeed.isFinite() && newSpeed > 0f
+
+            return when {
+                !isCurrentValid && !isNewValid -> 0f
+                !isCurrentValid -> newSpeed
+                !isNewValid -> currentSpeed
+                currentTaps + newTaps <= 0 -> 0f
+                else -> ((currentSpeed * currentTaps) + (newSpeed * newTaps)) / (currentTaps + newTaps)
+            }
+        }
     }
 
     private fun buildLayoutParams(): WindowManager.LayoutParams {
@@ -434,7 +479,7 @@ internal class Actuator private constructor() {
         for ((dateHour, tapsInHour) in tapsByHour) {
             val (currentDate, hour) = dateHour
             val effectiveTAPs = tapsInHour.size
-            val effectiveSpeed = if (tapsByHour.size == 1) speed else tapsInHour.speed()
+            val effectiveSpeed = if (tapsByHour.size == 1) speed else calculateSpeed(tapsInHour)
 
             if (effectiveSpeed > 0) Log.i("ReadingService", "Saving session: $effectiveTAPs taps at $currentDate $hour:00")
             else Log.i("ReadingService", "Saving session: $effectiveTAPs taps at $currentDate $hour:00")
@@ -442,42 +487,38 @@ internal class Actuator private constructor() {
             val currentTaps = mvpDao.getTapsInDateAndHour(currentDate, hour)
 
             if (currentTaps != null) {
-                val updatedEntry: HourlyTapsEntity = if (effectiveSpeed > currentTaps.speed) {
-                    HourlyTapsEntity(
-                        currentTaps.id,
-                        currentDate,
-                        hour,
-                        currentTaps.taps + effectiveTAPs,
-                        effectiveSpeed
-                    )
-                } else {
-                    HourlyTapsEntity(
-                        currentTaps.id,
-                        currentDate,
-                        hour,
-                        currentTaps.taps + effectiveTAPs,
-                        currentTaps.speed
-                    )
-                }
+                val updatedSpeed = calculateCombinedSpeed(
+                    currentSpeed = currentTaps.speed,
+                    currentTaps = currentTaps.taps,
+                    newSpeed = effectiveSpeed,
+                    newTaps = effectiveTAPs
+                )
+                val updatedEntry = HourlyTapsEntity(
+                    currentTaps.id,
+                    currentDate,
+                    hour,
+                    currentTaps.taps + effectiveTAPs,
+                    updatedSpeed
+                )
                 mvpDao.insertOrUpdateHourlyTapsEntity(listOf(updatedEntry))
             } else {
                 // New hour / day!
                 mvpDao.insertOrUpdateHourlyTapsEntity(
-                    listOf(HourlyTapsEntity(0, currentDate, hour, effectiveTAPs, effectiveSpeed))
+                    listOf(
+                        HourlyTapsEntity(
+                            0,
+                            currentDate,
+                            hour,
+                            effectiveTAPs,
+                            if (effectiveSpeed.isFinite() && effectiveSpeed > 0f) effectiveSpeed else 0f
+                        )
+                    )
                 )
             }
         }
     }
 
-    private fun List<Long>.speed(): Float {
-        val diff = mutableListOf<Long>()
-        return if (this.size > 1) {
-            for (i in 1 .. this.indices.last) {
-                diff.add(this[i] - this[i - 1])
-            }
-            1.0f / (diff.minOrNull() ?: 1)
-        } else 0f
-    }
+    private fun List<Long>.speed(): Float = calculateSpeed(this)
 
     private fun putAppInDB(appName: String): Int {
         // I save in the database the name of all the Apps used. In this way I can save in the file
