@@ -142,6 +142,7 @@ internal class StudyRepository(
                 val mapped = response.body!!.map {
                     Questionnaire(it.id, it.title, it.description, it.code, studyId, it.definition.toMutableMap().stringify(), it.completionTimeMinutes ?: 5)
                 }
+                mvpDao.deleteQuestionnaires(studyId)
                 mvpDao.insertOrUpdateQuestionnaire(mapped)
                 mapped
             }
@@ -207,7 +208,28 @@ internal class StudyRepository(
 
     fun getStudies(): List<Cohort> = mvpDao.getStudies()
     fun getStudiesSingle(): List<Cohort> = mvpDao.getStudiesSingle()
-    fun getQuestionnaires(): List<QuestionnaireWithCohortName> = mvpDao.getQuestionnaires()
+
+    suspend fun getQuestionnaires(refresh: Boolean = false): List<QuestionnaireWithCohortName> {
+        if (refresh) {
+            refreshQuestionnaires()
+        }
+        val cached = mvpDao.getQuestionnaires()
+        if (cached.isEmpty() && !refresh && preferences.participationId.isNotEmpty()) {
+            refreshQuestionnaires()
+            return mvpDao.getQuestionnaires()
+        }
+        return cached
+    }
+
+    suspend fun refreshQuestionnaires(): List<QuestionnaireWithCohortName> {
+        return try {
+            getSubscriptions()
+            mvpDao.getQuestionnaires()
+        } catch (e: Exception) {
+            Timber.w("Failed to refresh questionnaires: ${e.message}")
+            mvpDao.getQuestionnaires()
+        }
+    }
 
     suspend fun getSubscriptions(studyId: String? = null): List<Subscription> {
         val filter = mutableMapOf<String, Any>()
@@ -222,6 +244,44 @@ internal class StudyRepository(
             } else {
                 preferences.participationId = ""
             }
+
+            // Sync active studies and their questionnaires to local Room DB
+            val activeStudyIds = results.mapNotNull { it.studyId }.toSet()
+            val localStudies = mvpDao.getStudies()
+            localStudies.forEach { localCohort ->
+                if (localCohort.cohortId !in activeStudyIds) {
+                    mvpDao.deleteStudy(localCohort.cohortId)
+                    mvpDao.deleteQuestionnaires(localCohort.cohortId)
+                }
+            }
+
+            results.forEach { p ->
+                p.study?.let { studyInfo ->
+                    val cohort = Cohort(
+                        cohortId = studyInfo.id,
+                        privacyPolicy = studyInfo.privacyPolicy,
+                        cohortName = studyInfo.name,
+                        dataPattern = null,
+                        gpsResolution = 0,
+                        canWithdraw = if (studyInfo.enableWithdraw) 1 else 0,
+                        syncOnScreenOff = if (studyInfo.enableSyncOnScreenOff) 1 else 0,
+                        perimeterCheck = 0,
+                        permAppId = if (studyInfo.enableAppIdAccess) 1 else 0,
+                        permDrawOver = if (studyInfo.enableDrawOverAccess) 1 else 0,
+                        permLocation = 0,
+                        permContact = 0,
+                        enableCognitiveTests = studyInfo.enableCognitiveTests ?: false
+                    )
+                    mvpDao.insertOrUpdateStudy(cohort)
+                } ?: p.studyId?.let { sId ->
+                    getStudyInfo(sId)
+                }
+
+                p.studyId?.let { sId ->
+                    getQuestionnaires(sId)
+                }
+            }
+
             val items = if (studyId != null) results.filter { it.studyId == studyId } else results
             items.map { p ->
                 Subscription(

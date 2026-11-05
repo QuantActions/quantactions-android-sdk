@@ -222,7 +222,7 @@ internal class QAPrivate private constructor(
             // not first time, I check for running
             checkAndRunService(context)
             settingUpSomeWorkers(context)
-            if (preferences.participationId.isEmpty() && isDeviceRegistered()) {
+            if (isDeviceRegistered()) {
                 try {
                     studyRepository.getSubscriptions()
                 } catch (e: Exception) {
@@ -519,8 +519,8 @@ internal class QAPrivate private constructor(
         return studyRepository.sendQuestionnaireResponse(resp)
     }
 
-    suspend fun getQuestionnairesList(): List<QuestionnaireWithCohortName> {
-        return studyRepository.getQuestionnaires()
+    suspend fun getQuestionnairesList(refresh: Boolean = false): List<QuestionnaireWithCohortName> {
+        return studyRepository.getQuestionnaires(refresh)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
