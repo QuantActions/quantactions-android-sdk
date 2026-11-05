@@ -398,7 +398,7 @@ internal class Actuator private constructor() {
                 )
             )
 
-            addTapsDB(allTaps.size, allTaps.speed())
+            addTapsDB(allTaps, allTaps.speed())
             logs = Vector()
         } catch (e: Exception) {
             try {
@@ -418,49 +418,55 @@ internal class Actuator private constructor() {
         }
 
     @SuppressLint("LogNotTimber")
-    private fun addTapsDB(effectiveTAPs: Int, speed: Float) {
-        // Adding count of taps per day every
-        // get day from last time step
-        val calendar = Calendar.getInstance()
-        val date = calendar.time
-        val hour = calendar[Calendar.HOUR_OF_DAY]
+    private fun addTapsDB(allTaps: List<Long>, speed: Float) {
+        if (allTaps.isEmpty()) return
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val currentDate = sdf.format(date)
+        val calendar = Calendar.getInstance()
 
-        // there is something we should update
-        // check speed
-        if (speed > 0) Log.i("ReadingService","Saving session: $effectiveTAPs taps")
-        else Log.i("ReadingService","Saving session: $effectiveTAPs taps")
-
-        val currentTaps = mvpDao.getTapsInDateAndHour(currentDate, hour)
-
-        if (currentTaps != null) {
-
-            val updatedEntry: HourlyTapsEntity = if (speed > currentTaps.speed) {
-                HourlyTapsEntity(
-                    currentTaps.id,
-                    currentDate,
-                    hour,
-                    currentTaps.taps + effectiveTAPs,
-                    speed
-                )
-            } else {
-                HourlyTapsEntity(
-                    currentTaps.id,
-                    currentDate,
-                    hour,
-                    currentTaps.taps + effectiveTAPs,
-                    currentTaps.speed
-                )
-            }
-            mvpDao.insertOrUpdateHourlyTapsEntity(listOf(updatedEntry))
-        } else {
-            // New day!
-            mvpDao.insertOrUpdateHourlyTapsEntity(
-                listOf(HourlyTapsEntity(0, currentDate, hour, effectiveTAPs, speed))
-            )
+        // Group tap timestamps by their actual local date and hour
+        val tapsByHour = allTaps.groupBy { tapTs ->
+            calendar.timeInMillis = tapTs
+            val dateStr = sdf.format(calendar.time)
+            val hourInt = calendar.get(Calendar.HOUR_OF_DAY)
+            dateStr to hourInt
         }
 
+        for ((dateHour, tapsInHour) in tapsByHour) {
+            val (currentDate, hour) = dateHour
+            val effectiveTAPs = tapsInHour.size
+            val effectiveSpeed = if (tapsByHour.size == 1) speed else tapsInHour.speed()
+
+            if (effectiveSpeed > 0) Log.i("ReadingService", "Saving session: $effectiveTAPs taps at $currentDate $hour:00")
+            else Log.i("ReadingService", "Saving session: $effectiveTAPs taps at $currentDate $hour:00")
+
+            val currentTaps = mvpDao.getTapsInDateAndHour(currentDate, hour)
+
+            if (currentTaps != null) {
+                val updatedEntry: HourlyTapsEntity = if (effectiveSpeed > currentTaps.speed) {
+                    HourlyTapsEntity(
+                        currentTaps.id,
+                        currentDate,
+                        hour,
+                        currentTaps.taps + effectiveTAPs,
+                        effectiveSpeed
+                    )
+                } else {
+                    HourlyTapsEntity(
+                        currentTaps.id,
+                        currentDate,
+                        hour,
+                        currentTaps.taps + effectiveTAPs,
+                        currentTaps.speed
+                    )
+                }
+                mvpDao.insertOrUpdateHourlyTapsEntity(listOf(updatedEntry))
+            } else {
+                // New hour / day!
+                mvpDao.insertOrUpdateHourlyTapsEntity(
+                    listOf(HourlyTapsEntity(0, currentDate, hour, effectiveTAPs, effectiveSpeed))
+                )
+            }
+        }
     }
 
     private fun List<Long>.speed(): Float {

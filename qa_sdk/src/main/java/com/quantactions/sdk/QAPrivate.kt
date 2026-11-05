@@ -400,74 +400,63 @@ internal class QAPrivate private constructor(
     }
 
     fun getLastTaps(flag: QA.Flag): QATaps {
-        val taps: HashMap<String, Int>
-        val speed: HashMap<String, Float>
-        val calendar = Calendar.getInstance()
-        val justOneDay = Calendar.getInstance()
-        val ca: Calendar
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val hours = SimpleDateFormat("HH", Locale.getDefault())
-        val rollBackDate: String
-        val currentHour: String
-        when (flag) {
+        return when (flag) {
             QA.Flag.DAY -> {
-                ca = Calendar.getInstance()
-                taps = LinkedHashMap()
-                speed = LinkedHashMap()
-                currentHour = hours.format(ca.timeInMillis)
-                taps[currentHour] = 0
-                speed[currentHour] = 0f
-                var i = 1
-                while (i < flag.timePoints) {
-                    ca.add(Calendar.HOUR_OF_DAY, -1)
-                    taps[hours.format(ca.timeInMillis)] = 0
-                    speed[hours.format(ca.timeInMillis)] = 0f
-                    i++
-                }
-                calendar.add(Calendar.DAY_OF_MONTH, -2)
-                justOneDay.add(Calendar.DAY_OF_MONTH, -1)
-                rollBackDate = sdf.format(calendar.timeInMillis)
-
+                // To cover the last 24 hours across date boundaries, look back at least 2 days
+                val calRollback = Calendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, -2) }
+                val rollBackDate = sdf.format(calRollback.time)
                 val latestTaps = deviceRepository.getLatestTaps(rollBackDate)
 
-                latestTaps.forEach {
-                    taps["%02d".format(it.hour)] = it.taps
-                    speed["%02d".format(it.hour)] = it.speed
+                // Index by composite key: "yyyy-MM-dd_hour" so different days never overwrite each other
+                val tapsMap = latestTaps.associateBy { "${it.date}_${it.hour}" }
+
+                val resultTaps = ArrayList<Int>(flag.timePoints)
+                val resultSpeed = ArrayList<Float>(flag.timePoints)
+
+                // Build exactly 24 hourly buckets:
+                // i = 0: current hour (Now)
+                // i = 1: 1 hour ago
+                // ...
+                // i = 23: 23 hours ago
+                for (i in 0 until flag.timePoints) {
+                    val pointCal = Calendar.getInstance().apply { add(Calendar.HOUR_OF_DAY, -i) }
+                    val dateStr = sdf.format(pointCal.time)
+                    val hourInt = pointCal.get(Calendar.HOUR_OF_DAY)
+                    val entry = tapsMap["${dateStr}_$hourInt"]
+                    resultTaps.add(entry?.taps ?: 0)
+                    resultSpeed.add(entry?.speed ?: 0f)
                 }
 
+                QATaps(resultTaps, resultTaps.sum(), resultSpeed)
             }
 
             QA.Flag.WEEK, QA.Flag.MONTH -> {
-                ca = Calendar.getInstance()
-                taps = LinkedHashMap()
-                speed = LinkedHashMap()
-                taps[sdf.format(ca.timeInMillis)] = 0
-                speed[sdf.format(ca.timeInMillis)] = 0f
-                var i = 1
-                while (i < flag.timePoints) {
-                    ca.add(Calendar.DAY_OF_YEAR, -1)
-                    taps[sdf.format(ca.timeInMillis)] = 0
-                    speed[sdf.format(ca.timeInMillis)] = 0f
-                    i++
-                }
-                calendar.add(Calendar.DAY_OF_MONTH, -flag.timePoints)
-                rollBackDate = sdf.format(calendar.timeInMillis)
-
+                val calRollback = Calendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, -flag.timePoints - 1) }
+                val rollBackDate = sdf.format(calRollback.time)
                 val latestTaps = deviceRepository.getLatestTaps(rollBackDate)
 
-                latestTaps.groupBy { it.date }.mapValues { (_, v) -> v.sumOf { it.taps } }.forEach {
-                    taps[it.key] = it.value
+                val tapsByDate = latestTaps.groupBy { it.date }.mapValues { (_, v) -> v.sumOf { it.taps } }
+                val speedByDate = latestTaps.groupBy { it.date }.mapValues { (_, v) -> v.maxOfOrNull { it.speed } ?: 0f }
+
+                val resultTaps = ArrayList<Int>(flag.timePoints)
+                val resultSpeed = ArrayList<Float>(flag.timePoints)
+
+                // Build exactly timePoints daily buckets:
+                // i = 0: Today
+                // i = 1: Yesterday
+                // ...
+                // i = flag.timePoints - 1: (timePoints - 1) days ago
+                for (i in 0 until flag.timePoints) {
+                    val pointCal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -i) }
+                    val dateStr = sdf.format(pointCal.time)
+                    resultTaps.add(tapsByDate[dateStr] ?: 0)
+                    resultSpeed.add(speedByDate[dateStr] ?: 0f)
                 }
-                latestTaps.groupBy { it.date }.mapValues { (_, v) -> v.maxOf { it.speed } }
-                    .forEach {
-                        speed[it.key] = it.value
-                    }
+
+                QATaps(resultTaps, resultTaps.sum(), resultSpeed)
             }
         }
-        return QATaps(
-            taps.toSortedMap().toList().reversed().map { it.second },
-            taps.map { it.value }.sum(),
-            speed.toSortedMap().toList().reversed().map { it.second })
     }
 
     /**
