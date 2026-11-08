@@ -55,23 +55,25 @@ class ReadingsService : Service() {
     var restartedRequiredNotification: RestartedRequiredNotification = RestartedRequiredNotificationImpl()
     private lateinit var qa: QA
 
+    companion object {
+        @Volatile
+        var isServiceRunning: Boolean = false
+    }
+
     override fun onCreate() {
+        isServiceRunning = true
 
         // Register the filter to be told when screen goes on and off
         val filter = IntentFilter(Intent.ACTION_SCREEN_ON)
         filter.addAction(Intent.ACTION_SCREEN_OFF)
         mReceiver = QABroadcastReceiver()
         registerReceiver(mReceiver, filter)
-        actuator = Actuator.getInstance(this@ReadingsService)
-        qa = getInstance(this@ReadingsService)
+        actuator = Actuator.getInstance(applicationContext)
+        qa = getInstance(applicationContext)
         qa.updater.updateNotification()
+        QAPrivate.getInstance(applicationContext).recordHistoricalExitReasons(applicationContext)
 
         try {
-            // Necessary for handling foreground task
-            ContextCompat.startForegroundService(
-                applicationContext,
-                Intent(applicationContext, ReadingsService::class.java)
-            )
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val channelId = createNotificationChannel()
                 // This is necessary for handleMessage error on Samsung, does not really happen to other phones
@@ -93,6 +95,7 @@ class ReadingsService : Service() {
                 setupActivityRecognition()
             }
         } catch (e: Exception) {
+            isServiceRunning = false
             // This means that the foreground service cannot be started from background, either turn
             // off the battery optimization, or send a notification to reopen the app so that the
             // foreground can start again. The only problem is that this is via the SDK and not via
@@ -117,7 +120,6 @@ class ReadingsService : Service() {
             } catch (ex: Exception) {
                 Timber.w("Firebase Crashlytics not available: ${ex.message}")
             }
-            false
         }
     }
 
@@ -224,6 +226,7 @@ class ReadingsService : Service() {
      */
     @OptIn(DelicateCoroutinesApi::class)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        isServiceRunning = true
 
         getInstance(this@ReadingsService).updater.updateNotification()
 
@@ -243,6 +246,7 @@ class ReadingsService : Service() {
                 )
             }
         } catch (e: Exception) {
+            isServiceRunning = false
             // This means that the foreground service cannot be started from background, either turn
             // off the battery optimization, or send a notification to reopen the app so that the
             // foreground can start again. The only problem is that this is via the SDK and not via
@@ -302,19 +306,18 @@ class ReadingsService : Service() {
      * Adding the tap collector view to the screen
      */
     private fun addView() {
-        if (!actuator.added) {
-            actuator.addView(this@ReadingsService)
-        }
+        actuator.addView(applicationContext)
     }
 
     /**
      * Removing the view from the screen, this is necessary in some cases
      */
     private fun removeView() {
-        actuator.removeView(this@ReadingsService)
+        actuator.removeView(applicationContext)
     }
 
     override fun onDestroy() {
+        isServiceRunning = false
         if (mReceiver != null) {
             unregisterReceiver(mReceiver)
         }
@@ -351,6 +354,7 @@ class ReadingsService : Service() {
     }
 
     private fun stopMe() {
+        isServiceRunning = false
         Timber.w("QA service is being asked to shut down!")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
@@ -362,6 +366,7 @@ class ReadingsService : Service() {
     }
 
     private fun pauseMe() {
+        isServiceRunning = false
         Timber.w("QA service is being asked to pause!")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_DETACH)

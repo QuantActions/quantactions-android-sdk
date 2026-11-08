@@ -57,14 +57,19 @@ internal class TapsStats(mvpDao: MVPDao) {
 
             for (i in tapsToAggregate.indices) {
                 aggregate[tapsToAggregate[i].hour] = tapsToAggregate[i].taps
-                speedList[tapsToAggregate[i].hour] = tapsToAggregate[i].speed
+                val sp = tapsToAggregate[i].speed
+                speedList[tapsToAggregate[i].hour] = if (sp.isFinite() && sp > 0f) sp else 0f
                 if (tapsToAggregate[i].hour == 23) break
             }
 
             var totalTaps = 0
             var totalSpeed = 0
             for (anAggregate in aggregate) totalTaps += anAggregate
-            for (aSpeed in speedList) totalSpeed += aSpeed.toInt()
+            for (aSpeed in speedList) {
+                if (aSpeed.isFinite() && aSpeed > 0f) {
+                    totalSpeed += aSpeed.toInt()
+                }
+            }
 
             hourlyTaps = aggregate.toList()
             hourlyTapsSpeed = speedList.toList()

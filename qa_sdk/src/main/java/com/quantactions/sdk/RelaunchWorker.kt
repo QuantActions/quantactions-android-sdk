@@ -22,8 +22,11 @@ class RelaunchWorker(context: Context, params: WorkerParameters) : Worker(contex
     private val actuator = Actuator.getInstance(context)
 
     override fun doWork(): Result {
-        Log.i("RelaunchWorker", "Relaunching service: ${actuator.getViewVisibility()}")
-        actuator.addView(applicationContext)
+        Log.i("RelaunchWorker", "Relaunching service: visibility=${actuator.getViewVisibility()}, running=${ReadingsService.isServiceRunning}")
+        qa.recordHistoricalExitReasons(applicationContext)
+        if (!ReadingsService.isServiceRunning) {
+            qa.logHealthEvent(applicationContext, "WRK_RS")
+        }
         qa.makeServiceForeground(applicationContext)
         return Result.success()
     }

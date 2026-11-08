@@ -46,7 +46,8 @@ open class UpdateTaps(override val qa: QA) : DataCollectionNotification {
         scope.launch {
             val last = qa.getLastTaps(QA.Flag.DAY)
             lastTaps = last.totalTaps
-            lastSpeed = (last.speed.sum() / last.speed.size).toDouble()
+            val activeSpeeds = last.speed.filter { it.isFinite() && it > 0f }
+            lastSpeed = if (activeSpeeds.isNotEmpty()) (activeSpeeds.sum() / activeSpeeds.size).toDouble() else 0.0
         }
     }
     @Keep
@@ -74,7 +75,8 @@ open class UpdateTaps(override val qa: QA) : DataCollectionNotification {
         )
         mBuilder.setWhen(0)
         mBuilder.setOngoing(true)
-        mBuilder.setContentText("Taps last 24h: $lastTaps\nSpeed last 24h: ${"%.2f".format(lastSpeed * 60)} taps/m")
+        val speedPerMin = if (lastSpeed.isFinite() && lastSpeed > 0.0) lastSpeed * 60.0 else 0.0
+        mBuilder.setContentText("Taps last 24h: $lastTaps\nSpeed last 24h: ${"%.2f".format(speedPerMin)} taps/m")
 
         return mBuilder.build()
     }

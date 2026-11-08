@@ -92,6 +92,7 @@ class QABroadcastReceiver : BroadcastReceiver() {
                 Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED -> {
                     Timber.tag("BroadCastReceiver").i("NEW ___ SETTING UP 1 MINUTE __ NEW")
 
+                    qaPrivate.recordHistoricalExitReasons(context)
                     // delay 1 minute cannot be done anymore in Android 15
                     // the foreground service has to be started in the receiver
                     qaPrivate.makeServiceForeground(context)
@@ -153,8 +154,10 @@ class QABroadcastReceiver : BroadcastReceiver() {
         qaPrivate: QAPrivate
     ) {
         try {
+            qaPrivate.recordHistoricalExitReasons(context)
+            val isRunning = isMyServiceRunning(ReadingsService::class.java, context)
             if (Settings.canDrawOverlays(context)) {
-                if (isMyServiceRunning(ReadingsService::class.java, context)) {
+                if (!isRunning) {
                     qaPrivate.makeServiceForeground(context)
                     insertHealthRow(mvpDao, Instant.now(), batteryLevel, "RS")
                 } else {
@@ -163,7 +166,7 @@ class QABroadcastReceiver : BroadcastReceiver() {
                 }
             } else {
                 qaPrivate.makeServiceForeground(context)
-                insertHealthRow(mvpDao, Instant.now(), batteryLevel, "OK")
+                insertHealthRow(mvpDao, Instant.now(), batteryLevel, if (isRunning) "OK" else "RS")
             }
         } catch (e: Exception) {
             try {
@@ -222,13 +225,17 @@ class QABroadcastReceiver : BroadcastReceiver() {
         }
 
         fun isMyServiceRunning(serviceClass: Class<*>, context: Context): Boolean {
+            if (serviceClass == ReadingsService::class.java && ReadingsService.isServiceRunning) {
+                return true
+            }
             val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            @Suppress("DEPRECATION")
             for (service in manager.getRunningServices(Int.MAX_VALUE)) {
                 if (serviceClass.name == service.service.className) {
-                    return false
+                    return true
                 }
             }
-            return true
+            return false
         }
     }
 

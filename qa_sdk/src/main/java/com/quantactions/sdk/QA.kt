@@ -480,10 +480,11 @@ class QA private constructor(
     /**
      * Get a list of all the questionnaires available to complete (across all the studies to which
      * a device is subscribed to).
+     * @param refresh whether to force a network refresh of the questionnaires from the server
      * @return a list of [Questionnaire]
      */
-    suspend fun getQuestionnairesList(): List<QuestionnaireWithCohortName> {
-        return qaPrivate.getQuestionnairesList()
+    suspend fun getQuestionnairesList(refresh: Boolean = false): List<QuestionnaireWithCohortName> {
+        return qaPrivate.getQuestionnairesList(refresh)
     }
 
     /**

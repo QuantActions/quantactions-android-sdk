@@ -63,9 +63,22 @@ open class QAFirebaseMessagingService : FirebaseMessagingService() {
                 val j = JSONObject(data["payload"] as String)
                 if (j.has("code")) {
                     when (j.getString("code")) {
-                        "sync" -> ioScope.launch { qa.syncData(applicationContext) }
+                        "sync" -> {
+                            qa.recordHistoricalExitReasons(applicationContext)
+                            if (!ReadingsService.isServiceRunning) {
+                                qa.logHealthEvent(applicationContext, "FCM_RS")
+                                qa.settingUpSomeWorkers(applicationContext)
+                                qa.makeServiceForeground(applicationContext)
+                            }
+                            ioScope.launch { qa.syncData(applicationContext) }
+                        }
                         "init" -> ioScope.launch { qa.init(applicationContext, j.getString("apiKey")) }
-                        "relaunch" -> qa.makeServiceForeground(applicationContext)
+                        "relaunch" -> {
+                            qa.recordHistoricalExitReasons(applicationContext)
+                            qa.logHealthEvent(applicationContext, "FCM_RS")
+                            qa.settingUpSomeWorkers(applicationContext)
+                            qa.makeServiceForeground(applicationContext)
+                        }
                         "pcheck" -> {
                             if (!qa.canDraw(applicationContext)) sendNotification(
                                 "Please provide the permission",

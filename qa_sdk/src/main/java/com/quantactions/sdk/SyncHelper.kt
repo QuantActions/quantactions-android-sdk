@@ -31,6 +31,7 @@ import com.quantactions.sdk.workers.SubmitStatsWorker
 import com.quantactions.sdk.workers.SubmitTapDataParsedWorker
 import com.quantactions.sdk.workers.UpdateAppsListWorker
 import com.quantactions.sdk.workers.UpdateDeviceWorker
+import com.quantactions.sdk.workers.UpdateStudiesWorker
 import timber.log.Timber
 
 internal class SyncHelper(context: Context) {
@@ -127,6 +128,15 @@ internal class SyncHelper(context: Context) {
 
             // update list of apps
             updateAppList()
+
+            // update studies and questionnaires
+            workManager.enqueueUniqueWork(
+                "updateStudies",
+                ExistingWorkPolicy.REPLACE,
+                OneTimeWorkRequest.Builder(UpdateStudiesWorker::class.java)
+                    .addTag("updateStudies")
+                    .build()
+            )
 
             if (qaPrivate.getTapDataParsedToSync().isNotEmpty()) {
                 workManager.enqueueUniqueWork(
