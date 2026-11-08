@@ -18,8 +18,8 @@ apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'dagger.hilt.android.plugin'
 
-def versionName = '1.2.0-beta01'
-def versionCode = '68'
+def versionName = '1.2.0-rc01'
+def versionCode = '69'
 
 android {
     compileSdk = 37
