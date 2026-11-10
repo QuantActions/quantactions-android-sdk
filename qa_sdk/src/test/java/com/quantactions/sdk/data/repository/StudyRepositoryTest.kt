@@ -392,4 +392,53 @@ class StudyRepositoryTest {
         }
         assertTrue(thrown)
     }
+
+    @Test
+    fun testCognitiveTestRepositorySubmitsToStudyEndpointWhenStudyActive() = runTest {
+        mvpDao.insertOrUpdateStudy(
+            com.quantactions.sdk.data.entity.Cohort(
+                cohortId = "study_cog_1",
+                privacyPolicy = "https://example.com",
+                cohortName = "Cognitive Study",
+                dataPattern = null,
+                gpsResolution = 0,
+                canWithdraw = 1,
+                syncOnScreenOff = 0,
+                perimeterCheck = 0,
+                permAppId = 1,
+                permDrawOver = 0,
+                permLocation = 0,
+                permContact = 0,
+                enableCognitiveTests = true
+            )
+        )
+
+        mockWebServer.enqueue(
+            MockResponse()
+                .setResponseCode(HttpURLConnection.HTTP_OK)
+                .setBody("""{"id": "cog_resp_1"}""")
+        )
+
+        val cognitiveRepo = CognitiveTestRepository(
+            identityRepository = identityRepository,
+            networkManager = networkManager,
+            cognitiveTestDao = database.cognitiveTestDao(),
+            mvpDao = mvpDao
+        )
+
+        val entity = com.quantactions.sdk.data.entity.CognitiveTestEntity(
+            testType = com.quantactions.sdk.cognitivetests.CognitiveTest.PVT.id,
+            results = """{"reactionTimes":[250,270],"lapses":0,"falseStarts":0}""",
+            timestamp = 1700000000L,
+            localTime = "2026-01-01T10:00:00Z",
+            sync = 0
+        )
+
+        cognitiveRepo.submitCognitiveTestResponse(com.quantactions.sdk.cognitivetests.CognitiveTest.PVT, entity)
+
+        val recordedRequest = mockWebServer.takeRequest()
+        assertEquals("POST", recordedRequest.method)
+        assertEquals("/studies/study_cog_1/cognitivetests", recordedRequest.path)
+        assertEquals(0, cognitiveRepo.getPendingCognitiveTests().size)
+    }
 }

@@ -112,7 +112,7 @@ internal class QAPrivate private constructor(
                     val identityRepo = IdentityRepository(preferences, networkManager)
                     val journalRepo = JournalRepository(identityRepo, networkManager, getDatabase(context).mvpDao())
                     val studyRepo = StudyRepository(preferences, identityRepo, networkManager, getDatabase(context).mvpDao(), WorkManager.getInstance(context))
-                    val cognitiveRepo = CognitiveTestRepository(identityRepo, networkManager, getDatabase(context).cognitiveTestDao())
+                    val cognitiveRepo = CognitiveTestRepository(identityRepo, networkManager, getDatabase(context).cognitiveTestDao(), getDatabase(context).mvpDao())
                     val deviceRepo = DeviceRepository(context, preferences, identityRepo, networkManager, getDatabase(context).mvpDao())
                     val metricRepo = MetricRepository(identityRepo, networkManager, getDatabase(context).mvpDao())
                     
@@ -280,25 +280,11 @@ internal class QAPrivate private constructor(
 
         identityRepository.checkRegisteredStatus()
 
-        when (val response = deviceRepository.registerDeviceSpecifications()) {
-            is ApiEmptyResponse -> {
-                throw QASDKException("Device registration failed, this should, never happen")
-            }
-
-            is ApiErrorResponse -> {
-                Timber.e("Register spec and device error ${response.errorMessage}")
-                registerDeviceAsync(context)
-                throw QASDKException("Device registration failed, retrying later")
-            }
-
-            is ApiSuccessResponse -> {
-                if (response.body != null) {
-                    Timber.d("Registered device specs -> ${response.body!!.id}")
-                    deviceRepository.saveDeviceSpecificationsId(response.body!!.id)
-                    registerDevice(context, response.body!!.id)
-                } else {
-                    throw QASDKException("Device registration failed, this should, never happen")                }
-            }
+        try {
+            registerDevice(context)
+        } catch (e: QASDKException) {
+            registerDeviceAsync(context)
+            throw e
         }
 
         // I could not do this before cause I needed a login, could be called also somewhere else
@@ -306,7 +292,7 @@ internal class QAPrivate private constructor(
     }
 
     @Throws(QASDKException::class)
-    private suspend fun registerDevice(context: Context, id: String) {
+    private suspend fun registerDevice(context: Context, id: String? = null) {
         when (val response2 = deviceRepository.registerUser(id)) {
             is ApiEmptyResponse -> {
                 throw QASDKException("Device registration failed, this should, never happen")
@@ -862,7 +848,7 @@ internal class QAPrivate private constructor(
                 try {
                     val associatedIdentity = identityRepository.getIdentity("OldToNewAPIMigration")
                     Timber.d("ID $associatedIdentity")
-                    associatedIdentity.identityId?.let {
+                    (associatedIdentity.identityId ?: associatedIdentity.id)?.let {
                         preferences.identityId = it
                         preferences.isOauthActivated = false
                         identityRepository.checkRegisteredStatus()

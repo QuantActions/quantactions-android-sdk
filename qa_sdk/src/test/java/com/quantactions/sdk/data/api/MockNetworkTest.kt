@@ -114,7 +114,7 @@ class MockNetworkTest {
         mockWebServer.enqueue(response)
 
         val appList = listOf(AppToPush("com.example.app1", 1))
-        val apiResponse = apiService.updateAppList("identityId", "deviceId", appList)
+        val apiResponse = apiService.updateAppList("deviceId", appList)
 
         assertTrue(apiResponse is ApiSuccessResponse)
         val successResponse = apiResponse as ApiSuccessResponse
@@ -171,7 +171,7 @@ class MockNetworkTest {
             .setBody(mockResponseBody)
         mockWebServer.enqueue(response)
 
-        val apiResponse = apiService.getStatSleepSummaryEntity("identityId", "participationId", "filter", "001")
+        val apiResponse = apiService.getStatSleepSummaryEntity("participationId", "001", "001-002-006-004", "2023-11", "2023-11")
         assertTrue(apiResponse is ApiSuccessResponse)
         val successResponse = apiResponse as ApiSuccessResponse
         assertEquals(1, successResponse.body?.size)
@@ -225,7 +225,7 @@ class MockNetworkTest {
             .setBody(mockResponseBody)
         mockWebServer.enqueue(response)
 
-        val apiResponse = apiService.getStatStatisticEntity("identityId", "participationId", "filter", "003")
+        val apiResponse = apiService.getStatStatisticEntity("participationId", "003", "003-001-001-002", "2022-02", "2022-02")
         assertTrue(apiResponse is ApiSuccessResponse)
         val successResponse = apiResponse as ApiSuccessResponse
         assertEquals(1, successResponse.body?.size)

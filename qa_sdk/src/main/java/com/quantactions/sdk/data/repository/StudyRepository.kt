@@ -53,7 +53,6 @@ internal class StudyRepository(
     @Throws(QASDKException::class)
     suspend fun registerToStudy(studyId: String): SubscriptionWithQuestionnaires {
         val apiResponse = networkManager.apiService.registerToStudy(
-            identityRepository.identityId,
             ApiService.SubscribeWithStudyIdBody(studyId = studyId)
         )
 
@@ -62,8 +61,10 @@ internal class StudyRepository(
                 apiResponse.body?.let {
                     Timber.d("SUCCESS while signup $it")
                     preferences.participationId = it.id
-                    val cohort = getStudyInfo(it.studyId!!) ?: throw QASDKException("Cohort is null")
-                    val questionnaires = getQuestionnaires(it.studyId!!)
+                    val cohort = it.study?.toCohort()?.also { c -> mvpDao.insertOrUpdateStudy(c) }
+                        ?: getStudyInfo(it.studyId!!)
+                        ?: throw QASDKException("Cohort is null")
+                    val questionnaires = getQuestionnaires(cohort.cohortId)
                     mvpDao.insertOrUpdateStudy(cohort)
                     return SubscriptionWithQuestionnaires(
                         cohort, questionnaires, it.id, listOf(),
@@ -95,7 +96,6 @@ internal class StudyRepository(
     suspend fun registerToStudyWithParticipationId(participationId: String): SubscriptionWithQuestionnaires {
         val identityId = identityRepository.identityId
         val apiResponse = networkManager.apiService.registerToStudyWithParticipationId(
-            identityId,
             participationId,
             ApiService.SubscribeWithParticipationIdBody(identityId = identityId)
         )
@@ -105,8 +105,16 @@ internal class StudyRepository(
                 apiResponse.body?.let {
                     Timber.d("SUCCESS while signup $it")
                     preferences.participationId = it.id
-                    networkManager.tokenApi.login(getBasicAuthHeader(preferences))
-                    val cohort = getStudyInfoWithParticipationId(participationId) ?: throw QASDKException("Cohort is null")
+                    val loginResp = networkManager.tokenApi.login(getBasicAuthHeader(preferences))
+                    if (loginResp is ApiSuccessResponse && !loginResp.body?.accessToken.isNullOrEmpty()) {
+                        preferences.saveAccessTokens(
+                            accessToken = loginResp.body?.accessToken,
+                            refreshToken = loginResp.body?.refreshToken
+                        )
+                    }
+                    val cohort = it.study?.toCohort()?.also { c -> mvpDao.insertOrUpdateStudy(c) }
+                        ?: getStudyInfoWithParticipationId(participationId)
+                        ?: throw QASDKException("Cohort is null")
                     val questionnaires = getQuestionnaires(cohort.cohortId)
                     mvpDao.insertOrUpdateStudy(cohort)
                     return SubscriptionWithQuestionnaires(
@@ -137,7 +145,7 @@ internal class StudyRepository(
     }
 
     suspend fun getQuestionnaires(studyId: String): List<Questionnaire> {
-        return when (val response = networkManager.apiService.getQuestionnaires(identityRepository.identityId, studyId)) {
+        return when (val response = networkManager.apiService.getQuestionnaires(studyId)) {
             is ApiSuccessResponse -> {
                 val mapped = response.body!!.map {
                     Questionnaire(it.id, it.title, it.description, it.code, studyId, it.definition.toMutableMap().stringify(), it.completionTimeMinutes ?: 5)
@@ -151,28 +159,10 @@ internal class StudyRepository(
     }
 
     suspend fun getStudyInfo(studyId: String): Cohort? {
-        val filter = mutableMapOf<String, Any>()
-        filter["where"] = mapOf("studyId" to studyId)
-        filter["include"] = listOf(mapOf("relation" to "study", "scope" to mapOf("where" to mapOf("deleted" to null))))
-
-        return when (val response = networkManager.apiService.getParticipations(identityRepository.identityId, filter.stringify())) {
+        return when (val response = networkManager.apiService.getParticipations(studyId = studyId)) {
             is ApiSuccessResponse -> {
-                val studyInfo = response.body!!.first { it.studyId == studyId }.study!!
-                val cohort = Cohort(
-                    cohortId = studyInfo.id,
-                    privacyPolicy = studyInfo.privacyPolicy,
-                    cohortName = studyInfo.name,
-                    dataPattern = null,
-                    gpsResolution = 0,
-                    canWithdraw = if (studyInfo.enableWithdraw) 1 else 0,
-                    syncOnScreenOff = if (studyInfo.enableSyncOnScreenOff) 1 else 0,
-                    perimeterCheck = 0,
-                    permAppId = if (studyInfo.enableAppIdAccess) 1 else 0,
-                    permDrawOver = if (studyInfo.enableDrawOverAccess) 1 else 0,
-                    permLocation = 0,
-                    permContact = 0,
-                    enableCognitiveTests = studyInfo.enableCognitiveTests ?: false
-                )
+                val studyInfo = response.body!!.firstOrNull { it.studyId == studyId }?.study ?: return null
+                val cohort = studyInfo.toCohort()
                 mvpDao.insertOrUpdateStudy(cohort)
                 cohort
             }
@@ -181,30 +171,32 @@ internal class StudyRepository(
     }
 
     suspend fun getStudyInfoWithParticipationId(participationId: String): Cohort? {
-        return when (val response = networkManager.apiService.getParticipation(identityRepository.identityId, participationId, "{\"include\":[{\"relation\":\"study\",\"scope\":{\"where\":{\"deleted\":null}}}]}")) {
+        return when (val response = networkManager.apiService.getParticipation(participationId)) {
             is ApiSuccessResponse -> {
-                val studyInfo = response.body!!.study!!
-                val cohort = Cohort(
-                    cohortId = studyInfo.id,
-                    privacyPolicy = studyInfo.privacyPolicy,
-                    cohortName = studyInfo.name,
-                    dataPattern = null,
-                    gpsResolution = 0,
-                    canWithdraw = if (studyInfo.enableWithdraw) 1 else 0,
-                    syncOnScreenOff = if (studyInfo.enableSyncOnScreenOff) 1 else 0,
-                    perimeterCheck = 0,
-                    permAppId = if (studyInfo.enableAppIdAccess) 1 else 0,
-                    permDrawOver = if (studyInfo.enableDrawOverAccess) 1 else 0,
-                    permLocation = 0,
-                    permContact = 0,
-                    enableCognitiveTests = studyInfo.enableCognitiveTests ?: false
-                )
+                val studyInfo = response.body?.study ?: return null
+                val cohort = studyInfo.toCohort()
                 mvpDao.insertOrUpdateStudy(cohort)
                 cohort
             }
             else -> null
         }
     }
+
+    private fun ApiService.StudyResponse.toCohort(): Cohort = Cohort(
+        cohortId = id,
+        privacyPolicy = privacyPolicy,
+        cohortName = name,
+        dataPattern = null,
+        gpsResolution = 0,
+        canWithdraw = if (enableWithdraw) 1 else 0,
+        syncOnScreenOff = if (enableSyncOnScreenOff) 1 else 0,
+        perimeterCheck = 0,
+        permAppId = if (enableAppIdAccess) 1 else 0,
+        permDrawOver = if (enableDrawOverAccess) 1 else 0,
+        permLocation = 0,
+        permContact = 0,
+        enableCognitiveTests = enableCognitiveTests ?: false
+    )
 
     fun getStudies(): List<Cohort> = mvpDao.getStudies()
     fun getStudiesSingle(): List<Cohort> = mvpDao.getStudiesSingle()
@@ -232,11 +224,7 @@ internal class StudyRepository(
     }
 
     suspend fun getSubscriptions(studyId: String? = null): List<Subscription> {
-        val filter = mutableMapOf<String, Any>()
-        filter["where"] = mapOf("deleted" to null, "withdraw" to null)
-        filter["include"] = listOf(mapOf("relation" to "study", "scope" to mapOf("where" to mapOf("deleted" to null))))
-
-        val response = networkManager.apiService.getParticipations(identityRepository.identityId, filter.stringify())
+        val response = networkManager.apiService.getParticipations(studyId = studyId)
         return if (response is ApiSuccessResponse) {
             val results = response.body!!
             if (results.isNotEmpty()) {
@@ -257,22 +245,7 @@ internal class StudyRepository(
 
             results.forEach { p ->
                 p.study?.let { studyInfo ->
-                    val cohort = Cohort(
-                        cohortId = studyInfo.id,
-                        privacyPolicy = studyInfo.privacyPolicy,
-                        cohortName = studyInfo.name,
-                        dataPattern = null,
-                        gpsResolution = 0,
-                        canWithdraw = if (studyInfo.enableWithdraw) 1 else 0,
-                        syncOnScreenOff = if (studyInfo.enableSyncOnScreenOff) 1 else 0,
-                        perimeterCheck = 0,
-                        permAppId = if (studyInfo.enableAppIdAccess) 1 else 0,
-                        permDrawOver = if (studyInfo.enableDrawOverAccess) 1 else 0,
-                        permLocation = 0,
-                        permContact = 0,
-                        enableCognitiveTests = studyInfo.enableCognitiveTests ?: false
-                    )
-                    mvpDao.insertOrUpdateStudy(cohort)
+                    mvpDao.insertOrUpdateStudy(studyInfo.toCohort())
                 } ?: p.studyId?.let { sId ->
                     getStudyInfo(sId)
                 }
@@ -301,7 +274,7 @@ internal class StudyRepository(
     suspend fun withdraw(participationId: String, studyId: String) {
         val created = Instant.now().atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_DATE_TIME)
         val body = ApiService.WithdrawBody(withdraw = created)
-        when (val response = networkManager.apiService.withdrawParticipation(identityRepository.identityId, participationId, body)) {
+        when (val response = networkManager.apiService.withdrawParticipation(participationId, body)) {
             is ApiSuccessResponse, is ApiEmptyResponse -> {
                 if (preferences.participationId == participationId) {
                     preferences.participationId = ""
@@ -318,7 +291,7 @@ internal class StudyRepository(
 
     suspend fun reSubscribe(participationId: String) {
         val body = ApiService.SubscribeWithParticipationIdBody(identityId = identityRepository.identityId)
-        networkManager.apiService.registerToStudyWithParticipationId(identityRepository.identityId, participationId, body)
+        networkManager.apiService.registerToStudyWithParticipationId(participationId, body)
     }
 
     private fun prepareQuestionnaireResponseSubmit(answer: QuestionnaireResponseEntity): QuestionnaireResponse {
@@ -338,7 +311,6 @@ internal class StudyRepository(
         val toPush = prepareQuestionnaireResponseSubmit(answer)
 
         val apiResponse = networkManager.apiService.submitQuestionnaireAnswer(
-            identityRepository.identityId,
             studyId,
             questionnaireId,
             toPush
@@ -363,7 +335,6 @@ internal class StudyRepository(
         val questionnaireId = answer.qFullID.split(":")[1]
         val toPush = prepareQuestionnaireResponseSubmit(answer)
         return networkManager.apiService.submitQuestionnaireAnswer(
-            identityRepository.identityId,
             studyId,
             questionnaireId,
             toPush

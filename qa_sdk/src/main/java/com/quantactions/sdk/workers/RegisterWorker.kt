@@ -36,27 +36,10 @@ class RegisterWorker(context: Context, params: WorkerParameters) :
 
 
 internal suspend fun registerSpecificationsAndDevice(deviceRepository: DeviceRepository): ListenableWorker.Result {
-    when (val response = deviceRepository.registerDeviceSpecifications()) {
-        is ApiEmptyResponse -> {
-            return ListenableWorker.Result.retry()
-        }
-        is ApiErrorResponse -> {
-            Timber.e("Register spec and device error ${response.errorMessage}")
-            return ListenableWorker.Result.retry()
-        }
-        is ApiSuccessResponse -> {
-            return if (response.body != null) {
-                Timber.d("Registered device specs -> ${response.body!!.id}")
-                deviceRepository.saveDeviceSpecificationsId(response.body!!.id)
-                registerDevice(deviceRepository, response.body!!.id)
-            } else {
-                ListenableWorker.Result.failure()
-            }
-        }
-    }
+    return registerDevice(deviceRepository)
 }
 
-internal suspend fun registerDevice(deviceRepository: DeviceRepository, id: String): ListenableWorker.Result {
+internal suspend fun registerDevice(deviceRepository: DeviceRepository, id: String? = null): ListenableWorker.Result {
     when (val response2 = deviceRepository.registerUser(id)) {
         is ApiEmptyResponse -> {
             return ListenableWorker.Result.retry()

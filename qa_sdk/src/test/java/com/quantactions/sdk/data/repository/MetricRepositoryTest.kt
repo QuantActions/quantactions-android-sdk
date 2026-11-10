@@ -261,4 +261,91 @@ class MetricRepositoryTest {
         assertNotNull(result)
         assertEquals(77.0, result.values.first(), 0.001)
     }
+
+    @Test
+    fun testGetStatChecksLatestTimestampFor3HourCacheTtlAndNotOldest() = runTest {
+        val nowSec = Instant.now().epochSecond
+        val oldStat = StatisticEntity(
+            id = "old_stat",
+            stat = Metric.SLEEP_SCORE.code,
+            timestamp = nowSec - 10 * 86400, // 10 days ago (> 3 hours old)
+            value = 70.0,
+            timeZone = "UTC",
+            reset = 0,
+            confidenceIntervalLow = 65.0,
+            confidenceIntervalHigh = 75.0,
+            confidence = 0.9
+        )
+        val freshStat = StatisticEntity(
+            id = "fresh_stat",
+            stat = Metric.SLEEP_SCORE.code,
+            timestamp = nowSec - 1800, // 30 minutes ago (< 3 hours old)
+            value = 85.0,
+            timeZone = "UTC",
+            reset = 0,
+            confidenceIntervalLow = 80.0,
+            confidenceIntervalHigh = 90.0,
+            confidence = 0.95
+        )
+        mvpDao.insertOrUpdateMetric(listOf(oldStat, freshStat))
+
+        val flow = metricRepository.getStat(
+            metricOrTrend = Metric.SLEEP_SCORE,
+            iamParticipationId = "test_participation_123",
+            from = (nowSec - 15 * 86400) * 1000,
+            to = (nowSec + 3600) * 1000,
+            refresh = false
+        )
+
+        val result = flow.first()
+        assertEquals(2, result.values.size)
+        // Because the newest entry is only 30 minutes old (< 3 hours), no network request should be made
+        assertEquals(0, mockWebServer.requestCount)
+    }
+
+    @Test
+    fun testGetStatUsesIncrementalMonthlyDeltaSyncWhenStaleCacheExists() = runTest {
+        val staleJanInstant = java.time.ZonedDateTime.parse("2026-03-10T00:00:00.000Z").toInstant()
+        val fromJanInstant = java.time.ZonedDateTime.parse("2026-01-01T00:00:00.000Z").toInstant()
+        val toAprInstant = java.time.ZonedDateTime.parse("2026-04-15T00:00:00.000Z").toInstant()
+
+        mvpDao.insertOrUpdateMetric(
+            listOf(
+                StatisticEntity(
+                    id = "cached_march",
+                    stat = Metric.SLEEP_SCORE.code,
+                    timestamp = staleJanInstant.epochSecond,
+                    value = 78.0,
+                    timeZone = "UTC",
+                    reset = 0,
+                    confidenceIntervalLow = 72.0,
+                    confidenceIntervalHigh = 84.0,
+                    confidence = 0.9
+                )
+            )
+        )
+
+        mockWebServer.enqueue(
+            MockResponse()
+                .setResponseCode(HttpURLConnection.HTTP_OK)
+                .setBody("[]")
+        )
+
+        val flow = metricRepository.getStat(
+            metricOrTrend = Metric.SLEEP_SCORE,
+            iamParticipationId = "test_participation_123",
+            from = fromJanInstant.toEpochMilli(),
+            to = toAprInstant.toEpochMilli(),
+            refresh = false
+        )
+
+        flow.first()
+
+        val recordedRequest = mockWebServer.takeRequest()
+        assertEquals("GET", recordedRequest.method)
+        assertEquals("2026-03", recordedRequest.requestUrl?.queryParameter("start"))
+        assertEquals("2026-04", recordedRequest.requestUrl?.queryParameter("end"))
+        assertEquals(Metric.SLEEP_SCORE.code, recordedRequest.requestUrl?.queryParameter("code"))
+        assertEquals("003", recordedRequest.requestUrl?.queryParameter("containerId"))
+    }
 }

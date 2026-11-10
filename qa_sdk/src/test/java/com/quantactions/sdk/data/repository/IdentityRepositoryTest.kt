@@ -105,7 +105,7 @@ class IdentityRepositoryTest {
 
         val request = mockWebServer.takeRequest()
         assertEquals("PATCH", request.method)
-        assertEquals("/flows/identities/test-identity-id", request.path)
+        assertEquals("/me", request.path)
 
         val requestJson = JSONObject(request.body.readUtf8())
         assertFalse("yearOfBirth should not be non-null when yearOfBirth is 0", requestJson.has("yearOfBirth") && !requestJson.isNull("yearOfBirth"))
@@ -137,12 +137,7 @@ class IdentityRepositoryTest {
         mockWebServer.enqueue(
             MockResponse()
                 .setResponseCode(HttpURLConnection.HTTP_OK)
-                .setBody("""{"id": "test-identity-id", "gender": "M", "yearOfBirth": null, "selfDeclaredHealthy": true}""")
-        )
-        mockWebServer.enqueue(
-            MockResponse()
-                .setResponseCode(HttpURLConnection.HTTP_OK)
-                .setBody("""{"token": "sample-token"}""")
+                .setBody("""{"accessToken": "access-123", "refreshToken": "refresh-123", "identity": {"id": "test-identity-id", "gender": "M", "yearOfBirth": null, "selfDeclaredHealthy": true}}""")
         )
 
         val result = identityRepository.checkRegisteredStatus()
@@ -150,7 +145,7 @@ class IdentityRepositoryTest {
 
         val request = mockWebServer.takeRequest()
         assertEquals("POST", request.method)
-        assertEquals("/flows/identities", request.path)
+        assertEquals("/identities", request.path)
 
         val requestJson = JSONObject(request.body.readUtf8())
         assertFalse("yearOfBirth should not be non-null when yearOfBirth is 0", requestJson.has("yearOfBirth") && !requestJson.isNull("yearOfBirth"))

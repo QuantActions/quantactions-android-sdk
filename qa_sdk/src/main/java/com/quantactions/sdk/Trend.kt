@@ -174,8 +174,7 @@ open class BasicTrendObject(id: String, code: String) :
         from: String,
         to: String
     ): ApiResponse<List<TrendEntity>> {
-        val filter = prepareFilter(code, from, to)
-        return apiService.getTrendEntity(identityId, participationId, filter, code.container())
+        return apiService.getTrendEntity(participationId, code.container(), code, from, to)
     }
 
     override fun insertOrUpdateMetric(mvpDao: MVPDao, statistics: List<TrendEntity>) {
@@ -267,8 +266,7 @@ open class FilterByTimeZoneTrendObject(id: String, code: String) :
         from: String,
         to: String
     ): ApiResponse<List<TrendEntity>> {
-        val filter = prepareFilter(code, from, to)
-        return apiService.getTrendEntity(identityId, participationId, filter, code.container())
+        return apiService.getTrendEntity(participationId, code.container(), code, from, to)
     }
 
     override fun insertOrUpdateMetric(mvpDao: MVPDao, statistics: List<TrendEntity>) {

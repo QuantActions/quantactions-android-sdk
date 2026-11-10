@@ -63,11 +63,17 @@ import okhttp3.Authenticator
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
+import okhttp3.Interceptor
+import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.Response
 import okhttp3.Route
 import okhttp3.logging.HttpLoggingInterceptor
+import okio.BufferedSink
+import okio.GzipSink
+import okio.buffer
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -86,89 +92,76 @@ import java.util.concurrent.TimeUnit
 
 interface ApiService {
 
-    @GET("flows/identities/{identityId}/healthyranges")
+    @GET("healthyranges")
     suspend fun getHealthyRanges(
-        @Path("identityId") identityId: String,
-        @Query("filter") filter: String,
+        @Query("code") code: String? = null,
+        @Query("codes") codes: String? = null,
     ): ApiResponse<List<HealthyRangesResponse>>
 
     /**
      * This endpoint is used to get stats from TapCloud relative to the device in use.
      * Use this function to get any stat that is numeric i.e. a score value per day/hour.
-     * @param identityId
      * @param participationId
-     * @param filter
+     * @param containerId
+     * @param code
+     * @param start
+     * @param end
      * @return A flow wrapping a list of [com.quantactions.sdk.data.entity.StatisticEntity]
      */
-    @GET("flows/identities/{identityId}/participations/{participationId}/analyses")
+    @GET("participations/{participationId}/analyses")
     suspend fun getStatStatisticEntity(
-        @Path("identityId") identityId: String,
         @Path("participationId") participationId: String,
-        @Query("filter") filter: String,
-        @Query("containerId") containerId: String
+        @Query("containerId") containerId: String,
+        @Query("code") code: String,
+        @Query("start") start: String,
+        @Query("end") end: String,
     ): ApiResponse<List<StatisticEntity>>
 
-    @GET("flows/identities/{identityId}/participations/{participationId}/analyses")
+    @GET("participations/{participationId}/analyses")
     suspend fun getStatStatisticStringEntity(
-        @Path("identityId") identityId: String,
         @Path("participationId") participationId: String,
-        @Query("filter") filter: String,
-        @Query("containerId") containerId: String
+        @Query("containerId") containerId: String,
+        @Query("code") code: String,
+        @Query("start") start: String,
+        @Query("end") end: String,
     ): ApiResponse<List<StatisticStringEntity>>
 
-    @GET("flows/identities/{identityId}/participations/{participationId}/analyses")
+    @GET("participations/{participationId}/analyses")
     suspend fun getStatSleepSummaryEntity(
-        @Path("identityId") identityId: String,
         @Path("participationId") participationId: String,
-        @Query("filter") filter: String,
-        @Query("containerId") containerId: String
+        @Query("containerId") containerId: String,
+        @Query("code") code: String,
+        @Query("start") start: String,
+        @Query("end") end: String,
     ): ApiResponse<List<SleepSummaryEntity>>
 
-    @GET("flows/identities/{identityId}/participations/{participationId}/analyses")
+    @GET("participations/{participationId}/analyses")
     suspend fun getTrendEntity(
-        @Path("identityId") identityId: String,
         @Path("participationId") participationId: String,
-        @Query("filter") filter: String,
-        @Query("containerId") containerId: String
+        @Query("containerId") containerId: String,
+        @Query("code") code: String,
+        @Query("start") start: String,
+        @Query("end") end: String,
     ): ApiResponse<List<TrendEntity>>
 
     /**
      * Registers the device with the backend.
      */
-    @POST("flows/identities/{id}/devices")
+    @POST("devices")
     suspend fun registerDevice(
-        @Path("id") identityId: String,
         @Body deviceRegistration: DeviceRegistration
     ): ApiResponse<RegistrationResponse>
-
-    /**
-     */
-    @POST("flows/identities/{identityId}/devices/specifications")
-    suspend fun registerDeviceSpecifications(
-        @Path("identityId") identityId: String,
-        @Body deviceSpecifications: DeviceSpecifications
-    ): ApiResponse<DeviceSpecificationsResponse>
-
 
     /**
      * Updates information about the device, for example when a new version of the app has been
      * downloaded, there is an update of the OS or there is a change in system permissions.
      * See [com.quantactions.sdk.data.model.DeviceRegistration] for how to format this info.
      */
-    @PATCH("flows/identities/{identityId}/devices/{deviceId}")
+    @PATCH("devices/{deviceId}")
     suspend fun updateDevice(
-        @Path("identityId") identityId: String,
         @Path("deviceId") deviceId: String,
         @Body devicePatch: DevicePatch
     ): ApiResponse<DeviceRegistration>
-
-    /**
-     * Registers the device to a cohort also known as "study". See [com.quantactions.sdk.data.model.SignUpForStudy]
-     * for how to format the data in the body of the call. Upon successful registration, returns all
-     * the information about the study and questionnaires relative to the study if any. See
-     * [com.quantactions.sdk.workers.SignUpForStudyWorker] for an example on how to handle the
-     * response of this call.
-     */
 
     /**
      * This endpoint is used to submit some daily statistics of the TapData, these statistics are
@@ -176,50 +169,42 @@ interface ApiService {
      * is out of the ordinary. See [com.quantactions.sdk.data.model.DeviceStats] for info on how to
      * format the body of this call.
      */
-    @POST("flows/identities/{identityId}/devices/{deviceId}/recordings/summaries")
+    @POST("devices/{deviceId}/recordings/summaries")
     suspend fun submitStatistic(
-        @Path("identityId") identityId: String,
         @Path("deviceId") deviceId: String,
         @Body deviceStats: DeviceStats
     ): ApiResponse<DeviceStatsResponse>
 
-    @DELETE("flows/identities/{identityId}/devices/{deviceId}/recordings/summaries/{deviceSummaryId}")
+    @DELETE("devices/{deviceId}/recordings/summaries/{deviceSummaryId}")
     suspend fun removeStatistic(
-        @Path("identityId") identityId: String,
         @Path("deviceId") deviceId: String,
         @Path("deviceSummaryId") deviceSummaryId: String,
     ): ApiResponse<Void>
 
-    // OK
-    @POST("flows/identities/{identityId}/devices/{deviceId}/recordings")
+    @POST("devices/{deviceId}/recordings")
     suspend fun submitActivity(
-        @Path("identityId") identityId: String,
         @Path("deviceId") deviceId: String,
         @Body activityBody: ActivityBody
     ): ApiResponse<ActivityBody>
 
-    @POST("flows/identities/{identityId}/devices/{deviceId}/recordings")
+    @POST("devices/{deviceId}/recordings")
     suspend fun submitTap(
-        @Path("identityId") identityId: String,
         @Path("deviceId") deviceId: String,
         @Body tapHealthDataBody: TapDataBody
     ): ApiResponse<TapDataBody>
 
-    @POST("flows/identities/{identityId}/devices/{deviceId}/recordings")
+    @POST("devices/{deviceId}/recordings")
     suspend fun submitHealth(
-        @Path("identityId") identityId: String,
         @Path("deviceId") deviceId: String,
         @Body tapHealthDataBody: HealthDataBody
     ): ApiResponse<HealthDataBody>
 
-    // OK
     /**
      * Use this endpoint to submit a list of apps with their package name and corresponding ID.
      * See [com.quantactions.sdk.data.model.AppToPush] for details on how to format the list of apps.
      */
-    @POST("flows/identities/{identityId}/devices/{deviceId}/applications/catalogues")
+    @POST("devices/{deviceId}/applications/catalogues")
     suspend fun updateAppList(
-        @Path("identityId") identityId: String,
         @Path("deviceId") deviceId: String,
         @Body appsList: List<AppToPush>
     ): ApiResponse<List<AppWithCategory>>
@@ -227,9 +212,8 @@ interface ApiService {
     /**
      * Submits a simple text note to the backend.
      */
-    @POST("flows/identities/{identityId}/notes")
+    @POST("me/notes")
     suspend fun submitNote(
-        @Path("identityId") identityId: String,
         @Body note: Note
     ): ApiResponse<Note>
 
@@ -237,9 +221,8 @@ interface ApiService {
      * Use this endpoint to submit the answer to a questionnaire. See
      * [com.quantactions.sdk.data.model.QuestionnaireResponse] for info on how to format the body.
      */
-    @POST("flows/identities/{identityId}/studies/{studyId}/questionnaires/{questionnaireId}/responses")
+    @POST("studies/{studyId}/questionnaires/{questionnaireId}/responses")
     suspend fun submitQuestionnaireAnswer(
-        @Path("identityId") identityId: String,
         @Path("studyId") studyId: String,
         @Path("questionnaireId") questionnaireId: String,
         @Body questionnaireResponse: QuestionnaireResponse
@@ -254,11 +237,8 @@ interface ApiService {
      *
      * @return a list of [com.quantactions.sdk.data.entity.JournalEventEntity]
      * */
-    @GET("flows/identities/{identityId}/journals/events/types")
-    suspend fun getJournalEventTypes(
-        @Path("identityId") identityId: String,
-        @Query("filter") filter: String
-    ): ApiResponse<List<JournalEventEntity>>
+    @GET("me/journals/events/types")
+    suspend fun getJournalEventTypes(): ApiResponse<List<JournalEventEntity>>
 
     /**
      * This endpoint pulls the entries from the remote database. This should be only useful when
@@ -267,58 +247,47 @@ interface ApiService {
      *
      * @return a list of [com.quantactions.sdk.data.api.responses.JournalEntriesResponse]
      * */
-    @GET("flows/identities/{identityId}/journals")
-    suspend fun getJournalEntries(
-        @Path("identityId") identityId: String,
-        @Query("filter") filter: String
-    ): ApiResponse<List<JournalEntriesResponse>>
+    @GET("me/journals")
+    suspend fun getJournalEntries(): ApiResponse<List<JournalEntriesResponse>>
 
-
-    @GET("flows/identities/{identityId}/journals/{journalId}/events")
+    @GET("me/journals/{journalId}/events")
     fun getJournalEvents(
-        @Query("filter") filter: String
+        @Path("journalId") journalId: String
     ): Flow<ApiResponse<List<JournalEvent>>>
 
     /**
      * Use this endpoint to submit the newly created journal entries. See
      * [com.quantactions.sdk.data.model.JournalEntryBody] for info on how to format the body.
      */
-    @POST("flows/identities/{identityId}/journals")
+    @POST("me/journals")
     suspend fun journalEntrySubmit(
-        @Path("identityId") identityId: String,
         @Body journalEntryBody: JournalEntryBody
     ): ApiResponse<JournalEntriesResponse>
 
-    @POST("flows/identities/{identityId}/journals/{journalId}/events")
+    @POST("me/journals/{journalId}/events")
     suspend fun journalEventsSubmit(
-        @Path("identityId") identityId: String,
         @Path("journalId") journalId: String,
         @Body journalEventBody: List<JournalEventBody>
     ): ApiResponse<List<JournalEventEnterResponse>>
 
-    @DELETE("flows/identities/{identityId}/journals/{journalId}")
+    @DELETE("me/journals/{journalId}")
     suspend fun journalEntryDelete(
-        @Path("identityId") identityId: String,
         @Path("journalId") journalId: String
     ): ApiResponse<String>
 
-    @DELETE("flows/identities/{identityId}/journals/{journalId}/events/{journalEventId}")
+    @DELETE("me/journals/{journalId}/events/{journalEventId}")
     suspend fun journalEventDelete(
-        @Path("identityId") identityId: String,
         @Path("journalId") journalId: String,
         @Path("journalEventId") eventId: String
     ): ApiResponse<String>
 
-    @GET("flows/identities/{identityId}/studies/{studyId}/questionnaires")
+    @GET("studies/{studyId}/questionnaires")
     suspend fun getQuestionnaires(
-        @Path("identityId") identityId: String,
         @Path("studyId") studyId: String,
     ): ApiResponse<List<Questionnaire>>
 
-    @GET("flows/identities/{identityId}/devices")
-    suspend fun getConnectedDevices(
-        @Path("identityId") identityId: String,
-    ): ApiResponse<List<DeviceResponse>>
+    @GET("devices")
+    suspend fun getConnectedDevices(): ApiResponse<List<DeviceResponse>>
 
     @JsonClass(generateAdapter = true)
     @Serializable
@@ -328,76 +297,73 @@ interface ApiService {
         val title: String,
         val description: String,
         val language: String,
-        val definition: Map<String, @Contextual  Any>,
+        val definition: Map<String, @Contextual Any>,
         val completionTimeMinutes: Int?,
     )
 
-    @POST("flows/identities/{identityId}/links")
+    @POST("me/links")
     suspend fun linkIdentities(
-        @Path("identityId") identityId: String,
         @Body authLinkBody: AuthLinkBody,
     ): ApiResponse<TokenApi.Identity>
 
-
-    @PATCH("flows/credentials/{identityId}")
+    @PATCH("identities/{identityId}/credentials/{credentialId}")
     suspend fun patchCredentials(
         @Path("identityId") identityId: String,
+        @Path("credentialId") credentialId: String,
         @Body credentialsRegistration: CredentialsRegistration
     ): ApiResponse<TokenApi.Identity>
 
-    @PATCH("flows/identities/{identityId}")
+    @PATCH("me")
     suspend fun patchIdentity(
-        @Path("identityId") identityId: String,
         @Body identityPatch: IdentityPatch
     ): ApiResponse<TokenApi.Identity>
 
-    @GET("flows/identities/{identityId}")
-    suspend fun getIdentity(
-        @Path("identityId") identityId: String,
-    ): ApiResponse<TokenApi.Identity>
+    @GET("me")
+    suspend fun getIdentity(): ApiResponse<TokenApi.Identity>
 
-    @POST("flows/identities/{identityId}/participations")
+    @POST("me/participations")
     suspend fun registerToStudy(
-        @Path("identityId") identityId: String,
         @Body subscriptionBody: SubscribeWithStudyIdBody
     ): ApiResponse<StudyRegistrationResponse>
 
-    @GET("flows/identities/{identityId}/participations")
+    @GET("me/participations")
     suspend fun getParticipations(
-        @Path("identityId") identityId: String,
-        @Query("filter") filter: String,
+        @Query("studyId") studyId: String? = null,
     ): ApiResponse<List<StudyRegistrationResponse>>
 
-    @GET("flows/identities/{identityId}/participations/{participationId}")
+    @GET("me/participations/{participationId}")
     suspend fun getParticipation(
-        @Path("identityId") identityId: String,
         @Path("participationId") participationId: String,
-        @Query("filter") filter: String,
     ): ApiResponse<StudyRegistrationResponse>
 
-    @PATCH("flows/identities/{identityId}/participations/{participationId}")
+    @PATCH("me/participations/{participationId}")
     suspend fun registerToStudyWithParticipationId(
-        @Path("identityId") identityId: String,
         @Path("participationId") participationId: String,
         @Body subscriptionBody: SubscribeWithParticipationIdBody
     ): ApiResponse<StudyRegistrationResponse>
 
-
-    @PATCH("flows/identities/{identityId}/participations/{participationId}")
+    @PATCH("me/participations/{participationId}")
     suspend fun withdrawParticipation(
-        @Path("identityId") identityId: String,
         @Path("participationId") participationId: String,
         @Body withdrawBody: WithdrawBody
     ): ApiResponse<StudyRegistrationResponse>
+
+    /**
+     * This endpoint pushes a cognitive test result to the backend scoped to an active study.
+     */
+    @POST("studies/{studyId}/cognitivetests")
+    suspend fun submitStudyCognitiveTestResponse(
+        @Path("studyId") studyId: String,
+        @Body response: CognitiveTestResponseBody
+    ): ApiResponse<IdResponse>
 
     /**
      * This endpoint pushes a cognitive test result to the backend. The result is a JSON object
      *
      * @return ID of the save test result
      * */
-    @POST("flows/identities/{identityId}/cognitivetests")
+    @POST("me/cognitivetests")
     suspend fun submitCognitiveTestResponse(
-        @Path("identityId") identityId: String,
         @Body response: CognitiveTestResponseBody
     ): ApiResponse<IdResponse>
 
@@ -497,8 +463,9 @@ interface ApiService {
     @JsonClass(generateAdapter = true)
     @Serializable
     data class CredentialsRegistration(
-        val identityId: String,
+        val identityId: String? = null,
         var password: String?,
+        val verificationCode: String? = null,
     )
 
     companion object {
@@ -510,9 +477,9 @@ interface ApiService {
             cookieJar: UvCookieJar,
         ): ApiService {
             val logger =
-//                HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
-                HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC }
-//                HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.HEADERS }
+                HttpLoggingInterceptor().apply {
+                    level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC else HttpLoggingInterceptor.Level.NONE
+                }
 
             val client = OkHttpClient.Builder()
                 .readTimeout(30, TimeUnit.SECONDS)
@@ -525,9 +492,14 @@ interface ApiService {
                     val requestBuilder = original.newBuilder()
                         .header("Content-Type", "application/json; charset=utf8")
                         .header("x-api-key", apiKey)
+                    val accessToken = cookieJar.preferences.accessToken
+                    if (!accessToken.isNullOrEmpty() && original.header("x-authorization") == null) {
+                        requestBuilder.header("x-authorization", "Bearer $accessToken")
+                    }
                     val request = requestBuilder.build()
                     chain.proceed(request)
                 }
+                .addInterceptor(GzipRequestInterceptor())
                 .build()
 
             val customMoshi = Moshi.Builder()
@@ -551,7 +523,7 @@ interface ApiService {
         }
     }
 
-    class UvCookieJar(private val preferences: GenericPreferences, val context: String) : CookieJar {
+    class UvCookieJar(internal val preferences: GenericPreferences, val context: String) : CookieJar {
 
         private val cookies = mutableListOf<Cookie>()
 
@@ -602,6 +574,41 @@ interface ApiService {
     }
 }
 
+class GzipRequestInterceptor : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val originalRequest = chain.request()
+        val body = originalRequest.body
+        if (
+            body == null ||
+            originalRequest.header("Content-Encoding") != null ||
+            originalRequest.method != "POST" ||
+            !originalRequest.url.encodedPath.endsWith("/recordings")
+        ) {
+            return chain.proceed(originalRequest)
+        }
+
+        val compressedRequest = originalRequest.newBuilder()
+            .header("Content-Encoding", "gzip")
+            .method(originalRequest.method, gzip(body))
+            .build()
+        return chain.proceed(compressedRequest)
+    }
+
+    private fun gzip(body: RequestBody): RequestBody {
+        return object : RequestBody() {
+            override fun contentType(): MediaType? = body.contentType()
+
+            override fun contentLength(): Long = -1L
+
+            @Throws(IOException::class)
+            override fun writeTo(sink: BufferedSink) {
+                val gzipSink = GzipSink(sink).buffer()
+                body.writeTo(gzipSink)
+                gzipSink.close()
+            }
+        }
+    }
+}
 
 class TokenAuthenticator @Inject constructor(
     private val tokenApi: TokenApi,
@@ -609,9 +616,16 @@ class TokenAuthenticator @Inject constructor(
     private val capabilitiesManager: CapabilitiesManager
 ) : Authenticator {
 
+    private val authLock = Any()
+
     override fun authenticate(route: Route?, response: Response): Request {
 
         Timber.e("Got a 401 [${route}] : $response")
+
+        if (responseCount(response) >= 2) {
+            Timber.e("Authentication failed after retry, giving up")
+            throw IOException("Max authentication retries exceeded")
+        }
 
         // authenticator is called when the call returns a 401
         // 4 scenarios:
@@ -620,75 +634,101 @@ class TokenAuthenticator @Inject constructor(
         // - refresh token has expired -> login -> saves the tokens -> continues
         // - password is wrong -> reset it
 
-        return runBlocking {
+        return synchronized(authLock) {
+            runBlocking {
 
-            if (preferences.identityId == "") {
-                throw IOException()
-            }
+                if (preferences.identityId == "") {
+                    throw IOException()
+                }
 
-            if (!preferences.areCredentialsRegistered){
+                // If another concurrent request already refreshed the access token while we waited for the lock, reuse it
+                val currentAccessToken = preferences.accessToken
+                val requestAuthHeader = response.request.header("x-authorization")
+                if (!currentAccessToken.isNullOrEmpty() && requestAuthHeader != null && requestAuthHeader != "Bearer $currentAccessToken") {
+                    return@runBlocking buildNewRequestWithAccessToken(response, preferences)
+                }
 
-                val identityRegistration = TokenApi.IdentityRegistration(
-                    id = preferences.identityId,
-                    password = preferences.password,
-                    gender = preferences.gender.code,
-                    yearOfBirth = if (preferences.yearOfBirth >= 1900) preferences.yearOfBirth else null,
-                    selfDeclaredHealthy = preferences.selfDeclaredHealthy
-                )
+                if (!preferences.areCredentialsRegistered) {
 
-                val responseToRegistration = tokenApi.registerIdentity(identityRegistration)
+                    val identityRegistration = TokenApi.IdentityRegistration(
+                        id = preferences.identityId,
+                        password = preferences.password,
+                        gender = preferences.gender.code,
+                        yearOfBirth = if (preferences.yearOfBirth >= 1900) preferences.yearOfBirth else null,
+                        selfDeclaredHealthy = preferences.selfDeclaredHealthy
+                    )
 
-                when (responseToRegistration) {
-                    is ApiSuccessResponse, is ApiEmptyResponse -> {
-                        Timber.d("Registration successful")
-                        preferences.areCredentialsRegistered = true
-                    }
-                    is ApiErrorResponse -> {
-                        Timber.e("Registration failed")
-                        if(responseToRegistration.httpStatusCode == 409){
-                            Timber.e("Identity already exists")
+                    val responseToRegistration = tokenApi.registerIdentity(identityRegistration)
+
+                    when (responseToRegistration) {
+                        is ApiSuccessResponse -> {
+                            Timber.d("Registration successful")
                             preferences.areCredentialsRegistered = true
-                        } else {
-                            throw IOException()
+                            preferences.isOauthActivated = true
+                            if (!responseToRegistration.body?.accessToken.isNullOrEmpty()) {
+                                preferences.saveAccessTokens(
+                                    accessToken = responseToRegistration.body?.accessToken,
+                                    refreshToken = responseToRegistration.body?.refreshToken
+                                )
+                                return@runBlocking buildNewRequestWithAccessToken(response, preferences)
+                            }
                         }
-                    }
-                }
-            }
-
-            if (!preferences.isOauthActivated) {
-                tokenApi.enableOauth(getBasicAuthHeader(preferences))
-            }
-
-            // I should take the chance to refresh the capabilities token as well
-            capabilitiesManager.refreshCapabilities(tokenApi)
-
-            val iamEntityJWT: ApiResponse<Void> =
-                if (preferences.accessToken == null) login() else refreshToken()
-
-            when (iamEntityJWT) {
-                is ApiSuccessResponse, is ApiEmptyResponse -> {
-                    buildNewRequestWithAccessToken(response, preferences)
-                }
-
-                is ApiErrorResponse -> {
-                    Timber.e("I tried to login/refresh but : $iamEntityJWT")
-                    // if refresh fails I need to login again
-                    when (val reLogin: ApiResponse<Void> = login()) {
-                        is ApiSuccessResponse, is ApiEmptyResponse -> {
-                            Timber.d("Got my new tokens let's roll")
-                            buildNewRequestWithAccessToken(response, preferences)
+                        is ApiEmptyResponse -> {
+                            Timber.d("Registration successful")
+                            preferences.areCredentialsRegistered = true
+                            preferences.isOauthActivated = true
                         }
                         is ApiErrorResponse -> {
-                            Timber.w("Login returned an error, $reLogin")
-                            if (reLogin.httpStatusCode == 401) { // password mismatch
-                                Timber.e("Password mismatch: $reLogin")
-                                resetPasswordWorkflow(response)
-                            } else throw IOException()
+                            Timber.e("Registration failed")
+                            if (responseToRegistration.httpStatusCode == 409) {
+                                Timber.e("Identity already exists")
+                                preferences.areCredentialsRegistered = true
+                                preferences.isOauthActivated = true
+                            } else {
+                                throw IOException()
+                            }
+                        }
+                    }
+                }
+
+                val iamEntityJWT: ApiResponse<TokenApi.AuthResponse> =
+                    if (preferences.accessToken == null) login() else refreshToken()
+
+                when (iamEntityJWT) {
+                    is ApiSuccessResponse, is ApiEmptyResponse -> {
+                        buildNewRequestWithAccessToken(response, preferences)
+                    }
+
+                    is ApiErrorResponse -> {
+                        Timber.e("I tried to login/refresh but : $iamEntityJWT")
+                        // if refresh fails I need to login again
+                        when (val reLogin: ApiResponse<TokenApi.AuthResponse> = login()) {
+                            is ApiSuccessResponse, is ApiEmptyResponse -> {
+                                Timber.d("Got my new tokens let's roll")
+                                buildNewRequestWithAccessToken(response, preferences)
+                            }
+                            is ApiErrorResponse -> {
+                                Timber.w("Login returned an error, $reLogin")
+                                if (reLogin.httpStatusCode == 401) { // password mismatch
+                                    Timber.e("Password mismatch: $reLogin")
+                                    resetPasswordWorkflow(response)
+                                } else throw IOException()
+                            }
                         }
                     }
                 }
             }
         }
+    }
+
+    private fun responseCount(response: Response): Int {
+        var count = 1
+        var prior = response.priorResponse
+        while (prior != null) {
+            count++
+            prior = prior.priorResponse
+        }
+        return count
     }
 
     private suspend fun resetPasswordWorkflow(response: Response): Request {
@@ -702,7 +742,7 @@ class TokenAuthenticator @Inject constructor(
         when (val responseToPasswordReset = tokenApi.resetPassword(passwordResetBody)) {
             is ApiSuccessResponse, is ApiEmptyResponse -> {
                 Timber.d("Password reset successful")
-                when (val treLogin: ApiResponse<Void> = login()) {
+                when (val treLogin: ApiResponse<TokenApi.AuthResponse> = login()) {
                     is ApiSuccessResponse, is ApiEmptyResponse -> {
                         Timber.d("Got my new tokens let's roll")
                         return buildNewRequestWithAccessToken(response, preferences)
@@ -727,22 +767,37 @@ class TokenAuthenticator @Inject constructor(
         }
     }
 
-    private suspend fun refreshToken(): ApiResponse<Void> {
+    private suspend fun refreshToken(): ApiResponse<TokenApi.AuthResponse> {
         Timber.d("I refresh")
-        return tokenApi.refreshToken()
+        val headers = preferences.refreshToken?.takeIf { it.isNotEmpty() }
+            ?.let { mapOf("x-authorization" to "Bearer $it") }
+            ?: emptyMap()
+        val result = tokenApi.refreshToken(headers)
+        if (result is ApiSuccessResponse && !result.body?.accessToken.isNullOrEmpty()) {
+            preferences.saveAccessTokens(
+                accessToken = result.body?.accessToken,
+                refreshToken = result.body?.refreshToken
+            )
+        }
+        return result
     }
 
-    private suspend fun login(): ApiResponse<Void> {
+    private suspend fun login(): ApiResponse<TokenApi.AuthResponse> {
         Timber.d("I login")
-        return tokenApi.login(getBasicAuthHeader(preferences))
+        val result = tokenApi.login(getBasicAuthHeader(preferences))
+        if (result is ApiSuccessResponse && !result.body?.accessToken.isNullOrEmpty()) {
+            preferences.saveAccessTokens(
+                accessToken = result.body?.accessToken,
+                refreshToken = result.body?.refreshToken
+            )
+        }
+        return result
     }
 }
 
 private fun buildNewRequestWithAccessToken(response: Response, preferences: GenericPreferences): Request {
     return response.request.newBuilder()
-        .addHeader("Set-Cookie",
-            listOf("accessToken=${preferences.accessToken}").toString()
-        )
+        .header("x-authorization", "Bearer ${preferences.accessToken ?: ""}")
         .build()
 }
 

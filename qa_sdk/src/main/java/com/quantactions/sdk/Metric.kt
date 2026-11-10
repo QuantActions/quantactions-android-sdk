@@ -138,8 +138,7 @@ sealed class Metric<P : TimestampedEntity, T>(
             from: String,
             to: String,
         ): ApiResponse<List<SleepSummaryEntity>> {
-            val filter = prepareFilter(code, from, to)
-            return apiService.getStatSleepSummaryEntity(identityId, participationId, filter, code.container())
+            return apiService.getStatSleepSummaryEntity(participationId, code.container(), code, from, to)
         }
 
         override fun insertOrUpdateMetric(mvpDao: MVPDao, statistics: List<SleepSummaryEntity>) {
@@ -233,8 +232,7 @@ sealed class Metric<P : TimestampedEntity, T>(
             from: String,
             to: String,
         ): ApiResponse<List<StatisticStringEntity>> {
-            val filter = prepareFilter(code, from, to)
-            return apiService.getStatStatisticStringEntity(identityId, participationId, filter, code.container())
+            return apiService.getStatStatisticStringEntity(participationId, code.container(), code, from, to)
         }
 
         override fun insertOrUpdateMetric(mvpDao: MVPDao, statistics: List<StatisticStringEntity>) {
@@ -475,8 +473,7 @@ sealed class Metric<P : TimestampedEntity, T>(
             from: String,
             to: String,
         ): ApiResponse<List<StatisticEntity>> {
-            val filter = prepareFilter(code, from, to)
-            return apiService.getStatStatisticEntity(identityId, participationId, filter, code.container())
+            return apiService.getStatStatisticEntity(participationId, code.container(), code, from, to)
         }
 
         override fun insertOrUpdateMetric(mvpDao: MVPDao, statistics: List<StatisticEntity>) {
@@ -547,15 +544,14 @@ sealed class Metric<P : TimestampedEntity, T>(
             managePref2: GenericPreferences,
             identityId: String
         ) {
-            val filter = prepareFilterCode(code)
-
-            when (val rangesResponse = apiService.getHealthyRanges(identityId, filter)) {
+            when (val rangesResponse = apiService.getHealthyRanges(code = code)) {
                 is ApiSuccessResponse -> {
                     if (rangesResponse.body != null &&
                         rangesResponse.body!!.isNotEmpty()
-                        )
+                        ) {
                         this.range = rangesResponse.body!![0].ranges
-                    managePref2.saveHealthyRanges(code, rangesResponse.body!![0].ranges)
+                        managePref2.saveHealthyRanges(code, rangesResponse.body!![0].ranges)
+                    }
                 }
                 else -> {
                     this.range = managePref2.getHealthyRanges(code)
@@ -603,10 +599,7 @@ sealed class Metric<P : TimestampedEntity, T>(
             from: String,
             to: String,
         ): ApiResponse<List<StatisticEntity>> {
-
-            val filter = prepareFilter(code, from, to)
-
-            return apiService.getStatStatisticEntity(identityId, participationId, filter, code.container())
+            return apiService.getStatStatisticEntity(participationId, code.container(), code, from, to)
         }
 
         override fun insertOrUpdateMetric(mvpDao: MVPDao, statistics: List<StatisticEntity>) {

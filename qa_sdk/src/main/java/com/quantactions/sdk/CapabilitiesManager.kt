@@ -53,7 +53,7 @@ class CapabilitiesManager(
 
     fun hasFeature(feature: String): Boolean {
         val featuresList = currentDecodedJWT?.getClaim("features")?.asList(String::class.java)
-        return featuresList?.contains(feature) ?: false
+        return featuresList?.contains(feature) ?: true
     }
 
     fun getCapabilities(): List<String>? {

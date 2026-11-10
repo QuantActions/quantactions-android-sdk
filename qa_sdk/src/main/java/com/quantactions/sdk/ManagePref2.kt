@@ -17,14 +17,23 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
+import android.util.Base64
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.serialization.json.Json
+import java.nio.charset.StandardCharsets
+import java.security.KeyStore
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
 
 /**
  * @hide
@@ -157,11 +166,9 @@ class ManagePref2 private constructor(val context: Context) : GenericPreferences
         }
 
     override var password: String
-        get() = sharedPref.getString(PASSWORD, "") ?: ""
+        get() = getEncryptedOrMigrate(PASSWORD, "") ?: ""
         set(newVal) {
-            sharedPref.edit {
-                putString(PASSWORD, newVal)
-            }
+            putEncrypted(PASSWORD, newVal)
         }
 
     override var participationId: String
@@ -173,16 +180,98 @@ class ManagePref2 private constructor(val context: Context) : GenericPreferences
         }
 
     override val accessToken: String?
-        get() = sharedPref.getString(ACCESS_TOKEN, null)
+        get() = getEncryptedOrMigrate(ACCESS_TOKEN, null)
 
     override val refreshToken: String?
-        get() = sharedPref.getString(REFRESH_TOKEN, null)
+        get() = getEncryptedOrMigrate(REFRESH_TOKEN, null)
 
     override fun saveAccessTokens(accessToken: String?, refreshToken: String?) {
-        sharedPref.edit {
-            accessToken?.let { putString(ACCESS_TOKEN, accessToken) }
-            refreshToken?.let { putString(REFRESH_TOKEN, refreshToken) }
+        accessToken?.let { putEncrypted(ACCESS_TOKEN, it) }
+        refreshToken?.let { putEncrypted(REFRESH_TOKEN, it) }
+    }
+
+    private fun getOrCreateSecretKey(): SecretKey? {
+        return try {
+            val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+            val existingKey = keyStore.getEntry(KEYSTORE_ALIAS, null) as? KeyStore.SecretKeyEntry
+            if (existingKey != null) {
+                return existingKey.secretKey
+            }
+            val keyGenerator = KeyGenerator.getInstance(
+                KeyProperties.KEY_ALGORITHM_AES,
+                ANDROID_KEYSTORE
+            )
+            val spec = KeyGenParameterSpec.Builder(
+                KEYSTORE_ALIAS,
+                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+            )
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .setKeySize(256)
+                .build()
+            keyGenerator.init(spec)
+            keyGenerator.generateKey()
+        } catch (_: Exception) {
+            null
         }
+    }
+
+    private fun encryptValue(plainText: String): String {
+        if (plainText.isEmpty()) return plainText
+        val secretKey = getOrCreateSecretKey() ?: return plainText
+        return try {
+            val cipher = Cipher.getInstance(AES_GCM_TRANSFORMATION)
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+            val iv = cipher.iv
+            val cipherText = cipher.doFinal(plainText.toByteArray(StandardCharsets.UTF_8))
+            val combined = ByteArray(1 + iv.size + cipherText.size)
+            combined[0] = iv.size.toByte()
+            System.arraycopy(iv, 0, combined, 1, iv.size)
+            System.arraycopy(cipherText, 0, combined, 1 + iv.size, cipherText.size)
+            ENCRYPTED_PREFIX + Base64.encodeToString(combined, Base64.NO_WRAP)
+        } catch (_: Exception) {
+            plainText
+        }
+    }
+
+    private fun decryptValue(stored: String): String? {
+        if (!stored.startsWith(ENCRYPTED_PREFIX)) return stored
+        val secretKey = getOrCreateSecretKey() ?: return null
+        return try {
+            val raw = Base64.decode(stored.removePrefix(ENCRYPTED_PREFIX), Base64.NO_WRAP)
+            val ivSize = raw[0].toInt() and 0xFF
+            val iv = raw.copyOfRange(1, 1 + ivSize)
+            val cipherText = raw.copyOfRange(1 + ivSize, raw.size)
+            val cipher = Cipher.getInstance(AES_GCM_TRANSFORMATION)
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(128, iv))
+            String(cipher.doFinal(cipherText), StandardCharsets.UTF_8)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun putEncrypted(key: String, value: String?) {
+        sharedPref.edit {
+            if (value == null) {
+                remove(key)
+            } else {
+                putString(key, encryptValue(value))
+            }
+        }
+    }
+
+    private fun getEncryptedOrMigrate(key: String, defaultValue: String?): String? {
+        val raw = sharedPref.getString(key, null) ?: return defaultValue
+        if (raw.isEmpty()) return raw
+        if (raw.startsWith(ENCRYPTED_PREFIX)) {
+            return decryptValue(raw) ?: defaultValue
+        }
+        // Transparently migrate legacy plaintext credential to encrypted storage if Keystore is available
+        val encrypted = encryptValue(raw)
+        if (encrypted.startsWith(ENCRYPTED_PREFIX)) {
+            sharedPref.edit { putString(key, encrypted) }
+        }
+        return raw
     }
 
     fun getDebugMode(): Boolean {
@@ -468,5 +557,9 @@ class ManagePref2 private constructor(val context: Context) : GenericPreferences
         const val CAPABILITIES_TOKEN             = "capabilities_token"
         const val PARTICIPATION_ID               = "participation_id"
         const val LAST_RECORDED_EXIT_TIMESTAMP   = "last_recorded_exit_timestamp"
+        private const val ANDROID_KEYSTORE       = "AndroidKeyStore"
+        private const val KEYSTORE_ALIAS         = "qa_sdk_prefs_aes_key"
+        private const val AES_GCM_TRANSFORMATION = "AES/GCM/NoPadding"
+        private const val ENCRYPTED_PREFIX       = "enc:v1:"
     }
 }

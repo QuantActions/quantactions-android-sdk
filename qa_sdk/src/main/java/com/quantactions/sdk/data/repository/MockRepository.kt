@@ -188,11 +188,7 @@ class MockRepository @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     fun cacheJournalEvents() {
         scope.launch {
-
-            val filter = mutableMapOf<String, Any>()
-            filter["limit"] = "20"
-
-            when (val jEvents = apiService.getJournalEventTypes(identityId, filter.stringify())) {
+            when (val jEvents = apiService.getJournalEventTypes()) {
                 is ApiSuccessResponse -> {
                     wereJournalEventsCached = true
                     Timber.d("[QA API CALL]:[SUC]:Journal events were successfully fetched from API")
@@ -207,22 +203,7 @@ class MockRepository @Inject constructor(
 
     @ExperimentalCoroutinesApi
     suspend fun cacheJournal(): List<JournalEntry> {
-
-        val filter = mutableMapOf<String, Any>()
-
-        filter["limit"] = 100
-        filter["include"] = listOf(
-            mutableMapOf<String, Any>().apply {
-                put("relation", "journalEvents")
-                put("scope", mutableMapOf<String, Any>().apply {
-                    put("where", mutableMapOf<String, Any?>().apply {
-                        put("deleted", null)
-                    })
-                })
-            })
-
-
-        return when (val response = apiService.getJournalEntries(identityId, filter.stringify())) {
+        return when (val response = apiService.getJournalEntries()) {
             is ApiSuccessResponse -> {
                 val journal = mutableListOf<JournalEntry>()
                 val entriesToCommit = mutableListOf<JournalEntryEntity>()

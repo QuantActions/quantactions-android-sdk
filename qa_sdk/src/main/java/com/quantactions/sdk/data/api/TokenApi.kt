@@ -29,31 +29,40 @@ import java.util.concurrent.TimeUnit
 
 interface TokenApi {
 
-
-    @POST("flows/credentials/devicereset")
+    @POST("credentials/devicereset")
     suspend fun resetPassword(
         @Body passwordResetBody: PasswordResetBody
     ): ApiResponse<Void>
 
-    @POST("flows/identities")
+    @POST("identities")
     suspend fun registerIdentity(
         @Body identityRegistrationRequestBody: IdentityRegistration
-    ): ApiResponse<Identity>
+    ): ApiResponse<AuthResponse>
 
-    @GET("flows/oauth")  // LOGIN
-    suspend fun login(@HeaderMap headers: Map<String, String>): ApiResponse<Void>
+    @GET("auth/login")
+    suspend fun login(@HeaderMap headers: Map<String, String>): ApiResponse<AuthResponse>
 
-    @GET("flows/oauth/refresh")
+    @POST("auth/refresh")
     suspend fun refreshToken(
-    ): ApiResponse<Void>
+        @HeaderMap headers: Map<String, String> = emptyMap()
+    ): ApiResponse<AuthResponse>
 
-    @GET("flows/oauth/grant")
+    @GET("auth/grant")
     suspend fun enableOauth(
         @HeaderMap headers: Map<String, String>,
     ): ApiResponse<Void>
 
-    @GET("flows/capabilities")
+    @GET("capabilities")
     suspend fun getCapabilities(): ApiResponse<CapabilitiesResponse>
+
+    @JsonClass(generateAdapter = true)
+    @Serializable
+    data class AuthResponse(
+        val accessToken: String? = null,
+        val refreshToken: String? = null,
+        val expiresIn: Int? = null,
+        val identity: Identity? = null,
+    )
 
     @JsonClass(generateAdapter = true)
     @Serializable
@@ -77,6 +86,7 @@ interface TokenApi {
     @JsonClass(generateAdapter = true)
     @Serializable
     data class Identity(
+        val id: String? = null,
         val nameAlias: String? = null,
         val nameFirst: String? = null,
         val gender: String? = "U",
@@ -109,9 +119,9 @@ private fun getRetrofitClient(
     cookieJar: CookieJar
 ): OkHttpClient {
 
-//    val logger = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
-    val logger = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC }
-//    val logger = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.HEADERS }
+    val logger = HttpLoggingInterceptor().apply {
+        level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC else HttpLoggingInterceptor.Level.NONE
+    }
 
     return OkHttpClient.Builder()
         .readTimeout(30, TimeUnit.SECONDS)
@@ -121,7 +131,6 @@ private fun getRetrofitClient(
                 it.addHeader("Accept", "application/json")
                 it.addHeader("Content-Type", "application/json; charset=utf8")
                 it.addHeader("x-api-key", apiKey)
-//                it.addHeader("cache-control", "max-age=30")
             }.build())
         }
         .addInterceptor(logger)

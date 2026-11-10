@@ -31,6 +31,7 @@ data class DeviceRegistration(
     val osVersion: String = Build.VERSION.RELEASE,
     val sdkVersion: String = BuildConfig.VERSION_NAME,
     val packageUsingSdk: String,
+    val hardwareModel: String = Build.MODEL,
     val hardwareVersion: String = Build.MODEL,
     val hardwareVendor: String = Build.MANUFACTURER,
 
@@ -75,6 +76,7 @@ data class DevicePatch(
     val osVersion: String = Build.VERSION.RELEASE,
     val sdkVersion: String = BuildConfig.VERSION_NAME,
     val packageUsingSdk: String,
+    val hardwareModel: String = Build.MODEL,
     val hardwareVersion: String = Build.MODEL,
     val hardwareVendor: String = Build.MANUFACTURER,
 

@@ -26,7 +26,11 @@ class UpdateAppsListWorker(context: Context, params: WorkerParameters) :
     private val repository = QAPrivate.getInstance(context).deviceRepo
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        val pendingAppCodes = repository.getPendingAppCodes()
+        val allPending = repository.getPendingAppCodes()
+        allPending.filter { it.appName == "NULL" }.forEach {
+            repository.updateCodeOfApp("NULL", 1, "UNKNOWN")
+        }
+        val pendingAppCodes = allPending.filter { it.appName != "NULL" }
         if (pendingAppCodes.isNotEmpty()) {
 
             val pendingAppList = pendingAppCodes.map { entry ->
@@ -48,7 +52,8 @@ class UpdateAppsListWorker(context: Context, params: WorkerParameters) :
 
                 is ApiSuccessResponse -> {
                     response2.body?.forEach { app ->
-                        repository.updateCodeOfApp(app.`package`, 1, app.categoryMain)
+                        val category = if (app.`package` == "NULL") app.categoryMain ?: "UNKNOWN" else app.categoryMain
+                        repository.updateCodeOfApp(app.`package`, 1, category)
                     }
                     updateAppCategories()
                     Result.success()
@@ -63,7 +68,11 @@ class UpdateAppsListWorker(context: Context, params: WorkerParameters) :
 
     suspend fun updateAppCategories() {
         // Also try to update categories of apps that were not pending but might have changed
-        val appsWithPendingCategory = repository.getAppsWithPendingCategory()
+        val allPendingCategories = repository.getAppsWithPendingCategory()
+        allPendingCategories.filter { it.appName == "NULL" }.forEach {
+            repository.updateCodeOfApp("NULL", 1, "UNKNOWN")
+        }
+        val appsWithPendingCategory = allPendingCategories.filter { it.appName != "NULL" }
 
         if (appsWithPendingCategory.isNotEmpty()) {
 
@@ -88,7 +97,8 @@ class UpdateAppsListWorker(context: Context, params: WorkerParameters) :
                 is ApiSuccessResponse -> {
                     response3.body?.forEach { app ->
                         Timber.d("Category of ${app.`package`} updated to ${app.categoryMain}")
-                        repository.updateCodeOfApp(app.`package`, 1, app.categoryMain)
+                        val category = if (app.`package` == "NULL") app.categoryMain ?: "UNKNOWN" else app.categoryMain
+                        repository.updateCodeOfApp(app.`package`, 1, category)
                     }
                 }
             }
