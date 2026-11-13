@@ -58,7 +58,7 @@ import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
         ActivityTransitionEntity::class,
         CognitiveTestEntity::class
     ],
-    version = 13, exportSchema = true
+    version = 14, exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class MVPRoomDatabase : RoomDatabase() {
@@ -126,6 +126,7 @@ abstract class MVPRoomDatabase : RoomDatabase() {
                         // Adding completion time to questionnaires
                         .addMigrations(MIGRATION_11_12)  // TapCounter
                         .addMigrations(MIGRATION_12_13)  // TapCounter
+                        .addMigrations(MIGRATION_13_14)  // Study-scoped cognitive tests
 
                     // Adding encryption of DB if not debug
                     if (!BuildConfig.DEBUG) {
@@ -1033,6 +1034,15 @@ val MIGRATION_12_13 = object : Migration(12, 13) {
         db.execSQL(
             "ALTER TABLE code_of_app " +
                     "ADD COLUMN category TEXT"
+        )
+    }
+}
+
+val MIGRATION_13_14 = object : Migration(13, 14) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "ALTER TABLE cognitive_test_results " +
+                    "ADD COLUMN 'studyId' TEXT DEFAULT NULL"
         )
     }
 }

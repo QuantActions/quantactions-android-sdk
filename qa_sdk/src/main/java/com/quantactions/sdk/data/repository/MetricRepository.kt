@@ -46,21 +46,25 @@ internal class MetricRepository(
         refresh: Boolean = false
     ): Flow<TimeSeries<T>> {
 
+        var latestCachedTimestampSec: Long? = null
+
         val resources = dbBoundResource(
             fetchFromLocal = {
                 metricOrTrend.getMetric(mvpDao, from / 1000, to / 1000)
             },
             shouldMakeNetworkRequest = {
+                latestCachedTimestampSec = it?.maxOfOrNull { entry -> entry.timestamp }
                 (refresh && iamParticipationId != "") || ((iamParticipationId != "") && (
-                        it.isNullOrEmpty() || it[0].timestamp < (Instant.now()
+                        latestCachedTimestampSec == null || latestCachedTimestampSec!! < (Instant.now()
                             .toEpochMilli() / 1000 - 3 * 3600)))
             },
             makeNetworkRequest = {
-                val fromInstant = if (from <= 0L) {
-                    Instant.ofEpochMilli(0L)
+                val effectiveFromMillis = if (latestCachedTimestampSec != null) {
+                    maxOf(from, latestCachedTimestampSec!! * 1000L)
                 } else {
-                    Instant.ofEpochMilli(from)
+                    maxOf(from, 0L)
                 }
+                val fromInstant = Instant.ofEpochMilli(effectiveFromMillis)
                 val thisFrom = fromInstant.atZone(ZoneId.systemDefault()).format(
                     DateTimeFormatter.ofPattern("yyyy-MM", Locale.ENGLISH)
                 )

@@ -54,12 +54,13 @@ open class PVTViewModel @Inject constructor(
     suspend fun saveResponse(
         response: PVTResponse,
         timestamp: Long = System.currentTimeMillis(),
-        localTime: String = Instant.now().toString()
+        localTime: String = Instant.now().toString(),
+        studyId: String? = null
     ) {
         withContext(Dispatchers.Default) {
             _saving.value = true
             try {
-                qa.saveCognitiveTestResult(CognitiveTest.PVT, response, timestamp, localTime)
+                qa.saveCognitiveTestResult(CognitiveTest.PVT, response, timestamp, localTime, studyId)
             } catch (e: Exception) {
                 Timber.e("Error, will retry later: $e")
             }

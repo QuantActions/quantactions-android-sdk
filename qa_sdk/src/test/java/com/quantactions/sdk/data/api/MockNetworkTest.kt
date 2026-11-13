@@ -13,15 +13,11 @@ import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.hadiyarajesh.flower_retrofit.FlowerCallAdapterFactory
 import com.quantactions.sdk.CapabilitiesManager
 import com.quantactions.sdk.GenericPreferences
+import com.quantactions.sdk.Metric
 import com.quantactions.sdk.data.api.adapters.QuestionnaireAdapter
-import com.quantactions.sdk.data.api.adapters.SleepSummaryAdapter
-import com.quantactions.sdk.data.api.adapters.StatisticAdapter
-import com.quantactions.sdk.data.api.adapters.StatisticStringAdapter
-import com.quantactions.sdk.data.api.adapters.TrendAdapter
 import com.quantactions.sdk.data.model.AppToPush
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -44,7 +40,6 @@ class MockNetworkTest {
     private lateinit var mockWebServer: MockWebServer
     private lateinit var apiService: ApiService
     private lateinit var tokenAuthenticator: TokenAuthenticator
-    private lateinit var cookieJar: ApiService.UvCookieJar
     private val preferences: GenericPreferences = mockk()
     private val capabilitiesManager: CapabilitiesManager = mockk()
     private val tokenApi: TokenApi = mockk()
@@ -59,24 +54,15 @@ class MockNetworkTest {
         every { preferences.identityId } returns "test_identity_id"
         every { preferences.password } returns "test_password"
         
-        cookieJar = ApiService.UvCookieJar(preferences, "test_context")
         tokenAuthenticator = TokenAuthenticator(tokenApi, preferences, capabilitiesManager)
 
         val baseUrl = mockWebServer.url("/")
         
-        // Use reflection or a test builder to inject the mock URL if ApiService.create has a hardcoded URL.
-        // For testing purposes we're assuming we can build Retrofit here since ApiService.create uses a hardcoded URL
         val okHttpClient = OkHttpClient.Builder()
-            .cookieJar(cookieJar)
-            // .authenticator(tokenAuthenticator) // skip authenticator for pure parsing tests
             .build()
             
         val customMoshi = Moshi.Builder()
-            .add(StatisticAdapter())
-            .add(StatisticStringAdapter())
-            .add(SleepSummaryAdapter())
             .add(QuestionnaireAdapter())
-            .add(TrendAdapter())
             .add(KotlinJsonAdapterFactory())
             .build()
 
@@ -114,7 +100,7 @@ class MockNetworkTest {
         mockWebServer.enqueue(response)
 
         val appList = listOf(AppToPush("com.example.app1", 1))
-        val apiResponse = apiService.updateAppList("identityId", "deviceId", appList)
+        val apiResponse = apiService.updateAppList("deviceId", appList)
 
         assertTrue(apiResponse is ApiSuccessResponse)
         val successResponse = apiResponse as ApiSuccessResponse
@@ -171,7 +157,7 @@ class MockNetworkTest {
             .setBody(mockResponseBody)
         mockWebServer.enqueue(response)
 
-        val apiResponse = apiService.getStatSleepSummaryEntity("identityId", "participationId", "filter", "001")
+        val apiResponse = Metric.SLEEP_SUMMARY.getStat(apiService, "test_identity_id", "participationId", "2023-11", "2023-11")
         assertTrue(apiResponse is ApiSuccessResponse)
         val successResponse = apiResponse as ApiSuccessResponse
         assertEquals(1, successResponse.body?.size)
@@ -225,7 +211,7 @@ class MockNetworkTest {
             .setBody(mockResponseBody)
         mockWebServer.enqueue(response)
 
-        val apiResponse = apiService.getStatStatisticEntity("identityId", "participationId", "filter", "003")
+        val apiResponse = Metric.SLEEP_SCORE.getStat(apiService, "test_identity_id", "participationId", "2022-02", "2022-02")
         assertTrue(apiResponse is ApiSuccessResponse)
         val successResponse = apiResponse as ApiSuccessResponse
         assertEquals(1, successResponse.body?.size)

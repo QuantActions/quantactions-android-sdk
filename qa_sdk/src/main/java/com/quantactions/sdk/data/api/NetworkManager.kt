@@ -43,12 +43,11 @@ internal class NetworkManager private constructor(
 
         Timber.d("Initializing Network Services with API Key: ${apiKey.take(4)}...")
         
-        val cookieJar = ApiService.UvCookieJar(preferences, "NetworkManager")
-        val tokenApi = TokenApi.buildTokenApi(apiKey, cookieJar)
+        val tokenApi = TokenApi.buildTokenApi(apiKey)
         val authenticator = TokenAuthenticator(tokenApi, preferences, capabilitiesManager)
         
         _tokenApi = tokenApi
-        _apiService = ApiService.create(apiKey, authenticator, cookieJar)
+        _apiService = ApiService.create(apiKey, authenticator, preferences)
         currentApiKey = apiKey
         
         return this

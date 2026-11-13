@@ -143,7 +143,39 @@ class DeviceRepositoryTest {
 
         val recordedRequest = mockWebServer.takeRequest()
         assertEquals("POST", recordedRequest.method)
-        assertEquals("/flows/identities/test_identity_123/devices/test_device_456/recordings", recordedRequest.path)
+        assertEquals("/devices/test_device_456/recordings", recordedRequest.path)
+    }
+
+    @Test
+    fun testGzipRequestInterceptorCompressesRecordingsPayload() = runTest {
+        val customMoshi = Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
+        val gzipApiService = Retrofit.Builder()
+            .baseUrl(mockWebServer.url("/"))
+            .client(
+                OkHttpClient.Builder()
+                    .addInterceptor(com.quantactions.sdk.data.api.GzipRequestInterceptor())
+                    .build()
+            )
+            .addCallAdapterFactory(FlowerCallAdapterFactory.create())
+            .addConverterFactory(MoshiConverterFactory.create(customMoshi))
+            .build()
+            .create(ApiService::class.java)
+
+        mockWebServer.enqueue(
+            MockResponse()
+                .setResponseCode(HttpURLConnection.HTTP_OK)
+                .setBody("""{"records": []}""")
+        )
+
+        val response = gzipApiService.submitTap("test_device_456", TapDataBody(listOf()))
+        assertTrue(response is ApiSuccessResponse)
+
+        val recordedRequest = mockWebServer.takeRequest()
+        assertEquals("gzip", recordedRequest.getHeader("Content-Encoding"))
+        val decompressed = java.util.zip.GZIPInputStream(recordedRequest.body.inputStream()).bufferedReader().readText()
+        assertTrue(decompressed.contains("\"records\":[]"))
     }
 
     @Test

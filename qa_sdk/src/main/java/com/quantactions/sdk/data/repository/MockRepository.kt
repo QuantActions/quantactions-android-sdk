@@ -107,17 +107,22 @@ class MockRepository @Inject constructor(
     }
 
     private suspend fun checkLoginStatus() {
-        if (preferences.accessToken == null || preferences.accessToken == "") {
-            tokenApi.login(getBasicAuthHeader(preferences))
+        if (preferences.accessToken.isNullOrEmpty()) {
+            val response = tokenApi.login(getBasicAuthHeader(preferences))
+            if (response is ApiSuccessResponse && !response.body?.accessToken.isNullOrEmpty()) {
+                preferences.saveAccessTokens(
+                    accessToken = response.body?.accessToken,
+                    refreshToken = response.body?.refreshToken
+                )
+            }
         }
     }
 
     fun reInit(apiKey: String) {
-        val cookieJar = ApiService.UvCookieJar(preferences, "TokenApi")
-        tokenApi = TokenApi.buildTokenApi(apiKey, cookieJar)
+        tokenApi = TokenApi.buildTokenApi(apiKey)
         val tokenAuthenticator = TokenAuthenticator(tokenApi, preferences, capabilitiesManager)
         apiService = ApiService.create(
-            apiKey, tokenAuthenticator, cookieJar
+            apiKey, tokenAuthenticator, preferences
         )
         // This is not really needed but it is to test other journal/ranges calls
         if (!wereHealthyRangesCached) cacheHealthyRanges()
@@ -178,9 +183,8 @@ class MockRepository @Inject constructor(
     fun cacheHealthyRanges() {
         wereHealthyRangesCached = true
         scope.launch {
-            Metric.SLEEP_SCORE.cacheHealthyRanges(apiService, preferences, identityId)
-            Metric.COGNITIVE_FITNESS.cacheHealthyRanges(apiService, preferences, identityId)
-            Metric.SOCIAL_ENGAGEMENT.cacheHealthyRanges(apiService, preferences, identityId)
+            checkLoginStatus()
+            Metric.cacheAllHealthyRanges(apiService, preferences)
         }
     }
 
@@ -188,11 +192,8 @@ class MockRepository @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     fun cacheJournalEvents() {
         scope.launch {
-
-            val filter = mutableMapOf<String, Any>()
-            filter["limit"] = "20"
-
-            when (val jEvents = apiService.getJournalEventTypes(identityId, filter.stringify())) {
+            checkLoginStatus()
+            when (val jEvents = apiService.getJournalEventTypes()) {
                 is ApiSuccessResponse -> {
                     wereJournalEventsCached = true
                     Timber.d("[QA API CALL]:[SUC]:Journal events were successfully fetched from API")
@@ -207,22 +208,8 @@ class MockRepository @Inject constructor(
 
     @ExperimentalCoroutinesApi
     suspend fun cacheJournal(): List<JournalEntry> {
-
-        val filter = mutableMapOf<String, Any>()
-
-        filter["limit"] = 100
-        filter["include"] = listOf(
-            mutableMapOf<String, Any>().apply {
-                put("relation", "journalEvents")
-                put("scope", mutableMapOf<String, Any>().apply {
-                    put("where", mutableMapOf<String, Any?>().apply {
-                        put("deleted", null)
-                    })
-                })
-            })
-
-
-        return when (val response = apiService.getJournalEntries(identityId, filter.stringify())) {
+        checkLoginStatus()
+        return when (val response = apiService.getJournalEntries(limit = 100)) {
             is ApiSuccessResponse -> {
                 val journal = mutableListOf<JournalEntry>()
                 val entriesToCommit = mutableListOf<JournalEntryEntity>()

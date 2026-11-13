@@ -14,6 +14,7 @@ package com.quantactions.sdk
 import androidx.annotation.Keep
 import com.hadiyarajesh.flower_core.ApiResponse
 import com.quantactions.sdk.data.api.ApiService
+import com.quantactions.sdk.data.api.adapters.prepareOneMonthOfTrend
 import com.quantactions.sdk.data.entity.TimestampedEntity
 import com.quantactions.sdk.data.entity.TrendEntity
 import com.quantactions.sdk.data.local.MVPDao
@@ -174,8 +175,8 @@ open class BasicTrendObject(id: String, code: String) :
         from: String,
         to: String
     ): ApiResponse<List<TrendEntity>> {
-        val filter = prepareFilter(code, from, to)
-        return apiService.getTrendEntity(identityId, participationId, filter, code.container())
+        return apiService.getAnalyses(participationId, code, from, to)
+            .mapAnalyses(::prepareOneMonthOfTrend)
     }
 
     override fun insertOrUpdateMetric(mvpDao: MVPDao, statistics: List<TrendEntity>) {
@@ -267,8 +268,8 @@ open class FilterByTimeZoneTrendObject(id: String, code: String) :
         from: String,
         to: String
     ): ApiResponse<List<TrendEntity>> {
-        val filter = prepareFilter(code, from, to)
-        return apiService.getTrendEntity(identityId, participationId, filter, code.container())
+        return apiService.getAnalyses(participationId, code, from, to)
+            .mapAnalyses(::prepareOneMonthOfTrend)
     }
 
     override fun insertOrUpdateMetric(mvpDao: MVPDao, statistics: List<TrendEntity>) {
