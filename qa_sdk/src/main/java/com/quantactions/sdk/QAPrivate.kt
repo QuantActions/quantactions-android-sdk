@@ -112,7 +112,7 @@ internal class QAPrivate private constructor(
                     val identityRepo = IdentityRepository(preferences, networkManager)
                     val journalRepo = JournalRepository(identityRepo, networkManager, getDatabase(context).mvpDao())
                     val studyRepo = StudyRepository(preferences, identityRepo, networkManager, getDatabase(context).mvpDao(), WorkManager.getInstance(context))
-                    val cognitiveRepo = CognitiveTestRepository(identityRepo, networkManager, getDatabase(context).cognitiveTestDao(), getDatabase(context).mvpDao())
+                    val cognitiveRepo = CognitiveTestRepository(identityRepo, networkManager, getDatabase(context).cognitiveTestDao())
                     val deviceRepo = DeviceRepository(context, preferences, identityRepo, networkManager, getDatabase(context).mvpDao())
                     val metricRepo = MetricRepository(identityRepo, networkManager, getDatabase(context).mvpDao())
                     
@@ -187,7 +187,6 @@ internal class QAPrivate private constructor(
                 try {
                     val existingIdentity = identityRepository.getIdentity("qa init")
                     preferences.areCredentialsRegistered = true
-                    preferences.isOauthActivated = true
                     preferences.selfDeclaredHealthy = existingIdentity.selfDeclaredHealthy == true
                     preferences.gender = QA.Gender.fromString(existingIdentity.gender) ?: QA.Gender.UNKNOWN
                     preferences.yearOfBirth = existingIdentity.yearOfBirth ?: 0
@@ -227,6 +226,11 @@ internal class QAPrivate private constructor(
                     studyRepository.getSubscriptions()
                 } catch (e: Exception) {
                     Timber.w("Could not fetch participations during init: ${e.message}")
+                }
+                try {
+                    Metric.cacheAllHealthyRanges(networkManager.apiService, preferences)
+                } catch (e: Exception) {
+                    Timber.w("Could not cache healthy ranges during init: ${e.message}")
                 }
             }
             return false
@@ -289,6 +293,7 @@ internal class QAPrivate private constructor(
 
         // I could not do this before cause I needed a login, could be called also somewhere else
         journalRepository.cacheJournalEvents()
+        Metric.cacheAllHealthyRanges(networkManager.apiService, preferences)
     }
 
     @Throws(QASDKException::class)
@@ -850,7 +855,6 @@ internal class QAPrivate private constructor(
                     Timber.d("ID $associatedIdentity")
                     (associatedIdentity.identityId ?: associatedIdentity.id)?.let {
                         preferences.identityId = it
-                        preferences.isOauthActivated = false
                         identityRepository.checkRegisteredStatus()
                     }
 
@@ -964,15 +968,19 @@ internal class QAPrivate private constructor(
         return deviceRepository.getConnectedDevices()
     }
 
-    fun <T>getCognitiveTestResults(testType: CognitiveTest<T>): Flow<List<CognitiveTestResult<T>>> {
-        return cognitiveTestRepository.getCognitiveTestResults(testType)
+    fun <T>getCognitiveTestResults(
+        testType: CognitiveTest<T>,
+        studyId: String? = null
+    ): Flow<List<CognitiveTestResult<T>>> {
+        return cognitiveTestRepository.getCognitiveTestResults(testType, studyId)
     }
 
     suspend fun <T>saveCognitiveTestResult(
         testType: CognitiveTest<T>,
         testResult: T,
         timestamp: Long = System.currentTimeMillis(),
-        localTime: String = Instant.now().toString()
+        localTime: String = Instant.now().toString(),
+        studyId: String? = null
     ) {
         val gson = com.google.gson.Gson()
         val resultJson = gson.toJson(testResult)
@@ -981,7 +989,8 @@ internal class QAPrivate private constructor(
             results = resultJson,
             timestamp = timestamp,
             localTime = localTime,
-            sync = 0
+            sync = 0,
+            studyId = studyId
         )
         return cognitiveTestRepository.submitCognitiveTestResponse(testType, entity)
     }

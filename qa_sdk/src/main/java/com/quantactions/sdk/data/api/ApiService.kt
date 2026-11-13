@@ -21,18 +21,11 @@ import com.quantactions.sdk.BuildConfig
 import com.quantactions.sdk.CapabilitiesManager
 import com.quantactions.sdk.GenericPreferences
 import com.quantactions.sdk.data.api.adapters.QuestionnaireAdapter
-import com.quantactions.sdk.data.api.adapters.SleepSummaryAdapter
-import com.quantactions.sdk.data.api.adapters.StatisticAdapter
-import com.quantactions.sdk.data.api.adapters.StatisticStringAdapter
-import com.quantactions.sdk.data.api.adapters.TrendAdapter
 import com.quantactions.sdk.data.api.responses.HealthyRangesResponse
 import com.quantactions.sdk.data.api.responses.JournalEntriesResponse
 import com.quantactions.sdk.data.api.responses.RegistrationResponse
+import com.quantactions.sdk.data.api.responses.StatisticResponse
 import com.quantactions.sdk.data.entity.JournalEventEntity
-import com.quantactions.sdk.data.entity.SleepSummaryEntity
-import com.quantactions.sdk.data.entity.StatisticEntity
-import com.quantactions.sdk.data.entity.StatisticStringEntity
-import com.quantactions.sdk.data.entity.TrendEntity
 import com.quantactions.sdk.data.model.AppToPush
 import com.quantactions.sdk.data.model.AppWithCategory
 import com.quantactions.sdk.data.model.DevicePatch
@@ -60,9 +53,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import okhttp3.Authenticator
-import okhttp3.Cookie
-import okhttp3.CookieJar
-import okhttp3.HttpUrl
 import okhttp3.Interceptor
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
@@ -99,50 +89,21 @@ interface ApiService {
     ): ApiResponse<List<HealthyRangesResponse>>
 
     /**
-     * This endpoint is used to get stats from TapCloud relative to the device in use.
-     * Use this function to get any stat that is numeric i.e. a score value per day/hour.
+     * This endpoint is used to get analysis documents (metrics and trends) from TapCloud relative
+     * to the participation in use. The container is automatically derived from the metric code prefix on the server.
      * @param participationId
-     * @param containerId
      * @param code
      * @param start
      * @param end
-     * @return A flow wrapping a list of [com.quantactions.sdk.data.entity.StatisticEntity]
+     * @return An [ApiResponse] wrapping a list of [StatisticResponse]
      */
     @GET("participations/{participationId}/analyses")
-    suspend fun getStatStatisticEntity(
+    suspend fun getAnalyses(
         @Path("participationId") participationId: String,
-        @Query("containerId") containerId: String,
         @Query("code") code: String,
-        @Query("start") start: String,
-        @Query("end") end: String,
-    ): ApiResponse<List<StatisticEntity>>
-
-    @GET("participations/{participationId}/analyses")
-    suspend fun getStatStatisticStringEntity(
-        @Path("participationId") participationId: String,
-        @Query("containerId") containerId: String,
-        @Query("code") code: String,
-        @Query("start") start: String,
-        @Query("end") end: String,
-    ): ApiResponse<List<StatisticStringEntity>>
-
-    @GET("participations/{participationId}/analyses")
-    suspend fun getStatSleepSummaryEntity(
-        @Path("participationId") participationId: String,
-        @Query("containerId") containerId: String,
-        @Query("code") code: String,
-        @Query("start") start: String,
-        @Query("end") end: String,
-    ): ApiResponse<List<SleepSummaryEntity>>
-
-    @GET("participations/{participationId}/analyses")
-    suspend fun getTrendEntity(
-        @Path("participationId") participationId: String,
-        @Query("containerId") containerId: String,
-        @Query("code") code: String,
-        @Query("start") start: String,
-        @Query("end") end: String,
-    ): ApiResponse<List<TrendEntity>>
+        @Query("start") start: String? = null,
+        @Query("end") end: String? = null,
+    ): ApiResponse<List<StatisticResponse>>
 
     /**
      * Registers the device with the backend.
@@ -248,7 +209,12 @@ interface ApiService {
      * @return a list of [com.quantactions.sdk.data.api.responses.JournalEntriesResponse]
      * */
     @GET("me/journals")
-    suspend fun getJournalEntries(): ApiResponse<List<JournalEntriesResponse>>
+    suspend fun getJournalEntries(
+        @Query("start") start: String? = null,
+        @Query("end") end: String? = null,
+        @Query("limit") limit: Int? = null,
+        @Query("offset") offset: Int? = null,
+    ): ApiResponse<List<JournalEntriesResponse>>
 
     @GET("me/journals/{journalId}/events")
     fun getJournalEvents(
@@ -306,10 +272,8 @@ interface ApiService {
         @Body authLinkBody: AuthLinkBody,
     ): ApiResponse<TokenApi.Identity>
 
-    @PATCH("identities/{identityId}/credentials/{credentialId}")
+    @PATCH("me/credentials")
     suspend fun patchCredentials(
-        @Path("identityId") identityId: String,
-        @Path("credentialId") credentialId: String,
         @Body credentialsRegistration: CredentialsRegistration
     ): ApiResponse<TokenApi.Identity>
 
@@ -474,7 +438,7 @@ interface ApiService {
         fun create(
             apiKey: String,
             tokenAuthenticator: TokenAuthenticator,
-            cookieJar: UvCookieJar,
+            preferences: GenericPreferences,
         ): ApiService {
             val logger =
                 HttpLoggingInterceptor().apply {
@@ -483,7 +447,6 @@ interface ApiService {
 
             val client = OkHttpClient.Builder()
                 .readTimeout(30, TimeUnit.SECONDS)
-                .cookieJar(cookieJar)
                 .authenticator(tokenAuthenticator)
                 .addInterceptor(logger)
                 .addInterceptor { chain ->
@@ -492,7 +455,7 @@ interface ApiService {
                     val requestBuilder = original.newBuilder()
                         .header("Content-Type", "application/json; charset=utf8")
                         .header("x-api-key", apiKey)
-                    val accessToken = cookieJar.preferences.accessToken
+                    val accessToken = preferences.accessToken
                     if (!accessToken.isNullOrEmpty() && original.header("x-authorization") == null) {
                         requestBuilder.header("x-authorization", "Bearer $accessToken")
                     }
@@ -503,12 +466,7 @@ interface ApiService {
                 .build()
 
             val customMoshi = Moshi.Builder()
-                .add(StatisticAdapter())
-                .add(StatisticStringAdapter())
-                .add(SleepSummaryAdapter())
-                .add(StatisticStringAdapter())
                 .add(QuestionnaireAdapter())
-                .add(TrendAdapter())
                 .add(KotlinJsonAdapterFactory())
                 .build()
 
@@ -520,56 +478,6 @@ interface ApiService {
                 .addConverterFactory(MoshiConverterFactory.create(customMoshi).withNullSerialization())
                 .build()
                 .create(ApiService::class.java)
-        }
-    }
-
-    class UvCookieJar(internal val preferences: GenericPreferences, val context: String) : CookieJar {
-
-        private val cookies = mutableListOf<Cookie>()
-
-        @Synchronized
-        override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
-            cookies.forEach {
-                Timber.d("[$context] Saving cookie: ${it.name}")
-                if (it.name == "accessToken") preferences.saveAccessTokens(
-                    accessToken = it.value,
-                )
-                if (it.name == "refreshToken") preferences.saveAccessTokens(
-                    refreshToken = it.value
-                )
-            }
-            if (
-                "accessToken" in cookies.map { it.name }.toList() ||
-                "refreshToken" in cookies.map { it.name }.toList()
-                ) {
-                this.cookies.clear()
-                this.cookies.addAll(cookies)
-            }
-        }
-
-        @Synchronized
-        override fun loadForRequest(url: HttpUrl): List<Cookie> {
-            if (cookies.isEmpty()) {
-                preferences.accessToken?.let {
-                    Timber.d("[$context] Loading access token for request")
-                    cookies.add(
-                        createNonPersistentCookie(
-                            "accessToken",
-                            it
-                        )
-                    )
-                }
-                preferences.refreshToken?.let {
-                    Timber.d("Loading refresh token for request")
-                    cookies.add(
-                        createNonPersistentCookie(
-                            "refreshToken",
-                            it
-                        )
-                    )
-                }
-            }
-            return cookies
         }
     }
 }
@@ -664,7 +572,6 @@ class TokenAuthenticator @Inject constructor(
                         is ApiSuccessResponse -> {
                             Timber.d("Registration successful")
                             preferences.areCredentialsRegistered = true
-                            preferences.isOauthActivated = true
                             if (!responseToRegistration.body?.accessToken.isNullOrEmpty()) {
                                 preferences.saveAccessTokens(
                                     accessToken = responseToRegistration.body?.accessToken,
@@ -676,14 +583,12 @@ class TokenAuthenticator @Inject constructor(
                         is ApiEmptyResponse -> {
                             Timber.d("Registration successful")
                             preferences.areCredentialsRegistered = true
-                            preferences.isOauthActivated = true
                         }
                         is ApiErrorResponse -> {
                             Timber.e("Registration failed")
                             if (responseToRegistration.httpStatusCode == 409) {
                                 Timber.e("Identity already exists")
                                 preferences.areCredentialsRegistered = true
-                                preferences.isOauthActivated = true
                             } else {
                                 throw IOException()
                             }
@@ -809,16 +714,5 @@ fun getBasicAuthHeader(preferences: GenericPreferences): Map<String, String> {
         Base64.NO_WRAP
     )
     return mapOf("x-authorization" to "basic $base64Basic")
-}
-
-fun createNonPersistentCookie(name: String, value: String): Cookie {
-    return Cookie.Builder()
-        .domain("quantactions.com")
-        .path("/")
-        .name(name)
-        .value(value)
-        .httpOnly()
-        .secure()
-        .build()
 }
 

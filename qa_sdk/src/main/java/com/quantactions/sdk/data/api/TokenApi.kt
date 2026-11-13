@@ -15,7 +15,6 @@ import com.quantactions.sdk.BuildConfig
 import com.quantactions.sdk.data.api.ApiService.CapabilitiesResponse
 import com.squareup.moshi.JsonClass
 import kotlinx.serialization.Serializable
-import okhttp3.CookieJar
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -46,11 +45,6 @@ interface TokenApi {
     suspend fun refreshToken(
         @HeaderMap headers: Map<String, String> = emptyMap()
     ): ApiResponse<AuthResponse>
-
-    @GET("auth/grant")
-    suspend fun enableOauth(
-        @HeaderMap headers: Map<String, String>,
-    ): ApiResponse<Void>
 
     @GET("capabilities")
     suspend fun getCapabilities(): ApiResponse<CapabilitiesResponse>
@@ -100,11 +94,10 @@ interface TokenApi {
     companion object {
         fun buildTokenApi(
             apiKey: String,
-            cookieJar: ApiService.UvCookieJar
         ): TokenApi {
             return Retrofit.Builder()
                 .baseUrl(BuildConfig.QA_API_ROUTE)
-                .client(getRetrofitClient(apiKey, cookieJar))
+                .client(getRetrofitClient(apiKey))
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addCallAdapterFactory(FlowerCallAdapterFactory.create())
@@ -116,7 +109,6 @@ interface TokenApi {
 
 private fun getRetrofitClient(
     apiKey: String,
-    cookieJar: CookieJar
 ): OkHttpClient {
 
     val logger = HttpLoggingInterceptor().apply {
@@ -125,7 +117,6 @@ private fun getRetrofitClient(
 
     return OkHttpClient.Builder()
         .readTimeout(30, TimeUnit.SECONDS)
-        .cookieJar(cookieJar)
         .addInterceptor { chain ->
             chain.proceed(chain.request().newBuilder().also {
                 it.addHeader("Accept", "application/json")

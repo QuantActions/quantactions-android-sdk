@@ -22,7 +22,6 @@ import com.quantactions.sdk.data.api.ApiService
 import com.quantactions.sdk.data.api.NetworkManager
 import com.quantactions.sdk.data.entity.CognitiveTestEntity
 import com.quantactions.sdk.data.local.CognitiveTestDao
-import com.quantactions.sdk.data.local.MVPDao
 import com.quantactions.sdk.exceptions.QASDKException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -37,29 +36,23 @@ internal class CognitiveTestRepository(
     private val identityRepository: IdentityRepository,
     private val networkManager: NetworkManager,
     private val cognitiveTestDao: CognitiveTestDao,
-    private val mvpDao: MVPDao? = null
 ) {
-    fun <T> getCognitiveTestResults(testType: CognitiveTest<T>): Flow<List<CognitiveTestResult<T>>> {
+    fun <T> getCognitiveTestResults(
+        testType: CognitiveTest<T>,
+        studyId: String? = null
+    ): Flow<List<CognitiveTestResult<T>>> {
         val gson = Gson()
-        return cognitiveTestDao.getResultsForType(testType.id).map { entities ->
+        return cognitiveTestDao.getResultsForType(testType.id, studyId).map { entities ->
             entities.map { entity ->
                 CognitiveTestResult(
                     cognitiveTest = testType.id,
                     result = testType.parseResult(entity.results, gson),
                     timestamp = entity.timestamp,
-                    localTime = entity.localTime
+                    localTime = entity.localTime,
+                    studyId = entity.studyId
                 )
             }
         }.flowOn(Dispatchers.IO)
-    }
-
-    private fun resolveActiveCognitiveStudyId(): String? {
-        return try {
-            val studies = mvpDao?.getStudies().orEmpty()
-            (studies.firstOrNull { it.enableCognitiveTests } ?: studies.firstOrNull())?.cohortId
-        } catch (e: Exception) {
-            null
-        }
     }
 
     suspend fun <T> submitCognitiveTestResponse(
@@ -68,10 +61,10 @@ internal class CognitiveTestRepository(
     ) {
         val idToDelete = cognitiveTestDao.insertOrUpdateCognitiveTestResult(answer)
         val toPush = CognitiveTestEntity.toBody(answer, cognitiveTest)
-        val activeStudyId = resolveActiveCognitiveStudyId()
+        val studyId = answer.studyId
 
-        val apiResponse = if (!activeStudyId.isNullOrEmpty()) {
-            networkManager.apiService.submitStudyCognitiveTestResponse(activeStudyId, toPush)
+        val apiResponse = if (!studyId.isNullOrEmpty()) {
+            networkManager.apiService.submitStudyCognitiveTestResponse(studyId, toPush)
         } else {
             networkManager.apiService.submitCognitiveTestResponse(toPush)
         }
@@ -96,9 +89,9 @@ internal class CognitiveTestRepository(
         answer: CognitiveTestEntity
     ): ApiResponse<ApiService.IdResponse> {
         val toPush = CognitiveTestEntity.toBody(answer, cognitiveTest)
-        val activeStudyId = resolveActiveCognitiveStudyId()
-        return if (!activeStudyId.isNullOrEmpty()) {
-            networkManager.apiService.submitStudyCognitiveTestResponse(activeStudyId, toPush)
+        val studyId = answer.studyId
+        return if (!studyId.isNullOrEmpty()) {
+            networkManager.apiService.submitStudyCognitiveTestResponse(studyId, toPush)
         } else {
             networkManager.apiService.submitCognitiveTestResponse(toPush)
         }

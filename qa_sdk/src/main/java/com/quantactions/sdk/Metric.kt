@@ -12,9 +12,15 @@
 package com.quantactions.sdk
 
 import androidx.annotation.Keep
+import com.hadiyarajesh.flower_core.ApiEmptyResponse
+import com.hadiyarajesh.flower_core.ApiErrorResponse
 import com.hadiyarajesh.flower_core.ApiResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.quantactions.sdk.data.api.ApiService
+import com.quantactions.sdk.data.api.adapters.prepareOneMonthOfMetric
+import com.quantactions.sdk.data.api.adapters.prepareOneMonthOfSleepMetric
+import com.quantactions.sdk.data.api.adapters.prepareOneMonthOfStringMetric
+import com.quantactions.sdk.data.api.responses.StatisticResponse
 import com.quantactions.sdk.data.entity.SleepSummaryEntity
 import com.quantactions.sdk.data.entity.StatisticEntity
 import com.quantactions.sdk.data.entity.StatisticStringEntity
@@ -23,7 +29,6 @@ import com.quantactions.sdk.data.model.ScreenTimeAggregate
 import com.quantactions.sdk.data.model.SleepSummary
 import com.quantactions.sdk.data.local.MVPDao
 import com.quantactions.sdk.data.parseZoneId
-import com.quantactions.sdk.data.stringify
 import kotlinx.coroutines.flow.Flow
 import java.time.Instant
 import java.time.ZoneId
@@ -138,7 +143,8 @@ sealed class Metric<P : TimestampedEntity, T>(
             from: String,
             to: String,
         ): ApiResponse<List<SleepSummaryEntity>> {
-            return apiService.getStatSleepSummaryEntity(participationId, code.container(), code, from, to)
+            return apiService.getAnalyses(participationId, code, from, to)
+                .mapAnalyses(::prepareOneMonthOfSleepMetric)
         }
 
         override fun insertOrUpdateMetric(mvpDao: MVPDao, statistics: List<SleepSummaryEntity>) {
@@ -232,7 +238,8 @@ sealed class Metric<P : TimestampedEntity, T>(
             from: String,
             to: String,
         ): ApiResponse<List<StatisticStringEntity>> {
-            return apiService.getStatStatisticStringEntity(participationId, code.container(), code, from, to)
+            return apiService.getAnalyses(participationId, code, from, to)
+                .mapAnalyses(::prepareOneMonthOfStringMetric)
         }
 
         override fun insertOrUpdateMetric(mvpDao: MVPDao, statistics: List<StatisticStringEntity>) {
@@ -473,7 +480,8 @@ sealed class Metric<P : TimestampedEntity, T>(
             from: String,
             to: String,
         ): ApiResponse<List<StatisticEntity>> {
-            return apiService.getStatStatisticEntity(participationId, code.container(), code, from, to)
+            return apiService.getAnalyses(participationId, code, from, to)
+                .mapAnalyses(::prepareOneMonthOfMetric)
         }
 
         override fun insertOrUpdateMetric(mvpDao: MVPDao, statistics: List<StatisticEntity>) {
@@ -599,7 +607,8 @@ sealed class Metric<P : TimestampedEntity, T>(
             from: String,
             to: String,
         ): ApiResponse<List<StatisticEntity>> {
-            return apiService.getStatStatisticEntity(participationId, code.container(), code, from, to)
+            return apiService.getAnalyses(participationId, code, from, to)
+                .mapAnalyses(::prepareOneMonthOfMetric)
         }
 
         override fun insertOrUpdateMetric(mvpDao: MVPDao, statistics: List<StatisticEntity>) {
@@ -640,38 +649,64 @@ sealed class Metric<P : TimestampedEntity, T>(
         }
     }
 
+    @Keep
+    companion object {
+        internal val metricsWithHealthyRanges: List<DoubleMetricV2>
+            get() = listOf(
+                BEHAVIOURAL_AGE,
+                ACTION_SPEED,
+                TYPING_SPEED,
+                COGNITIVE_FITNESS,
+                SLEEP_SCORE,
+                SOCIAL_ENGAGEMENT,
+                SOCIAL_TAPS
+            )
 
-}
-
-/**
- * @suppress
- */
-fun String.container(): String {
-    return this.split("-").first()
-}
-
-/**
- * @suppress
- */
-fun prepareFilter(code: String, from: String, to: String): String {
-
-    val filter = mutableMapOf<String, Any>()
-    filter["where"] = mutableMapOf<String, Any>().apply {
-        put("code", code)
-        put("start", from)
-        put("end", to)
+        /**
+         * Fetches and caches healthy normative population ranges for all supported metrics in a single batched API call.
+         */
+        suspend fun cacheAllHealthyRanges(
+            apiService: ApiService,
+            managePref2: GenericPreferences
+        ) {
+            val metricsByCode = metricsWithHealthyRanges.associateBy { it.code }
+            val codesCsv = metricsByCode.keys.joinToString(",")
+            when (val rangesResponse = apiService.getHealthyRanges(codes = codesCsv)) {
+                is ApiSuccessResponse -> {
+                    val returnedByCode = rangesResponse.body.orEmpty().associateBy { it.code }
+                    metricsByCode.forEach { (code, metric) ->
+                        val returned = returnedByCode[code]
+                        if (returned != null) {
+                            metric.range = returned.ranges
+                            managePref2.saveHealthyRanges(code, returned.ranges)
+                        } else {
+                            metric.range = managePref2.getHealthyRanges(code)
+                        }
+                    }
+                }
+                else -> {
+                    metricsByCode.forEach { (code, metric) ->
+                        metric.range = managePref2.getHealthyRanges(code)
+                    }
+                }
+            }
+        }
     }
-    filter["limit"] = 1000
-    return filter.stringify()
+
 }
 
-fun prepareFilterCode(code: String): String {
-
-    val filter = mutableMapOf<String, Any>()
-    filter["where"] = mutableMapOf<String, Any>().apply {
-        put("code", code)
-    }
-    return filter.stringify()
+internal fun <R> ApiResponse<List<StatisticResponse>>.mapAnalyses(
+    transform: (StatisticResponse) -> List<R>
+): ApiResponse<List<R>> = when (this) {
+    is ApiSuccessResponse -> ApiSuccessResponse(
+        body = body?.flatMap(transform) ?: emptyList(),
+        headers = headers
+    )
+    is ApiEmptyResponse -> ApiEmptyResponse()
+    is ApiErrorResponse -> ApiErrorResponse(
+        errorMessage = errorMessage,
+        httpStatusCode = httpStatusCode
+    )
 }
 
 /**

@@ -34,7 +34,7 @@ internal class IdentityRepository(
     val password: String get() = preferences.password
 
     suspend fun checkRegisteredStatus(): Boolean {
-        if (preferences.areCredentialsRegistered && preferences.isOauthActivated) {
+        if (preferences.areCredentialsRegistered && !preferences.accessToken.isNullOrEmpty()) {
             Timber.d("Identity is registered -> I continue")
             return true
         }
@@ -43,14 +43,12 @@ internal class IdentityRepository(
 
         val tokenApi = networkManager.tokenApi
 
-        if (preferences.areCredentialsRegistered && !preferences.isOauthActivated) {
+        if (preferences.areCredentialsRegistered) {
             return when (val response = tokenApi.login(getBasicAuthHeader(preferences))) {
                 is ApiEmptyResponse -> {
-                    preferences.isOauthActivated = true
                     true
                 }
                 is ApiSuccessResponse -> {
-                    preferences.isOauthActivated = true
                     if (!response.body?.accessToken.isNullOrEmpty()) {
                         preferences.saveAccessTokens(
                             accessToken = response.body?.accessToken,
@@ -77,7 +75,6 @@ internal class IdentityRepository(
         when (val response = tokenApi.registerIdentity(identityRegistration)) {
             is ApiSuccessResponse -> {
                 preferences.areCredentialsRegistered = true
-                preferences.isOauthActivated = true
                 if (!response.body?.accessToken.isNullOrEmpty()) {
                     preferences.saveAccessTokens(
                         accessToken = response.body?.accessToken,
@@ -87,12 +84,19 @@ internal class IdentityRepository(
             }
             is ApiEmptyResponse -> {
                 preferences.areCredentialsRegistered = true
-                preferences.isOauthActivated = true
             }
             is ApiErrorResponse -> {
                 if (response.httpStatusCode == 409) {
                     preferences.areCredentialsRegistered = true
-                    preferences.isOauthActivated = true
+                    if (preferences.accessToken.isNullOrEmpty()) {
+                        val loginRes = tokenApi.login(getBasicAuthHeader(preferences))
+                        if (loginRes is ApiSuccessResponse && !loginRes.body?.accessToken.isNullOrEmpty()) {
+                            preferences.saveAccessTokens(
+                                accessToken = loginRes.body?.accessToken,
+                                refreshToken = loginRes.body?.refreshToken
+                            )
+                        }
+                    }
                 } else {
                     Timber.e("CheckRegisteredStatus : $response")
                     return false
@@ -117,10 +121,7 @@ internal class IdentityRepository(
 
     suspend fun updateOldPassword(newPassword: String): ApiResponse<TokenApi.Identity> {
         return networkManager.apiService.patchCredentials(
-            identityId,
-            identityId,
             ApiService.CredentialsRegistration(
-                identityId = identityId,
                 password = newPassword,
             )
         )

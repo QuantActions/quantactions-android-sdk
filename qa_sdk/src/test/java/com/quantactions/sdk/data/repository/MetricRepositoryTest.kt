@@ -81,11 +81,7 @@ class MetricRepositoryTest {
         mvpDao = database.mvpDao()
 
         val customMoshi = Moshi.Builder()
-            .add(StatisticAdapter())
-            .add(StatisticStringAdapter())
-            .add(SleepSummaryAdapter())
             .add(QuestionnaireAdapter())
-            .add(TrendAdapter())
             .add(KotlinJsonAdapterFactory())
             .build()
 
@@ -346,6 +342,54 @@ class MetricRepositoryTest {
         assertEquals("2026-03", recordedRequest.requestUrl?.queryParameter("start"))
         assertEquals("2026-04", recordedRequest.requestUrl?.queryParameter("end"))
         assertEquals(Metric.SLEEP_SCORE.code, recordedRequest.requestUrl?.queryParameter("code"))
-        assertEquals("003", recordedRequest.requestUrl?.queryParameter("containerId"))
+        assertEquals(null, recordedRequest.requestUrl?.queryParameter("containerId"))
+    }
+
+    @Test
+    fun testCacheAllHealthyRangesBatchesAllCodesInSingleRequest() = runTest {
+        val preferences: com.quantactions.sdk.GenericPreferences = mockk(relaxed = true)
+        every { preferences.getHealthyRanges(any()) } returns com.quantactions.sdk.PopulationRange()
+
+        val batchResponseJson = """
+            [
+                {
+                    "id": "003-001-001-002",
+                    "code": "003-001-001-002",
+                    "ranges": {
+                        "lower": {"0": 0.25},
+                        "median": {"0": 0.50},
+                        "upper": {"0": 0.75}
+                    }
+                },
+                {
+                    "id": "003-001-001-003",
+                    "code": "003-001-001-003",
+                    "ranges": {
+                        "lower": {"0": 0.30},
+                        "median": {"0": 0.60},
+                        "upper": {"0": 0.85}
+                    }
+                }
+            ]
+        """.trimIndent()
+
+        mockWebServer.enqueue(
+            MockResponse()
+                .setResponseCode(HttpURLConnection.HTTP_OK)
+                .setBody(batchResponseJson)
+        )
+
+        Metric.cacheAllHealthyRanges(apiService, preferences)
+
+        assertEquals(1, mockWebServer.requestCount)
+        val recordedRequest = mockWebServer.takeRequest()
+        assertEquals("GET", recordedRequest.method)
+        val codesParam = recordedRequest.requestUrl?.queryParameter("codes")
+        assertNotNull(codesParam)
+        assertTrue(codesParam!!.contains(Metric.SLEEP_SCORE.code))
+        assertTrue(codesParam.contains(Metric.COGNITIVE_FITNESS.code))
+        assertTrue(codesParam.contains(Metric.SOCIAL_ENGAGEMENT.code))
+        io.mockk.verify { preferences.saveHealthyRanges(Metric.SLEEP_SCORE.code, any()) }
+        io.mockk.verify { preferences.saveHealthyRanges(Metric.COGNITIVE_FITNESS.code, any()) }
     }
 }

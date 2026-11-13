@@ -54,10 +54,11 @@ open class DotMemoryTestViewModel @Inject constructor(
         response: DotMemoryTestResponse,
         timestamp: Long = System.currentTimeMillis(),
         localTime: String = LocalTime.now().toString(),
+        studyId: String? = null
     ) {
         withContext(Dispatchers.Default) {
             _saving.value = true
-            qa.saveCognitiveTestResult(CognitiveTest.DotMemory, response, timestamp, localTime)
+            qa.saveCognitiveTestResult(CognitiveTest.DotMemory, response, timestamp, localTime, studyId)
             _saving.value = false
         }
     }

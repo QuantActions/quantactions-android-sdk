@@ -26,8 +26,8 @@ interface CognitiveTestDao {
     @Query("SELECT * FROM cognitive_test_results")
     suspend fun getAllResults(): List<CognitiveTestEntity>
 
-    @Query("SELECT * FROM cognitive_test_results WHERE testType = :testType")
-    fun getResultsForType(testType: String): Flow<List<CognitiveTestEntity>>
+    @Query("SELECT * FROM cognitive_test_results WHERE testType = :testType AND (:studyId IS NULL OR studyId = :studyId)")
+    fun getResultsForType(testType: String, studyId: String? = null): Flow<List<CognitiveTestEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdateCognitiveTestResult(action: CognitiveTestEntity): Long
