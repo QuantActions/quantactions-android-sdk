@@ -524,7 +524,12 @@ internal class Actuator private constructor() {
         // I save in the database the name of all the Apps used. In this way I can save in the file
         // only the code of the app and add the name corresponding to the code to the HEADER of the Data sent
         // This is just a way to compress the recordings data.
-        return mvpDao.insertOrUpdateAppCode(listOf(CodeOfApp(0, appName, 0)))[0].toInt()
+        val codeOfApp = if (appName == "NULL") {
+            CodeOfApp(0, appName, sync = 1, category = "UNKNOWN")
+        } else {
+            CodeOfApp(0, appName, sync = 0)
+        }
+        return mvpDao.insertOrUpdateAppCode(listOf(codeOfApp))[0].toInt()
     }
 
     private inner class CustomTouchView  // This is the special view that listen for all the taps happening on the screen.

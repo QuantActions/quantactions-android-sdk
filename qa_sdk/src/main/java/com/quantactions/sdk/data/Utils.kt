@@ -28,7 +28,7 @@ fun getAuthHeader(preferences: ManagePref2): Map<String, String> {
         encryptedBasic.toByteArray(Charset.forName("UTF-8")),
         Base64.NO_WRAP
     )
-    return mapOf("x-authorization" to "basic $base64Basic")
+    return mapOf("Authorization" to "Basic $base64Basic")
 }
 
 /**

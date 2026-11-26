@@ -16,6 +16,7 @@ import com.hadiyarajesh.flower_core.ApiResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.quantactions.sdk.ManagePref2
 import com.quantactions.sdk.TapsStats
+import com.quantactions.sdk.data.api.ApiService
 import com.quantactions.sdk.data.api.NetworkManager
 import com.quantactions.sdk.data.api.responses.RegistrationResponse
 import com.quantactions.sdk.data.entity.ActivityTransitionEntity
@@ -51,20 +52,16 @@ internal class DeviceRepository(
     private val packageName: String = context.packageName
     private val firebaseToken: String get() = preferences.getFBCode()
 
-    suspend fun registerUser(coreDeviceSpecificationId: String): ApiResponse<RegistrationResponse> {
+    suspend fun registerUser(coreDeviceSpecificationId: String? = null): ApiResponse<RegistrationResponse> {
         val deviceRegistration = DeviceRegistration(
-            deviceSpecificationId = coreDeviceSpecificationId,
+            deviceSpecificationId = coreDeviceSpecificationId?.takeIf { it.isNotEmpty() },
             enableAppIdAccess = preferences.canUsage(context),
             enableDrawOverAccess = preferences.canDraw(context),
             enableLocationAccess = preferences.canActivity(context),
             firebaseTokenId = firebaseToken,
             packageUsingSdk = packageName
         )
-        return networkManager.apiService.registerDevice(identityRepository.identityId, deviceRegistration)
-    }
-
-    suspend fun registerDeviceSpecifications(): ApiResponse<DeviceSpecificationsResponse> {
-        return networkManager.apiService.registerDeviceSpecifications(identityRepository.identityId, DeviceSpecifications())
+        return networkManager.apiService.registerDevice(deviceRegistration)
     }
 
     suspend fun updateDeviceInfo(): ApiResponse<DeviceRegistration> {
@@ -75,12 +72,11 @@ internal class DeviceRepository(
             firebaseTokenId = firebaseToken,
             packageUsingSdk = packageName
         )
-        return networkManager.apiService.updateDevice(identityRepository.identityId, identityRepository.deviceID, deviceInfo)
+        return networkManager.apiService.updateDevice(identityRepository.deviceID, deviceInfo)
     }
 
     suspend fun submitStatistic(deviceStats: DeviceStats? = null): ApiResponse<DeviceStatsResponse> {
         return networkManager.apiService.submitStatistic(
-            identityRepository.identityId,
             identityRepository.deviceID,
             deviceStats ?: TapsStats(mvpDao).toDeviceStats()
         )
@@ -88,7 +84,6 @@ internal class DeviceRepository(
 
     suspend fun submitNote(note: String, fakeDeviceID: String? = null) {
         val apiResponse = networkManager.apiService.submitNote(
-            fakeDeviceID ?: identityRepository.identityId,
             Note(note)
         )
         when (apiResponse) {
@@ -99,26 +94,26 @@ internal class DeviceRepository(
     }
 
     suspend fun updateAppList(listOfApps: List<AppToPush>): ApiResponse<List<AppWithCategory>> {
-        return networkManager.apiService.updateAppList(identityRepository.identityId, identityRepository.deviceID, listOfApps)
+        return networkManager.apiService.updateAppList(identityRepository.deviceID, listOfApps)
     }
 
-    suspend fun submitActivity(activityBody: ActivityBody): ApiResponse<ActivityBody> {
-        return networkManager.apiService.submitActivity(identityRepository.identityId, identityRepository.deviceID, activityBody)
+    suspend fun submitActivity(activityBody: ActivityBody): ApiResponse<ApiService.RecordingIngestResponse> {
+        return networkManager.apiService.submitActivity(identityRepository.deviceID, activityBody)
     }
 
-    suspend fun submitTapDataParsed(tapDataBody: TapDataBody): ApiResponse<TapDataBody> {
-        return networkManager.apiService.submitTap(identityRepository.identityId, identityRepository.deviceID, tapDataBody)
+    suspend fun submitTapDataParsed(tapDataBody: TapDataBody): ApiResponse<ApiService.RecordingIngestResponse> {
+        return networkManager.apiService.submitTap(identityRepository.deviceID, tapDataBody)
     }
 
-    suspend fun submitHealthDataParsed(healthDataBody: HealthDataBody): ApiResponse<HealthDataBody> {
-        return networkManager.apiService.submitHealth(identityRepository.identityId, identityRepository.deviceID, healthDataBody)
+    suspend fun submitHealthDataParsed(healthDataBody: HealthDataBody): ApiResponse<ApiService.RecordingIngestResponse> {
+        return networkManager.apiService.submitHealth(identityRepository.deviceID, healthDataBody)
     }
 
     fun setDeviceId(id: String) { preferences.deviceID = id }
     fun saveDeviceSpecificationsId(id: String) { preferences.deviceSpecificationsId = id }
 
     suspend fun getConnectedDevices(): List<String> {
-        return when (val response = networkManager.apiService.getConnectedDevices(identityRepository.identityId)) {
+        return when (val response = networkManager.apiService.getConnectedDevices()) {
             is ApiSuccessResponse -> response.body?.map { it.id } ?: listOf()
             else -> listOf()
         }

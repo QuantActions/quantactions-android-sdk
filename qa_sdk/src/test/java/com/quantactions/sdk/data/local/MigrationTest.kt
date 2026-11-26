@@ -57,4 +57,28 @@ class MigrationTest {
         assert(cursor.getString(categoryIndex) == null) { "New category column should be null by default" }
         cursor.close()
     }
+
+    @Test
+    fun migrate13To14() {
+        var db = helper.createDatabase(TEST_DB, 13)
+        db.execSQL(
+            "INSERT INTO cognitive_test_results (id, testType, results, timestamp, localTime, sync) " +
+                    "VALUES (1, 'PVT', '{}', 1700000000, '2026-01-01T00:00:00Z', 0)"
+        )
+        db.close()
+
+        db = helper.runMigrationsAndValidate(
+            TEST_DB,
+            14,
+            true,
+            MIGRATION_13_14
+        )
+
+        val cursor = db.query("SELECT * FROM cognitive_test_results WHERE id = 1")
+        assert(cursor.moveToFirst())
+        val studyIdIndex = cursor.getColumnIndex("studyId")
+        assert(studyIdIndex != -1) { "Column 'studyId' should exist in version 14" }
+        assert(cursor.getString(studyIdIndex) == null) { "New studyId column should be null by default" }
+        cursor.close()
+    }
 }

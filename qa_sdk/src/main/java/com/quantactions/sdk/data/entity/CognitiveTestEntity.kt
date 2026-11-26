@@ -25,6 +25,7 @@ data class CognitiveTestEntity(
     val timestamp: Long,
     val localTime: String,
     val sync: Int,
+    val studyId: String? = null,
 ){
     companion object {
         fun <T>toBody(cognitiveTestEntity: CognitiveTestEntity, cognitiveTest: CognitiveTest<T>): CognitiveTestResponseBody {

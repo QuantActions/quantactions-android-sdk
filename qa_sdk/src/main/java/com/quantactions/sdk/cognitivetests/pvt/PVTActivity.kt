@@ -163,7 +163,8 @@ class PVTActivity : ComponentActivity() {
             viewModel.saveResponse(
                 res,
                 timestamp = System.currentTimeMillis(),
-                localTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"))
+                localTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")),
+                studyId = intent.getStringExtra("studyId")
             )
             runOnUiThread {
                 isSaved = true

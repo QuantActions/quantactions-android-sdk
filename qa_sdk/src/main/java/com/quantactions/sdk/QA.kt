@@ -623,20 +623,29 @@ class QA private constructor(
         testType: CognitiveTest<T>,
         testResult: T,
         timestamp: Long = System.currentTimeMillis(),
-        localTime: String = Instant.now().toString()
+        localTime: String = Instant.now().toString(),
+        studyId: String? = null
     ) {
-        qaPrivate.saveCognitiveTestResult(testType, testResult, timestamp, localTime)
+        qaPrivate.saveCognitiveTestResult(testType, testResult, timestamp, localTime, studyId)
     }
 
-    fun <T>getCognitiveTestResults(testType: CognitiveTest<T>): Flow<List<CognitiveTestResult<T>>> {
-        return qaPrivate.getCognitiveTestResults(testType)
+    fun <T>getCognitiveTestResults(
+        testType: CognitiveTest<T>,
+        studyId: String? = null
+    ): Flow<List<CognitiveTestResult<T>>> {
+        return qaPrivate.getCognitiveTestResults(testType, studyId)
     }
 
-    fun <T>startCognitiveTest(context: Context, cognitiveTest: CognitiveTest<T>) {
+    fun <T>startCognitiveTest(
+        context: Context,
+        cognitiveTest: CognitiveTest<T>,
+        studyId: String? = null
+    ) {
         when (cognitiveTest) {
             CognitiveTest.PVT -> {
                 val intent = Intent(context, PVTActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    studyId?.let { putExtra("studyId", it) }
                 }
                 context.startActivity(intent)
             }
@@ -644,6 +653,7 @@ class QA private constructor(
             CognitiveTest.DotMemory -> {
                 val intent = Intent(context, DotMemoryTestActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    studyId?.let { putExtra("studyId", it) }
                 }
                 context.startActivity(intent)
             }

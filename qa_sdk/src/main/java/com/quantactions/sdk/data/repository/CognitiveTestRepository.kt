@@ -35,17 +35,21 @@ import timber.log.Timber
 internal class CognitiveTestRepository(
     private val identityRepository: IdentityRepository,
     private val networkManager: NetworkManager,
-    private val cognitiveTestDao: CognitiveTestDao
+    private val cognitiveTestDao: CognitiveTestDao,
 ) {
-    fun <T> getCognitiveTestResults(testType: CognitiveTest<T>): Flow<List<CognitiveTestResult<T>>> {
+    fun <T> getCognitiveTestResults(
+        testType: CognitiveTest<T>,
+        studyId: String? = null
+    ): Flow<List<CognitiveTestResult<T>>> {
         val gson = Gson()
-        return cognitiveTestDao.getResultsForType(testType.id).map { entities ->
+        return cognitiveTestDao.getResultsForType(testType.id, studyId).map { entities ->
             entities.map { entity ->
                 CognitiveTestResult(
                     cognitiveTest = testType.id,
                     result = testType.parseResult(entity.results, gson),
                     timestamp = entity.timestamp,
-                    localTime = entity.localTime
+                    localTime = entity.localTime,
+                    studyId = entity.studyId
                 )
             }
         }.flowOn(Dispatchers.IO)
@@ -57,10 +61,13 @@ internal class CognitiveTestRepository(
     ) {
         val idToDelete = cognitiveTestDao.insertOrUpdateCognitiveTestResult(answer)
         val toPush = CognitiveTestEntity.toBody(answer, cognitiveTest)
+        val studyId = answer.studyId
 
-        val apiResponse = networkManager.apiService.submitCognitiveTestResponse(
-            identityRepository.identityId, toPush
-        )
+        val apiResponse = if (!studyId.isNullOrEmpty()) {
+            networkManager.apiService.submitStudyCognitiveTestResponse(studyId, toPush)
+        } else {
+            networkManager.apiService.submitCognitiveTestResponse(toPush)
+        }
 
         when (apiResponse) {
             is ApiSuccessResponse -> {
@@ -82,9 +89,12 @@ internal class CognitiveTestRepository(
         answer: CognitiveTestEntity
     ): ApiResponse<ApiService.IdResponse> {
         val toPush = CognitiveTestEntity.toBody(answer, cognitiveTest)
-        return networkManager.apiService.submitCognitiveTestResponse(
-            identityRepository.identityId, toPush
-        )
+        val studyId = answer.studyId
+        return if (!studyId.isNullOrEmpty()) {
+            networkManager.apiService.submitStudyCognitiveTestResponse(studyId, toPush)
+        } else {
+            networkManager.apiService.submitCognitiveTestResponse(toPush)
+        }
     }
 
     fun setCognitiveTestSyncStatusTo1(answer: CognitiveTestEntity) {

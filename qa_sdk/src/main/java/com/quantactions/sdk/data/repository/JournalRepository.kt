@@ -71,7 +71,7 @@ internal class JournalRepository(
     }
 
     suspend fun cacheJournalEvents() {
-        when (val response = networkManager.apiService.getJournalEventTypes(identityRepository.identityId, "{}")) {
+        when (val response = networkManager.apiService.getJournalEventTypes()) {
             is ApiSuccessResponse -> mvpDao.insertOrUpdateEvents(response.body!!)
             else -> Timber.e("Failed to cache journal events")
         }
@@ -100,7 +100,7 @@ internal class JournalRepository(
 
         mvpDao.insertOrUpdateEntry(journalEntryEntity)
 
-        val journalEntryToReturn = when (val response = networkManager.apiService.journalEntrySubmit(identityId, journalEntryBody)) {
+        val journalEntryToReturn = when (val response = networkManager.apiService.journalEntrySubmit(journalEntryBody)) {
             is ApiSuccessResponse -> {
                 mvpDao.updateJournalEntry(newJournalEntryId, 1)
                 journalEntry.copy(id = newJournalEntryId)
@@ -125,7 +125,7 @@ internal class JournalRepository(
     }
 
     suspend fun submitJournalEvents(journalEntryId: String, events: List<JournalEventBody>) {
-        when (val response = networkManager.apiService.journalEventsSubmit(identityRepository.identityId, journalEntryId, events)) {
+        when (val response = networkManager.apiService.journalEventsSubmit(journalEntryId, events)) {
             is ApiSuccessResponse -> response.body?.forEach { eventResponse ->
                 mvpDao.updateJournalEntryJoinsJournalEvent(eventResponse.id, journalEntryId, eventResponse.journalId)
             }
@@ -135,7 +135,7 @@ internal class JournalRepository(
 
     suspend fun deleteJournalEntry(id: String) {
         mvpDao.deleteJournalEntry(id)
-        when (val response = networkManager.apiService.journalEntryDelete(identityRepository.identityId, id)) {
+        when (val response = networkManager.apiService.journalEntryDelete(id)) {
             is ApiSuccessResponse, is ApiEmptyResponse -> {
                 mvpDao.updateJournalEntry(id, 1)
             }
@@ -170,13 +170,13 @@ internal class JournalRepository(
     }
 
     suspend fun journalEntrySubmit(body: JournalEntryBody): ApiResponse<JournalEntriesResponse> =
-        networkManager.apiService.journalEntrySubmit(identityRepository.identityId, body)
+        networkManager.apiService.journalEntrySubmit(body)
 
     suspend fun journalEventsSubmit(journalEntryId: String, events: List<JournalEventBody>): ApiResponse<List<JournalEventEnterResponse>> =
-        networkManager.apiService.journalEventsSubmit(identityRepository.identityId, journalEntryId, events)
+        networkManager.apiService.journalEventsSubmit(journalEntryId, events)
 
     suspend fun simplyDeleteJournalEntry(journalId: String): ApiResponse<String> {
-        return networkManager.apiService.journalEntryDelete(identityRepository.identityId, journalId)
+        return networkManager.apiService.journalEntryDelete(journalId)
     }
 
     fun deleteJournalEvent(entryId: String, eventId: String) {

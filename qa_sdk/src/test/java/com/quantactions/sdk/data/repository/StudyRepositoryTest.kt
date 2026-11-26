@@ -87,11 +87,7 @@ class StudyRepositoryTest {
         mvpDao = database.mvpDao()
 
         val customMoshi = Moshi.Builder()
-            .add(StatisticAdapter())
-            .add(StatisticStringAdapter())
-            .add(SleepSummaryAdapter())
             .add(QuestionnaireAdapter())
-            .add(TrendAdapter())
             .add(KotlinJsonAdapterFactory())
             .build()
 
@@ -391,5 +387,36 @@ class StudyRepositoryTest {
             thrown = true
         }
         assertTrue(thrown)
+    }
+
+    @Test
+    fun testCognitiveTestRepositorySubmitsToStudyEndpointWhenStudyIdProvided() = runTest {
+        mockWebServer.enqueue(
+            MockResponse()
+                .setResponseCode(HttpURLConnection.HTTP_OK)
+                .setBody("""{"id": "cog_resp_1"}""")
+        )
+
+        val cognitiveRepo = CognitiveTestRepository(
+            identityRepository = identityRepository,
+            networkManager = networkManager,
+            cognitiveTestDao = database.cognitiveTestDao()
+        )
+
+        val entity = com.quantactions.sdk.data.entity.CognitiveTestEntity(
+            testType = com.quantactions.sdk.cognitivetests.CognitiveTest.PVT.id,
+            results = """{"reactionTimes":[250,270],"lapses":0,"falseStarts":0}""",
+            timestamp = 1700000000L,
+            localTime = "2026-01-01T10:00:00Z",
+            sync = 0,
+            studyId = "study_cog_1"
+        )
+
+        cognitiveRepo.submitCognitiveTestResponse(com.quantactions.sdk.cognitivetests.CognitiveTest.PVT, entity)
+
+        val recordedRequest = mockWebServer.takeRequest()
+        assertEquals("POST", recordedRequest.method)
+        assertEquals("/studies/study_cog_1/cognitivetests", recordedRequest.path)
+        assertEquals(0, cognitiveRepo.getPendingCognitiveTests().size)
     }
 }

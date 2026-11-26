@@ -81,11 +81,7 @@ class MetricRepositoryTest {
         mvpDao = database.mvpDao()
 
         val customMoshi = Moshi.Builder()
-            .add(StatisticAdapter())
-            .add(StatisticStringAdapter())
-            .add(SleepSummaryAdapter())
             .add(QuestionnaireAdapter())
-            .add(TrendAdapter())
             .add(KotlinJsonAdapterFactory())
             .build()
 
@@ -260,5 +256,140 @@ class MetricRepositoryTest {
         val result = flow.first()
         assertNotNull(result)
         assertEquals(77.0, result.values.first(), 0.001)
+    }
+
+    @Test
+    fun testGetStatChecksLatestTimestampFor3HourCacheTtlAndNotOldest() = runTest {
+        val nowSec = Instant.now().epochSecond
+        val oldStat = StatisticEntity(
+            id = "old_stat",
+            stat = Metric.SLEEP_SCORE.code,
+            timestamp = nowSec - 10 * 86400, // 10 days ago (> 3 hours old)
+            value = 70.0,
+            timeZone = "UTC",
+            reset = 0,
+            confidenceIntervalLow = 65.0,
+            confidenceIntervalHigh = 75.0,
+            confidence = 0.9
+        )
+        val freshStat = StatisticEntity(
+            id = "fresh_stat",
+            stat = Metric.SLEEP_SCORE.code,
+            timestamp = nowSec - 1800, // 30 minutes ago (< 3 hours old)
+            value = 85.0,
+            timeZone = "UTC",
+            reset = 0,
+            confidenceIntervalLow = 80.0,
+            confidenceIntervalHigh = 90.0,
+            confidence = 0.95
+        )
+        mvpDao.insertOrUpdateMetric(listOf(oldStat, freshStat))
+
+        val flow = metricRepository.getStat(
+            metricOrTrend = Metric.SLEEP_SCORE,
+            iamParticipationId = "test_participation_123",
+            from = (nowSec - 15 * 86400) * 1000,
+            to = (nowSec + 3600) * 1000,
+            refresh = false
+        )
+
+        val result = flow.first()
+        assertEquals(2, result.values.size)
+        // Because the newest entry is only 30 minutes old (< 3 hours), no network request should be made
+        assertEquals(0, mockWebServer.requestCount)
+    }
+
+    @Test
+    fun testGetStatUsesIncrementalMonthlyDeltaSyncWhenStaleCacheExists() = runTest {
+        val staleJanInstant = java.time.ZonedDateTime.parse("2026-03-10T00:00:00.000Z").toInstant()
+        val fromJanInstant = java.time.ZonedDateTime.parse("2026-01-01T00:00:00.000Z").toInstant()
+        val toAprInstant = java.time.ZonedDateTime.parse("2026-04-15T00:00:00.000Z").toInstant()
+
+        mvpDao.insertOrUpdateMetric(
+            listOf(
+                StatisticEntity(
+                    id = "cached_march",
+                    stat = Metric.SLEEP_SCORE.code,
+                    timestamp = staleJanInstant.epochSecond,
+                    value = 78.0,
+                    timeZone = "UTC",
+                    reset = 0,
+                    confidenceIntervalLow = 72.0,
+                    confidenceIntervalHigh = 84.0,
+                    confidence = 0.9
+                )
+            )
+        )
+
+        mockWebServer.enqueue(
+            MockResponse()
+                .setResponseCode(HttpURLConnection.HTTP_OK)
+                .setBody("[]")
+        )
+
+        val flow = metricRepository.getStat(
+            metricOrTrend = Metric.SLEEP_SCORE,
+            iamParticipationId = "test_participation_123",
+            from = fromJanInstant.toEpochMilli(),
+            to = toAprInstant.toEpochMilli(),
+            refresh = false
+        )
+
+        flow.first()
+
+        val recordedRequest = mockWebServer.takeRequest()
+        assertEquals("GET", recordedRequest.method)
+        assertEquals("2026-03", recordedRequest.requestUrl?.queryParameter("start"))
+        assertEquals("2026-04", recordedRequest.requestUrl?.queryParameter("end"))
+        assertEquals(Metric.SLEEP_SCORE.code, recordedRequest.requestUrl?.queryParameter("code"))
+        assertEquals(null, recordedRequest.requestUrl?.queryParameter("containerId"))
+    }
+
+    @Test
+    fun testCacheAllHealthyRangesBatchesAllCodesInSingleRequest() = runTest {
+        val preferences: com.quantactions.sdk.GenericPreferences = mockk(relaxed = true)
+        every { preferences.getHealthyRanges(any()) } returns com.quantactions.sdk.PopulationRange()
+
+        val batchResponseJson = """
+            [
+                {
+                    "id": "003-001-001-002",
+                    "code": "003-001-001-002",
+                    "ranges": {
+                        "lower": {"0": 0.25},
+                        "median": {"0": 0.50},
+                        "upper": {"0": 0.75}
+                    }
+                },
+                {
+                    "id": "003-001-001-003",
+                    "code": "003-001-001-003",
+                    "ranges": {
+                        "lower": {"0": 0.30},
+                        "median": {"0": 0.60},
+                        "upper": {"0": 0.85}
+                    }
+                }
+            ]
+        """.trimIndent()
+
+        mockWebServer.enqueue(
+            MockResponse()
+                .setResponseCode(HttpURLConnection.HTTP_OK)
+                .setBody(batchResponseJson)
+        )
+
+        Metric.cacheAllHealthyRanges(apiService, preferences)
+
+        assertEquals(1, mockWebServer.requestCount)
+        val recordedRequest = mockWebServer.takeRequest()
+        assertEquals("GET", recordedRequest.method)
+        val codesParam = recordedRequest.requestUrl?.queryParameter("codes")
+        assertNotNull(codesParam)
+        assertTrue(codesParam!!.contains(Metric.SLEEP_SCORE.code))
+        assertTrue(codesParam.contains(Metric.COGNITIVE_FITNESS.code))
+        assertTrue(codesParam.contains(Metric.SOCIAL_ENGAGEMENT.code))
+        io.mockk.verify { preferences.saveHealthyRanges(Metric.SLEEP_SCORE.code, any()) }
+        io.mockk.verify { preferences.saveHealthyRanges(Metric.COGNITIVE_FITNESS.code, any()) }
     }
 }

@@ -31,4 +31,5 @@ class CognitiveTestResult<T>(
     val result: T,
     val timestamp: Long,
     val localTime: String,
+    val studyId: String? = null,
 )

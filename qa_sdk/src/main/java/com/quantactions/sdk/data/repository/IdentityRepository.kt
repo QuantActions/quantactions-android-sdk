@@ -34,7 +34,7 @@ internal class IdentityRepository(
     val password: String get() = preferences.password
 
     suspend fun checkRegisteredStatus(): Boolean {
-        if (preferences.areCredentialsRegistered && preferences.isOauthActivated) {
+        if (preferences.areCredentialsRegistered && !preferences.accessToken.isNullOrEmpty()) {
             Timber.d("Identity is registered -> I continue")
             return true
         }
@@ -43,17 +43,19 @@ internal class IdentityRepository(
 
         val tokenApi = networkManager.tokenApi
 
-        if (preferences.areCredentialsRegistered && !preferences.isOauthActivated) {
-            return when (val response = tokenApi.enableOauth(getBasicAuthHeader(preferences))) {
-                is ApiEmptyResponse, is ApiSuccessResponse -> {
-                    preferences.isOauthActivated = true
-                    when (val response2 = tokenApi.login(getBasicAuthHeader(preferences))) {
-                        is ApiEmptyResponse, is ApiSuccessResponse -> true
-                        is ApiErrorResponse -> {
-                            Timber.e("intercept CheckOauthStatus : $response2")
-                            false
-                        }
+        if (preferences.areCredentialsRegistered) {
+            return when (val response = tokenApi.login(getBasicAuthHeader(preferences))) {
+                is ApiEmptyResponse -> {
+                    true
+                }
+                is ApiSuccessResponse -> {
+                    if (!response.body?.accessToken.isNullOrEmpty()) {
+                        preferences.saveAccessTokens(
+                            accessToken = response.body?.accessToken,
+                            refreshToken = response.body?.refreshToken
+                        )
                     }
+                    true
                 }
                 is ApiErrorResponse -> {
                     Timber.e("intercept CheckOauthStatus : $response")
@@ -71,28 +73,41 @@ internal class IdentityRepository(
         )
 
         when (val response = tokenApi.registerIdentity(identityRegistration)) {
-            is ApiSuccessResponse, is ApiEmptyResponse -> {
+            is ApiSuccessResponse -> {
                 preferences.areCredentialsRegistered = true
-                when (val response2 = tokenApi.enableOauth(getBasicAuthHeader(preferences))) {
-                    is ApiEmptyResponse, is ApiSuccessResponse -> {
-                        preferences.isOauthActivated = true
-                    }
-                    is ApiErrorResponse -> {
-                        Timber.e("intercept CheckOauthStatus : $response2")
-                        return false
-                    }
+                if (!response.body?.accessToken.isNullOrEmpty()) {
+                    preferences.saveAccessTokens(
+                        accessToken = response.body?.accessToken,
+                        refreshToken = response.body?.refreshToken
+                    )
                 }
             }
+            is ApiEmptyResponse -> {
+                preferences.areCredentialsRegistered = true
+            }
             is ApiErrorResponse -> {
-                Timber.e("CheckRegisteredStatus : $response")
-                return false
+                if (response.httpStatusCode == 409) {
+                    preferences.areCredentialsRegistered = true
+                    if (preferences.accessToken.isNullOrEmpty()) {
+                        val loginRes = tokenApi.login(getBasicAuthHeader(preferences))
+                        if (loginRes is ApiSuccessResponse && !loginRes.body?.accessToken.isNullOrEmpty()) {
+                            preferences.saveAccessTokens(
+                                accessToken = loginRes.body?.accessToken,
+                                refreshToken = loginRes.body?.refreshToken
+                            )
+                        }
+                    }
+                } else {
+                    Timber.e("CheckRegisteredStatus : $response")
+                    return false
+                }
             }
         }
         return true
     }
 
     suspend fun linkIdentities(idToLink: String): ApiResponse<TokenApi.Identity> {
-        return networkManager.apiService.linkIdentities(preferences.identityId, ApiService.AuthLinkBody(idToLink))
+        return networkManager.apiService.linkIdentities(ApiService.AuthLinkBody(idToLink))
     }
 
     suspend fun updateIdentity(): ApiResponse<TokenApi.Identity> {
@@ -101,21 +116,19 @@ internal class IdentityRepository(
             yearOfBirth = if (preferences.yearOfBirth >= 1900) preferences.yearOfBirth else null,
             selfDeclaredHealthy = preferences.selfDeclaredHealthy
         )
-        return networkManager.apiService.patchIdentity(preferences.identityId, patch)
+        return networkManager.apiService.patchIdentity(patch)
     }
 
     suspend fun updateOldPassword(newPassword: String): ApiResponse<TokenApi.Identity> {
         return networkManager.apiService.patchCredentials(
-            identityId,
             ApiService.CredentialsRegistration(
-                identityId = identityId,
                 password = newPassword,
             )
         )
     }
 
     suspend fun getIdentity(context: String): TokenApi.Identity {
-        return when (val response = networkManager.apiService.getIdentity(preferences.identityId)) {
+        return when (val response = networkManager.apiService.getIdentity()) {
             is ApiSuccessResponse -> response.body!!
             else -> throw Exception("Failed to get identity for $context")
         }
