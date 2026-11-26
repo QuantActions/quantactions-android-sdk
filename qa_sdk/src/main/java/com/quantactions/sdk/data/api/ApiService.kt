@@ -142,23 +142,35 @@ interface ApiService {
         @Path("deviceSummaryId") deviceSummaryId: String,
     ): ApiResponse<Void>
 
+    @JsonClass(generateAdapter = true)
+    @Serializable
+    data class RecordingIngestResponse(
+        val status: String? = null,
+        val accepted: Int? = null,
+        val deviceId: String? = null,
+        val recordingType: String? = null,
+        val blobKey: String? = null,
+        val recordsIngested: Int? = null,
+        val lastSync: String? = null,
+    )
+
     @POST("devices/{deviceId}/recordings")
     suspend fun submitActivity(
         @Path("deviceId") deviceId: String,
         @Body activityBody: ActivityBody
-    ): ApiResponse<ActivityBody>
+    ): ApiResponse<RecordingIngestResponse>
 
     @POST("devices/{deviceId}/recordings")
     suspend fun submitTap(
         @Path("deviceId") deviceId: String,
         @Body tapHealthDataBody: TapDataBody
-    ): ApiResponse<TapDataBody>
+    ): ApiResponse<RecordingIngestResponse>
 
     @POST("devices/{deviceId}/recordings")
     suspend fun submitHealth(
         @Path("deviceId") deviceId: String,
         @Body tapHealthDataBody: HealthDataBody
-    ): ApiResponse<HealthDataBody>
+    ): ApiResponse<RecordingIngestResponse>
 
     /**
      * Use this endpoint to submit a list of apps with their package name and corresponding ID.
@@ -456,8 +468,8 @@ interface ApiService {
                         .header("Content-Type", "application/json; charset=utf8")
                         .header("x-api-key", apiKey)
                     val accessToken = preferences.accessToken
-                    if (!accessToken.isNullOrEmpty() && original.header("x-authorization") == null) {
-                        requestBuilder.header("x-authorization", "Bearer $accessToken")
+                    if (!accessToken.isNullOrEmpty() && original.header("Authorization") == null) {
+                        requestBuilder.header("Authorization", "Bearer $accessToken")
                     }
                     val request = requestBuilder.build()
                     chain.proceed(request)
@@ -551,7 +563,7 @@ class TokenAuthenticator @Inject constructor(
 
                 // If another concurrent request already refreshed the access token while we waited for the lock, reuse it
                 val currentAccessToken = preferences.accessToken
-                val requestAuthHeader = response.request.header("x-authorization")
+                val requestAuthHeader = response.request.header("Authorization")
                 if (!currentAccessToken.isNullOrEmpty() && requestAuthHeader != null && requestAuthHeader != "Bearer $currentAccessToken") {
                     return@runBlocking buildNewRequestWithAccessToken(response, preferences)
                 }
@@ -674,10 +686,9 @@ class TokenAuthenticator @Inject constructor(
 
     private suspend fun refreshToken(): ApiResponse<TokenApi.AuthResponse> {
         Timber.d("I refresh")
-        val headers = preferences.refreshToken?.takeIf { it.isNotEmpty() }
-            ?.let { mapOf("x-authorization" to "Bearer $it") }
-            ?: emptyMap()
-        val result = tokenApi.refreshToken(headers)
+        val token = preferences.refreshToken?.takeIf { it.isNotEmpty() }
+        val headers = token?.let { mapOf("Authorization" to "Bearer $it") } ?: emptyMap()
+        val result = tokenApi.refreshToken(headers, TokenApi.RefreshTokenBody(refreshToken = token))
         if (result is ApiSuccessResponse && !result.body?.accessToken.isNullOrEmpty()) {
             preferences.saveAccessTokens(
                 accessToken = result.body?.accessToken,
@@ -702,7 +713,7 @@ class TokenAuthenticator @Inject constructor(
 
 private fun buildNewRequestWithAccessToken(response: Response, preferences: GenericPreferences): Request {
     return response.request.newBuilder()
-        .header("x-authorization", "Bearer ${preferences.accessToken ?: ""}")
+        .header("Authorization", "Bearer ${preferences.accessToken ?: ""}")
         .build()
 }
 
@@ -713,6 +724,6 @@ fun getBasicAuthHeader(preferences: GenericPreferences): Map<String, String> {
         encryptedBasic.toByteArray(Charset.forName("UTF-8")),
         Base64.NO_WRAP
     )
-    return mapOf("x-authorization" to "basic $base64Basic")
+    return mapOf("Authorization" to "Basic $base64Basic")
 }
 

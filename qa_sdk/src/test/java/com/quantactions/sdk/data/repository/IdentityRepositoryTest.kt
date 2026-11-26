@@ -145,7 +145,7 @@ class IdentityRepositoryTest {
 
         val request = mockWebServer.takeRequest()
         assertEquals("POST", request.method)
-        assertEquals("/identities", request.path)
+        assertEquals("/auth/register", request.path)
 
         val requestJson = JSONObject(request.body.readUtf8())
         assertFalse("yearOfBirth should not be non-null when yearOfBirth is 0", requestJson.has("yearOfBirth") && !requestJson.isNull("yearOfBirth"))

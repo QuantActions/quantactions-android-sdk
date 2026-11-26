@@ -16,6 +16,7 @@ import com.hadiyarajesh.flower_core.ApiResponse
 import com.hadiyarajesh.flower_core.ApiSuccessResponse
 import com.quantactions.sdk.ManagePref2
 import com.quantactions.sdk.TapsStats
+import com.quantactions.sdk.data.api.ApiService
 import com.quantactions.sdk.data.api.NetworkManager
 import com.quantactions.sdk.data.api.responses.RegistrationResponse
 import com.quantactions.sdk.data.entity.ActivityTransitionEntity
@@ -96,15 +97,15 @@ internal class DeviceRepository(
         return networkManager.apiService.updateAppList(identityRepository.deviceID, listOfApps)
     }
 
-    suspend fun submitActivity(activityBody: ActivityBody): ApiResponse<ActivityBody> {
+    suspend fun submitActivity(activityBody: ActivityBody): ApiResponse<ApiService.RecordingIngestResponse> {
         return networkManager.apiService.submitActivity(identityRepository.deviceID, activityBody)
     }
 
-    suspend fun submitTapDataParsed(tapDataBody: TapDataBody): ApiResponse<TapDataBody> {
+    suspend fun submitTapDataParsed(tapDataBody: TapDataBody): ApiResponse<ApiService.RecordingIngestResponse> {
         return networkManager.apiService.submitTap(identityRepository.deviceID, tapDataBody)
     }
 
-    suspend fun submitHealthDataParsed(healthDataBody: HealthDataBody): ApiResponse<HealthDataBody> {
+    suspend fun submitHealthDataParsed(healthDataBody: HealthDataBody): ApiResponse<ApiService.RecordingIngestResponse> {
         return networkManager.apiService.submitHealth(identityRepository.deviceID, healthDataBody)
     }
 

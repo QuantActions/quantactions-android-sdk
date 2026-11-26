@@ -33,7 +33,7 @@ interface TokenApi {
         @Body passwordResetBody: PasswordResetBody
     ): ApiResponse<Void>
 
-    @POST("identities")
+    @POST("auth/register")
     suspend fun registerIdentity(
         @Body identityRegistrationRequestBody: IdentityRegistration
     ): ApiResponse<AuthResponse>
@@ -43,11 +43,18 @@ interface TokenApi {
 
     @POST("auth/refresh")
     suspend fun refreshToken(
-        @HeaderMap headers: Map<String, String> = emptyMap()
+        @HeaderMap headers: Map<String, String> = emptyMap(),
+        @Body body: RefreshTokenBody = RefreshTokenBody(),
     ): ApiResponse<AuthResponse>
 
     @GET("capabilities")
     suspend fun getCapabilities(): ApiResponse<CapabilitiesResponse>
+
+    @JsonClass(generateAdapter = true)
+    @Serializable
+    data class RefreshTokenBody(
+        val refreshToken: String? = null,
+    )
 
     @JsonClass(generateAdapter = true)
     @Serializable
